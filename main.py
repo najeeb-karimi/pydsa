@@ -3,6 +3,7 @@
 import utility
 import my_array
 import stack
+import queue
 
 
 def main():
@@ -14,6 +15,7 @@ def main():
         choice = input("""\n🏁 Which Linear Data Structure do you want to learn?
 ★1) Array
 ★2) Stack
+★3) Queue
 
 >>> """)
 
@@ -26,6 +28,10 @@ def main():
             # Stack
             case "2":
                 stack.stack_main()
+
+            # Queue
+            case "3":
+                queue.queue_main()
 
             # Invalid
             case _:
