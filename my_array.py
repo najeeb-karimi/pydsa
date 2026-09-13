@@ -48,6 +48,135 @@ class Array:
         """Print the entire array."""
         print(f"\n👉 {self.array}")
 
+    def sort(self):
+        """Sort the array in ascending order using Python's built-in sorted()."""
+        # self.array.sort() would also work, since self.array is a plain list rather than the Array object
+        self.array = sorted(self.array)
+
+    def bubble_sort(self, order):
+        """Sort the array in place using Bubble Sort."""
+        n = len(self.array)
+        for i in range(n):
+            for j in range(0, n - i - 1):
+                if (order == 'asc' and self.array[j] > self.array[j + 1]) or (order == 'desc' and self.array[j] < self.array[j + 1]):
+                    self.array[j], self.array[j + 1] = self.array[j + 1], self.array[j]
+        # Not strictly needed: every sorting method works in place and display() shows the result
+        return self.array
+
+    def selection_sort(self, order):
+        """Sort the array in place using Selection Sort."""
+        n = len(self.array)
+
+        for i in range(n):
+            # Find the minimum (or maximum) element in the unsorted part
+            min_max_index = i
+            for j in range(i + 1, n):
+                if (order == 'asc' and self.array[min_max_index] > self.array[j]) or \
+                   (order == 'desc' and self.array[min_max_index] < self.array[j]):
+                    min_max_index = j
+            # Swap it with the first unsorted element
+            self.array[i], self.array[min_max_index] = self.array[min_max_index], self.array[i]
+
+        return self.array
+
+    def insertion_sort(self, order):
+        """Sort the array in place using Insertion Sort."""
+        for i in range(1, len(self.array)):
+            key = self.array[i]
+            j = i - 1
+            # Shift the elements of self.array[0..i-1] that are greater (or smaller) than key one position ahead
+            while j >= 0 and ((order == 'asc' and key < self.array[j]) or (order == 'desc' and key > self.array[j])):
+                self.array[j + 1] = self.array[j]
+                j -= 1
+            self.array[j + 1] = key
+        return self.array
+
+    def quick_sort(self, order):
+        """Sort the array in place using Quick Sort."""
+
+        def partition(arr, low, high, order):
+            """Move the pivot to its sorted position and return that index."""
+            pivot = arr[high]
+            i = low - 1
+            for j in range(low, high):
+                if (order == 'asc' and arr[j] <= pivot) or (order == 'desc' and arr[j] >= pivot):
+                    i += 1
+                    arr[i], arr[j] = arr[j], arr[i]
+            arr[i + 1], arr[high] = arr[high], arr[i + 1]
+            return i + 1
+
+        def quicksort_recursive(arr, low, high, order):
+            """Recursively sort arr[low..high] around a pivot."""
+            if low < high:
+                pi = partition(arr, low, high, order)
+                quicksort_recursive(arr, low, pi - 1, order)
+                quicksort_recursive(arr, pi + 1, high, order)
+
+        quicksort_recursive(self.array, 0, len(self.array) - 1, order)
+        return self.array
+
+    def heapify(self, n, i, order):
+        """Sift node i down so its subtree is a max heap (or a min heap for descending order)."""
+        # Start by treating the root as the largest (or smallest)
+        largest_smallest = i
+        left = 2 * i + 1
+        right = 2 * i + 2
+
+        # Check whether the left child should replace the root
+        if order == 'asc' and left < n and self.array[i] < self.array[left]:
+            largest_smallest = left
+        elif order == 'desc' and left < n and self.array[i] > self.array[left]:
+            largest_smallest = left
+
+        # Check whether the right child should replace the current pick
+        if order == 'asc' and right < n and self.array[largest_smallest] < self.array[right]:
+            largest_smallest = right
+        elif order == 'desc' and right < n and self.array[largest_smallest] > self.array[right]:
+            largest_smallest = right
+
+        # Swap and keep sifting down if the root changed
+        if largest_smallest != i:
+            self.array[i], self.array[largest_smallest] = self.array[largest_smallest], self.array[i]
+            self.heapify(n, largest_smallest, order)
+
+    def heap_sort(self, order):
+        """Sort the array in place using Heap Sort."""
+        n = len(self.array)
+
+        # Build a max heap (or min heap)
+        for i in range(n // 2 - 1, -1, -1):
+            self.heapify(n, i, order)
+
+        # Repeatedly move the root to the end and restore the heap
+        for i in range(n - 1, 0, -1):
+            self.array[i], self.array[0] = self.array[0], self.array[i]
+            self.heapify(i, 0, order)
+
+        return self.array
+
+    def shell_sort(self, order):
+        """Sort the array in place using Shell Sort."""
+        n = len(self.array)
+        gap = n // 2
+
+        # Start with a big gap, then reduce it
+        while gap > 0:
+            # Gapped insertion sort: the first gap elements are already in gapped order,
+            # so keep adding one more element until the whole array is gap-sorted
+            for i in range(gap, n):
+                temp = self.array[i]
+                # Shift earlier gap-sorted elements up until the correct spot for temp is found
+                j = i
+                while j >= gap and ((order == 'asc' and self.array[j - gap] > temp) or (order == 'desc' and self.array[j - gap] < temp)):
+                    self.array[j] = self.array[j - gap]
+                    j -= gap
+
+                # Put temp in its correct location
+                self.array[j] = temp
+            gap //= 2
+
+        return self.array
+
     def size_check(self):
         """Print the size of the array."""
         size = self.size
@@ -101,16 +230,17 @@ def array_main():
 ★1) Insertion
 ★2) Deletion
 ★3) Indexing
-★4) Size Check
-★5) Type Check
-★6) Displaying
-★7) New Array
-★8) New Data Structure
-★9) Exit the Program
+★4) Sorting
+★5) Size Check
+★6) Type Check
+★7) Displaying
+★8) New Array
+★9) New Data Structure
+★10) Exit the Program
 
 >>> """)
 
-        if opr not in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"):
+        if opr not in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"):
             print("\n❌️ Invalid code number.")
             continue
 
@@ -161,33 +291,110 @@ def array_main():
             index = int(input("\n✍️ Please provide the index of the item you want to get.\n>>> "))
             array.get(index)
 
-        # Size check
+        # Sorting
         elif opr == "4":
+
+            # Sorting algorithm selection
+            sort_alg = input("""\n🗂️ Which sorting algorithm do you want to use?
+●1) Bubble sort
+●2) Selection sort
+●3) Insertion sort
+●4) Quick sort
+●5) Heap sort
+●6) Shell sort
+>>> """)
+            match sort_alg:
+                # Bubble sort
+                case "1":
+                    sort_order = utility.order_verify()
+                    print("\nℹ️ Bubble Sort is a straightforward comparison-based sorting algorithm that repeatedly traverses the list, comparing adjacent elements and swapping them if they are in the wrong order. This process continues until the list is sorted. The algorithm is named because smaller elements \"bubble\" to the top of the list while larger elements sink to the bottom with each pass. Despite its simplicity and ease of implementation, Bubble Sort is inefficient for large datasets due to its average and worst-case time complexity of O(n^2), where n is the number of items being sorted. Additionally, its best-case time complexity is O(n) when the list is already sorted, and it has a space complexity of O(1) since it only requires a constant amount of additional memory space. Bubble Sort is mainly used for educational purposes and small datasets where its simplicity is advantageous.")
+                    if sort_order == "asc":
+                        array.bubble_sort("asc")
+                    else:
+                        array.bubble_sort("desc")
+                    array.display()
+
+                # Selection sort
+                case "2":
+                    sort_order = utility.order_verify()
+                    print("\nℹ️ Selection Sort is a simple comparison-based sorting algorithm that divides the input list into two parts: a sorted sublist of items which is built up from left to right at the front of the list, and a sublist of the remaining unsorted items. The algorithm repeatedly selects the smallest (or largest, depending on the order) element from the unsorted sublist, swaps it with the leftmost unsorted element, and moves the sublist boundaries one element to the right. This process continues until the entire list is sorted. Selection Sort has an average and worst-case time complexity of O(n^2), where n is the number of items being sorted, and a best-case time complexity of O(n^2) as well, since it always performs the same number of comparisons regardless of the initial order of the elements. Its space complexity is O(1) because it only requires a constant amount of additional memory space. Selection Sort is not suitable for large datasets but is easy to understand and implement, making it useful for educational purposes.")
+                    if sort_order == "asc":
+                        array.selection_sort("asc")
+                    else:
+                        array.selection_sort("desc")
+                    array.display()
+
+                # Insertion sort
+                case "3":
+                    sort_order = utility.order_verify()
+                    print("\nℹ️ Insertion Sort is a straightforward comparison-based sorting algorithm that builds the final sorted array one item at a time. It works by dividing the array into a sorted and an unsorted part. Initially, the sorted part contains only the first element, and the unsorted part contains the rest. The algorithm repeatedly takes the first element from the unsorted part, compares it with the elements in the sorted part, and inserts it into its correct position. This process continues until all elements are sorted. Insertion Sort has an average and worst-case time complexity of O(n^2), where n is the number of items being sorted, and a best-case time complexity of O(n) when the array is already sorted. Its space complexity is O(1) because it requires only a constant amount of additional memory space. Insertion Sort is efficient for small datasets and nearly sorted arrays, making it useful for scenarios where simplicity and ease of implementation are important.")
+                    if sort_order == "asc":
+                        array.insertion_sort("asc")
+                    else:
+                        array.insertion_sort("desc")
+                    array.display()
+
+                # Quick sort
+                case "4":
+                    sort_order = utility.order_verify()
+                    print("\nℹ️ Quick Sort is an efficient, comparison-based sorting algorithm that uses the divide-and-conquer strategy to sort elements. It works by selecting a ‘pivot’ element from the array and partitioning the other elements into two sub-arrays, according to whether they are less than or greater than the pivot. The sub-arrays are then recursively sorted. This process continues until the base case of an empty or single-element sub-array is reached, which is inherently sorted. Quick Sort has an average and best-case time complexity of O(n log n), making it faster than other O(n^2) algorithms like Bubble Sort and Selection Sort for large datasets. However, its worst-case time complexity is O(n^2), which occurs when the smallest or largest element is always chosen as the pivot. The space complexity of Quick Sort is O(log n) due to the stack space used by the recursive calls. Despite its worst-case scenario, Quick Sort is widely used because of its efficiency and performance in practice.")
+                    if sort_order == "asc":
+                        array.quick_sort("asc")
+                    else:
+                        array.quick_sort("desc")
+                    array.display()
+
+                # Heap sort
+                case "5":
+                    sort_order = utility.order_verify()
+                    print("\nℹ️ Heap Sort is a comparison-based sorting algorithm that uses a binary heap data structure to sort elements. It works by first building a max heap (or min heap for descending order) from the input array, which ensures that the largest (or smallest) element is at the root of the heap. The root element is then swapped with the last element of the heap, and the heap size is reduced by one. The heapify process is applied to the root to restore the heap property, and this process is repeated until the heap size is reduced to one. Heap Sort has an average, best-case, and worst-case time complexity of O(n log n), where n is the number of items being sorted, making it more efficient than O(n^2) algorithms like Bubble Sort and Selection Sort. Its space complexity is O(1) because it sorts the array in place without requiring additional memory. Heap Sort is particularly useful for large datasets where consistent performance is important.")
+                    if sort_order == "asc":
+                        array.heap_sort("asc")
+                    else:
+                        array.heap_sort("desc")
+                    array.display()
+
+                # Shell sort
+                case "6":
+                    sort_order = utility.order_verify()
+                    print("\nℹ️ Shell Sort is an in-place comparison-based sorting algorithm that generalizes insertion sort to allow the exchange of items that are far apart. The algorithm starts by sorting elements that are a certain gap distance apart, then progressively reduces the gap and performs a gapped insertion sort for each gap size. This process continues until the gap is reduced to one, at which point it becomes a standard insertion sort. The choice of gap sequence can significantly affect the performance of Shell Sort. Its average and worst-case time complexity can vary depending on the gap sequence used, but it generally ranges from O(n^1.5) to O(n^2). The best-case time complexity is O(n log n) when using an optimal gap sequence. Shell Sort has a space complexity of O(1) because it sorts the array in place without requiring additional memory. It is more efficient than simple quadratic algorithms like bubble sort and insertion sort, especially for medium-sized datasets.")
+                    if sort_order == "asc":
+                        array.shell_sort("asc")
+                    else:
+                        array.shell_sort("desc")
+                    array.display()
+
+                # Invalid
+                case _:
+                    print("\n🚫 Invalid code number.")
+
+        # Size check
+        elif opr == "5":
             array.size_check()
 
         # Type check
-        elif opr == "5":
+        elif opr == "6":
             array.type_check()
 
         # Displaying
-        elif opr == "6":
+        elif opr == "7":
             array.display()
 
         # New array
-        elif opr == "7":
+        elif opr == "8":
             utility.clear()
             utility.main_intro()
             array_main()
             break
 
         # New data structure
-        elif opr == "8":
+        elif opr == "9":
             utility.clear()
             utility.main_intro()
             break
 
         # Exit the program
-        elif opr == "9":
+        elif opr == "10":
             exit()
 
 

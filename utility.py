@@ -13,6 +13,22 @@ def clear():
         os.system('clear')
 
 
+def order_verify():
+    """Ask for a sorting order and return "asc" or "desc"."""
+    while True:
+        order = input("""\n🤔 Please specify the order.
+•1) Ascending
+•2) Descending
+>>> """)
+        if order not in ("1", "2"):
+            print("\n🚫 Invalid code number.")
+            continue
+        if order == "1":
+            return "asc"
+        else:
+            return "desc"
+
+
 def main_intro():
     """Print the PyDSA banner, welcome message and version info."""
     print("""\n
