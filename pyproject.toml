@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydsa"
+dynamic = ["version"]
+description = "A console-based Python app for learning data structures."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[project.scripts]
+pydsa = "pydsa.app:run"
+
+[tool.setuptools.dynamic]
+version = { attr = "pydsa.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["pydsa*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
