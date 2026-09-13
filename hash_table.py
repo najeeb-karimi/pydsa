@@ -1,4 +1,7 @@
-"""Hash table implementation using separate chaining (open hashing) for collision resolution."""
+"""Hash table implementations with two collision resolution techniques.
+
+Separate chaining (open hashing) and linear probing, from the open addressing (closed hashing) family.
+"""
 
 import utility
 
@@ -136,13 +139,188 @@ def chaining_main():
 
 
 # ---------------------------------------------------------------------------
+# Hash table with Linear Probing (Open Addressing / Closed Hashing)
+# ---------------------------------------------------------------------------
+
+class LinearProbingHashTable:
+    """Hash table with one pair per slot; a collision moves on to the next free slot (linear probing)."""
+
+    def __init__(self, size):
+        """Initialize the hash table with the given number of empty slots."""
+        self.size = size
+        self.table = [None] * size
+        print(f"\n✅ Initialized hash table with {size} slots.")
+
+    def hash_function(self, key):
+        """Return the home slot index for a key: its hash code modulo the table size."""
+        return hash(key) % self.size
+
+    def insert(self, key, value):
+        """Insert a key-value pair, or update the value if the key already exists; return a status message."""
+        index = self.hash_function(key)
+        original_index = index
+        # Probe forward until an empty slot or the same key is found
+        while self.table[index] is not None:
+            if self.table[index][0] == key:
+                self.table[index] = (key, value)
+                return f"\n✅ Insertion successful. Updated key ({key}) with value ({value}) at index {index}."
+            index = (index + 1) % self.size
+            # Coming back around to the starting slot means every slot is taken
+            if index == original_index:
+                return "\n🚫 Insertion unsuccessful. Hash table is full; cannot insert new key."
+        self.table[index] = (key, value)
+        return f"\n✅ Insertion successful. Inserted key ({key}) with value ({value}) at index {index}."
+
+    def lookup(self, key):
+        """Look up a key and return a message with its index and value, or a not-found message."""
+        index = self.hash_function(key)
+        original_index = index
+        while self.table[index] is not None:
+            if self.table[index][0] == key:
+                return f"\n✅ Key ({key}) found at index {index} with value ({self.table[index][1]})."
+            index = (index + 1) % self.size
+            if index == original_index:
+                break
+        return f"\n❌ Key ({key}) not found."
+
+    def delete(self, key):
+        """Delete a key-value pair, print the result and rehash the rest of its cluster."""
+        index = self.hash_function(key)
+        original_index = index
+        while self.table[index] is not None:
+            if self.table[index][0] == key:
+                self.table[index] = None
+                print(f"\n✅ Deletion successful. Deleted key ({key}) from index {index}.")
+                # Re-insert every following pair in the same cluster, so later lookups don't stop at the new gap
+                next_index = (index + 1) % self.size
+                while self.table[next_index] is not None:
+                    rehash_key, rehash_value = self.table[next_index]
+                    self.table[next_index] = None
+                    print("\n♻️ Rehashing...")
+                    self.insert(rehash_key, rehash_value)
+                    next_index = (next_index + 1) % self.size
+                return
+            index = (index + 1) % self.size
+            if index == original_index:
+                break
+        print(f"\n❌ Key ({key}) not found, nothing to delete.")
+
+    def display(self):
+        """Print the hash table, one slot per line."""
+        for slot in self.table:
+            print("🔹", self.table.index(slot), slot)
+
+
+def linear_probing_main():
+    """Create a linear probing hash table and run its operation menu."""
+
+    # Table size validation loop; the size is the only input needed to create the table
+    while True:
+        size = utility.input_verify("int", "the total number of slots you want; in other words, the size of the hash table")
+        if size is not None:
+            linear_probing_ht = LinearProbingHashTable(size)
+            linear_probing_ht.display()
+            break
+        else:
+            print("\n🚫 Invalid data type. Hash table size must be an INT.")
+            continue
+
+    # Operation selection loop
+    while True:
+        opr = input("""\n⚔️ Which operation do you want to perform with the Linear Probing Hash Table?
+★0) Definition
+★1) Insertion
+★2) Deletion
+★3) Searching
+★4) Displaying
+★5) New Hash Table
+★6) New Data Structure
+★7) Exiting the Program
+
+>>> """)
+        match opr:
+
+            # Definition
+            case "0":
+                hash_table_intro("def")
+
+            # Insertion
+            case "1":
+                key = get_key()
+                value = get_value()
+                result = linear_probing_ht.insert(key, value)
+                print(result)
+
+            # Deletion
+            case "2":
+                key = get_key(text="key that you want to delete")
+                linear_probing_ht.delete(key)
+
+            # Searching
+            case "3":
+                key = get_key(text="key that you want to  search for")
+                result = linear_probing_ht.lookup(key)
+                print(result)
+
+            # Displaying
+            case "4":
+                print("\n👇🏻 Here's a display of your Hash Table:")
+                linear_probing_ht.display()
+
+            # New hash table
+            case "5":
+                utility.clear()
+                hash_table_intro("full")
+                hash_table_main()
+                break
+
+            # New data structure
+            case "6":
+                utility.clear()
+                utility.main_intro()
+                break
+
+            # Exit the program
+            case "7":
+                exit()
+
+            # Invalid
+            case _:
+                print("\n🚫 Invalid operation code!")
+
+
+# ---------------------------------------------------------------------------
 # Hash table main and intro functions
 # ---------------------------------------------------------------------------
 
 def hash_table_main():
-    """Show the hash table intro and open the separate chaining hash table menu."""
+    """Show the hash table intro and let the user pick a collision resolution technique.
+
+    Once the chosen table's menu returns, control goes back to the main menu in main.py.
+    """
     hash_table_intro("full")
-    chaining_main()
+
+    # Collision resolution type selection loop
+    while True:
+        hash_table_type = input("""\n🧪 Which type of collision resolution do you want in the hash table?
+★1) Separate Chaining (Open Hashing)
+★2) Linear Probing (from the Open Addressing [Closed Hashing] category)
+>>> """)
+
+        match hash_table_type:
+            # Chaining
+            case "1":
+                chaining_main()
+                break
+
+            # Linear probing
+            case "2":
+                linear_probing_main()
+                break
+
+            # Invalid
+            case _:
+                print("\n🚫 Invalid representation type code!")
 
 
 def hash_table_intro(condition):
