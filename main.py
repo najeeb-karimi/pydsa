@@ -7,6 +7,7 @@ import queue
 import linked_list
 import tree
 import graph
+import hash_table
 
 
 def main():
@@ -74,6 +75,7 @@ def main():
                     choice_2 = input("""\n Which Non-linear Data Structure do you want to learn?
 ★1) Tree
 ★2) Graph
+★3) Hash Table
 
 ★0) Go Back
 
@@ -88,6 +90,11 @@ def main():
                         # Graph
                         case "2":
                             graph.graph_main()
+                            break
+
+                        # Hash Table
+                        case "3":
+                            hash_table.hash_table_main()
                             break
 
                         # Go back
