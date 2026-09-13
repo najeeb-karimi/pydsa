@@ -2,6 +2,7 @@
 
 import utility
 import my_array
+import stack
 
 
 def main():
@@ -12,6 +13,7 @@ def main():
 
         choice = input("""\n🏁 Which Linear Data Structure do you want to learn?
 ★1) Array
+★2) Stack
 
 >>> """)
 
@@ -20,6 +22,10 @@ def main():
             # Array
             case "1":
                 my_array.array_main()
+
+            # Stack
+            case "2":
+                stack.stack_main()
 
             # Invalid
             case _:
