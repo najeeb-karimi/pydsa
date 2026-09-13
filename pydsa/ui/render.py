@@ -212,16 +212,16 @@ def sorting_steps(items, steps):
     return count
 
 
-def _values(values, changed=(), marker=""):
+def _values(values, changed=(), marker="", label=fmt):
     """Return a list of values as Text, highlighting the positions in changed."""
     text = Text("[")
     for index, value in enumerate(values):
         if index:
             text.append(", ")
         if index in changed:
-            text.append(fmt(value) + marker, style="changed")
+            text.append(label(value) + marker, style="changed")
         else:
-            text.append(fmt(value))
+            text.append(label(value))
     text.append("]")
     return text
 
@@ -291,25 +291,217 @@ def linked_list(items, doubly=False, circular=False, backward=False):
 # Trees
 # ---------------------------------------------------------------------------
 
-def binary_tree(tree):
-    """Show a binary tree with each child labeled L (left) or R (right)."""
+GAP = 2  # Spaces between two sibling subtrees in a tree diagram
+
+
+def _diagram(node, children, label):
+    """Return the lines of a top-down diagram of the subtree rooted at node, and the column of the root's middle.
+
+    children(node) returns the (left, right) pair, with None for a missing child, and label(node) returns a Text.
+    Every line is padded to the same width, so subtrees can be placed side by side.
+    """
+    text = label(node)
+    size = cell_len(text.plain)
+    left, right = children(node)
+    if left is None and right is None:
+        return [text], (size - 1) // 2
+
+    # A missing child still takes up one column, so a lone child hangs clearly to its side
+    left_lines, left_mid = _diagram(left, children, label) if left is not None else ([Text(" ")], 0)
+    right_lines, right_mid = _diagram(right, children, label) if right is not None else ([Text(" ")], 0)
+    left_width, right_width = cell_len(left_lines[0].plain), cell_len(right_lines[0].plain)
+    right_mid += left_width + GAP
+    mid = (left_mid + right_mid) // 2
+    start = mid - (size - 1) // 2
+    shift = max(0, -start)  # Move the children right if the label would stick out on the left
+    start, mid, left_mid, right_mid = start + shift, mid + shift, left_mid + shift, right_mid + shift
+    width = max(shift + left_width + GAP + right_width, start + size)
+
+    connector = [" "] * width
+    if left is not None:
+        connector[left_mid:mid] = "┌" + "─" * (mid - left_mid - 1)
+    if right is not None:
+        connector[mid + 1:right_mid + 1] = "─" * (right_mid - mid - 1) + "┐"
+    connector[mid] = "┴" if left is not None and right is not None else "┘" if left is not None else "└"
+
+    lines = [
+        Text.assemble(" " * start, text, " " * (width - start - size)),
+        Text("".join(connector), style="muted"),
+    ]
+    for row in range(max(len(left_lines), len(right_lines))):
+        lines.append(Text.assemble(
+            " " * shift,
+            left_lines[row] if row < len(left_lines) else " " * left_width,
+            " " * GAP,
+            right_lines[row] if row < len(right_lines) else " " * right_width,
+            " " * (width - shift - left_width - GAP - right_width),
+        ))
+    return lines, mid
+
+
+def _outline(node, children, label):
+    """Return a rich Tree of the subtree rooted at node, with each child labeled L (left) or R (right)."""
+    view = Tree(Text.assemble(("root ", "muted"), label(node)), guide_style="muted")
+    branches = [(view, node)]
+    while branches:
+        branch, parent = branches.pop(0)
+        for side, child in zip("LR", children(parent)):
+            if child is not None:
+                branches.append((branch.add(Text.assemble((f"{side} ", "muted"), label(child))), child))
+    return view
+
+
+def _tree(root, children, label):
+    """Print a binary tree as a top-down diagram, or as an outline if the diagram is too wide for the terminal."""
+    lines, _ = _diagram(root, children, label)
+    console.print()
+    if cell_len(lines[0].plain) <= console.width:
+        for line in lines:
+            line.rstrip()
+            console.print(line, soft_wrap=True)
+        return True
+    console.print(_outline(root, children, label))
+    note("The tree is too wide to draw here, so it's shown as an outline: L marks a left child and R a right child.")
+    return False
+
+
+def binary_tree(tree, balance=False):
+    """Show a binary search tree top-down; balance adds each node's balance factor (for AVL trees)."""
     if tree.root is None:
         info("The tree is empty.")
         return
-    view = Tree(Text.assemble(("root ", "muted"), fmt(tree.root.key)), guide_style="muted")
-    _add_children(view, tree.root)
-    show(view)
 
+    def label(node):
+        text = Text(fmt(node.key))
+        if balance:
+            factor = tree.balance_factor(node)
+            text.append(f" ({factor:+d})" if factor else " (0)", style="muted")
+        return text
 
-def _add_children(branch, node):
-    for side, child in (("L", node.left), ("R", node.right)):
-        if child is not None:
-            _add_children(branch.add(Text.assemble((f"{side} ", "muted"), fmt(child.key))), child)
+    _tree(tree.root, lambda node: (node.left, node.right), label)
+    if balance:
+        note("In parentheses is each node's balance factor: its left height minus its right height.")
 
 
 def traversal(name, keys):
     """Show the keys visited by a tree traversal."""
     result(f"{name} traversal: {', '.join(fmt(key) for key in keys) or 'the tree is empty'}")
+
+
+def tree_stats(tree, name="tree"):
+    """Show the height, node count, leaf count and smallest and largest keys of a tree or heap."""
+    if len(tree) == 0:
+        info(f"The {name} is empty.")
+        return
+    table = _table("📏 Tree stats", box=box.SQUARE)
+    table.add_column("Stat")
+    table.add_column("Value", justify="right", style="code")
+    table.add_row("Height (levels)", str(tree.height()))
+    table.add_row("Nodes", str(len(tree)))
+    table.add_row("Leaves", str(tree.leaf_count()))
+    table.add_row("Smallest key", Text(fmt(tree.min())))
+    table.add_row("Largest key", Text(fmt(tree.max())))
+    show(table)
+    note("The height counts levels of nodes; counting edges on the longest path gives one less.")
+
+
+# ---------------------------------------------------------------------------
+# Heaps and priority queues
+# ---------------------------------------------------------------------------
+
+def entry(entry):
+    """Return a priority queue entry as "priority: item"."""
+    return f"{entry.priority}: {fmt(entry.item)}"
+
+
+def _heap_tree(items, label, moved=(), marker=""):
+    """Print a heap's array as a tree, where index i has its children at 2i + 1 and 2i + 2."""
+
+    def children(index):
+        return tuple(child if child < len(items) else None for child in (2 * index + 1, 2 * index + 2))
+
+    def node_label(index):
+        if index in moved:
+            return Text(label(items[index]) + marker, style="changed")
+        return Text(label(items[index]))
+
+    _tree(0, children, node_label)
+
+
+def heap(heap, label=fmt, name="heap"):
+    """Show a heap as a tree and as the array that stores it."""
+    if heap.is_empty():
+        info(f"The {name} is empty.")
+        return
+    _heap_tree(heap.items, label)
+    show(_slots([Text(label(item)) for item in heap.items]))
+    note("The array stores the tree level by level: index i has its children at 2i + 1 and 2i + 2.")
+
+
+def heap_steps(steps, first, label=fmt):
+    """Show every step of a heap operation as a tree and as the array; first describes the starting step.
+
+    The keys that moved are highlighted, and marked with * when colors aren't shown.
+    """
+    marker = "*" if plain_output() else ""
+    for number, step in enumerate(steps):
+        if number == 0:
+            caption = first
+        else:
+            was, went = step.moved
+            direction = "up" if went < was else "down"
+            relative = "parent" if went < was else "child"
+            caption = f"Moved {label(step.items[went])} {direction}, swapping it with its {relative} {label(step.items[was])}."
+        console.print()
+        console.print(Text(f"Step {number}: {caption}", style="title"))
+        if step.items:
+            _heap_tree(step.items, label, step.moved, marker)
+            console.print(Text.assemble(("Array: ", "muted"), _values(step.items, step.moved, marker, label)))
+    if len(steps) == 1:
+        note("No swaps were needed: the heap property already held.")
+    elif marker:
+        note("* marks the keys that moved in each step.")
+
+
+def priority_queue(queue):
+    """Show a priority queue's heap and the order its items will be served in."""
+    if queue.is_empty():
+        info("The priority queue is empty.")
+        return
+    _heap_tree(queue.heap.items, entry)
+    table = _table("Serving order", box=box.SQUARE)
+    table.add_column("#", justify="right", style="muted")
+    table.add_column("Priority", justify="right", style="code")
+    table.add_column("Item")
+    for position, waiting in enumerate(queue.in_order(), start=1):
+        table.add_row(str(position), str(waiting.priority), Text(fmt(waiting.item)))
+    show(table)
+    note("Each node shows priority: item. Smaller numbers go first; ties go in arrival order.")
+
+
+# ---------------------------------------------------------------------------
+# Tries
+# ---------------------------------------------------------------------------
+
+def trie(trie):
+    """Show a trie as a tree of characters, marking the nodes that end a word."""
+    if len(trie) == 0:
+        info("The trie is empty.")
+        return
+    view = Tree(Text("root", style="muted"), guide_style="muted")
+    _add_trie_children(view, trie.root, "")
+    show(view)
+    note(f"✓ marks a node that ends a word. {plural(len(trie), 'word')} in {plural(trie.node_count(), 'node')}, not counting the root.")
+
+
+def _add_trie_children(branch, node, spelled):
+    """Add the children of a trie node to branch in character order, spelling out the words they end."""
+    for char in sorted(node.children):
+        child = node.children[char]
+        text = Text(char, style="code")
+        if child.is_word:
+            text.append(f"  ✓ {fmt(spelled + char)}", style="success")
+        _add_trie_children(branch.add(text), child, spelled + char)
 
 
 # ---------------------------------------------------------------------------

@@ -25,10 +25,10 @@ BANNER = r"""
 WELCOME = "Welcome to PyDSA, a console-based Python app that strives to assist you in learning data structures! The app is designed to give you a good tour of the major DSes, giving you an opportunity to wrap your head around their distinctions while on the go! All interaction with the app is based on typing the related number codes in the terminal."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ Deque (Double-Ended Queue)
-   ★ Singly & Doubly Circular Linked Lists
-   ★ Hash Set with Union, Intersection & Difference
-   ★ Disjoint Set (Union-Find)"""
+   ★ Min & Max Heaps with step-by-step sift-up & sift-down
+   ★ Priority Queue built on a heap
+   ★ Trie (Prefix Tree) with autocomplete
+   ★ Top-down tree diagrams, level-order traversal & tree stats"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""
@@ -178,7 +178,7 @@ TREE_ASCII = r"""
     '---'   ''-'   `'-'     `'-..-'     `'-..-'
 """
 
-TREE_DEFINITION = """A specialized type of graph, the tree is a hierarchical, non-linear data structure consisting of nodes connected by edges. It starts with a single node called the root, from which all other nodes branch out. Each node can have zero or more child nodes, and nodes with no children are called leaf nodes. Trees are used to represent hierarchical relationships and are fundamental in various applications such as file systems, databases, and network routing. They facilitate efficient data retrieval and manipulation through various traversal methods like in-order, pre-order, and post-order traversal.
+TREE_DEFINITION = """A specialized type of graph, the tree is a hierarchical, non-linear data structure consisting of nodes connected by edges. It starts with a single node called the root, from which all other nodes branch out. Each node can have zero or more child nodes, and nodes with no children are called leaf nodes. Trees are used to represent hierarchical relationships and are fundamental in various applications such as file systems, databases, and network routing. They facilitate efficient data retrieval and manipulation through various traversal methods like in-order, pre-order, post-order and level-order traversal.
 
 Trees come in many types, and the most important one is the binary tree, in which each node has at most two children. The most popular kinds of binary trees are the BST and the AVL tree, and PyDSA implements both of them.
 
@@ -189,6 +189,58 @@ Trees come in many types, and the most important one is the binary tree, in whic
 BST_INFO = "PyDSA's BST holds keys of one data type (numbers or strings) and stores duplicate keys in the right subtree."
 
 AVL_INFO = "PyDSA's AVL tree holds keys of one data type (numbers or strings) and allows duplicate keys."
+
+# ---------------------------------------------------------------------------
+# Heap and priority queue
+# ---------------------------------------------------------------------------
+
+HEAP_ASCII = r"""
+
+.---.  .---.     .-''-.     ____    .-------.
+|   |  |_ _|   .'_ _   \  .'  __ `. \  _(`)_ \
+|   |  ( ' )  / ( ` )   '/   '  \  \| (_ o._)|
+|   '-(_{;}_). (_ o _)  ||___|  /  ||  (_,_) /
+|      (_,_) |  (_,_)___|   _.-`   ||   '-.-'
+| _ _--.   | '  \   .---..'   _    ||   |
+|( ' ) |   |  \  `-'    /|  _( )_  ||   |
+(_{;}_)|   |   \       / \ (_ o _) //   )
+'(_,_) '---'    `'-..-'   '.(_,_).' `---'
+"""
+
+HEAP_DEFINITION = """A heap is a tree-based data structure that keeps the heap property: in a min heap, every parent's key is smaller than or equal to its children's keys, so the smallest key is always at the root, and in a max heap, every parent's key is larger than or equal to its children's keys, so the largest key is at the root. The most common kind is the binary heap, a complete binary tree in which every level is full except possibly the last one, which is filled from left to right. Heaps are used to build priority queues, in heap sort, in graph algorithms such as Dijkstra's shortest paths and Prim's minimum spanning tree, and to find the k smallest or largest items in a collection.
+
+🌟 Because a binary heap is complete, it can be stored in a plain array without any links: the children of the node at index i sit at indexes 2i + 1 and 2i + 2, and its parent sits at index (i − 1) // 2. Reading the array from left to right is the same as reading the tree level by level.
+
+🌟 Inserting a key places it in the next free spot at the bottom of the tree and sifts it up, swapping it with its parent until the heap property holds again. Extracting the root moves the last leaf to the root and sifts it down, swapping it with its smaller child (or its larger child in a max heap). Both take O(log n) time, because the tree is only log n levels tall. Building a heap from a list with heapify sifts down every parent, from the last one up to the root, which takes only O(n) time in total.
+
+🌟 A priority queue is a queue in which every item has a priority, and the item with the highest priority is always served first, no matter when it arrived. A heap is the classic way to build one, since the item that should be served next is always at the root. PyDSA's priority queue is a min heap in which a smaller number means a higher priority, and items with equal priorities are served in the order they arrived (First In, First Out)."""
+
+HEAP_INFO = "PyDSA's heaps hold keys of one data type (numbers or strings) and allow duplicate keys."
+
+PRIORITY_QUEUE_INFO = "PyDSA's priority queue serves the smallest priority number first, and items with the same priority leave in the order they arrived. Items can be of any type, and priorities are whole numbers."
+
+# ---------------------------------------------------------------------------
+# Trie
+# ---------------------------------------------------------------------------
+
+TRIE_ASCII = r"""
+
+,---------. .-------.   .-./`)     .-''-.
+\          \|  _ _   \  \ .-.')  .'_ _   \
+ `--.  ,---'| ( ' )  |  / `-' \ / ( ` )   '
+    |   \   |(_ o _) /   `-'`"`. (_ o _)  |
+    :_ _:   | (_,_).' __ .---. |  (_,_)___|
+    (_I_)   |  |\ \  |  ||   | '  \   .---.
+   (_(=)_)  |  | \ `'   /|   |  \  `-'    /
+    (_I_)   |  |  \    / |   |   \       /
+    '---'   ''-'   `'-'  '---'    `'-..-'
+"""
+
+TRIE_DEFINITION = """A trie (pronounced "try"), also called a prefix tree, is a tree-based data structure that stores strings character by character. Each edge from a node stands for one character, so every path from the root spells out a prefix, and words that share a prefix share the same nodes. A node is marked when the path to it spells a complete word, which is how a trie tells the word "car" apart from the start of "card". Tries are used for autocomplete, spell checkers, word games, IP routing tables and dictionaries.
+
+🌟 Inserting, searching and deleting a word of length L take O(L) time, no matter how many words the trie holds. Checking whether any word starts with a prefix is just as fast, since it only follows the prefix's path, and autocomplete then collects every word below the node where that path ends.
+
+🌟 Deleting a word removes its mark and then prunes the nodes that no longer lead to any word, walking back up toward the root. Nodes that other words still use stay in place. PyDSA's trie is case-sensitive, so "Cat" and "cat" are different words."""
 
 # ---------------------------------------------------------------------------
 # Graph

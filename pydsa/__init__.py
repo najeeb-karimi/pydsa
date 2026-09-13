@@ -1,3 +1,3 @@
 """PyDSA: a console-based Python app for learning data structures."""
 
-__version__ = "3.2"
+__version__ = "3.3"

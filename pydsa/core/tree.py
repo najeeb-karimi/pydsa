@@ -1,6 +1,8 @@
 """Binary search tree and AVL tree."""
 
-from pydsa.core.errors import InvalidTypeError, NotFoundError
+from collections import deque
+
+from pydsa.core.errors import EmptyError, InvalidTypeError, NotFoundError
 
 # Python types each tree data type accepts
 DATA_TYPES = {"num": (int, float), "str": (str,)}
@@ -78,6 +80,59 @@ class BinaryTree:
         if node is None:
             return []
         return self._postorder(node.left) + self._postorder(node.right) + [node.key]
+
+    def level_order(self):
+        """Return the keys level by level from the root down, each level from left to right (breadth-first)."""
+        keys, queue = [], deque([self.root] if self.root is not None else [])
+        while queue:
+            node = queue.popleft()
+            keys.append(node.key)
+            queue.extend(child for child in (node.left, node.right) if child is not None)
+        return keys
+
+    def __len__(self):
+        """Return the number of nodes."""
+        return self._count(self.root)
+
+    def _count(self, node):
+        if node is None:
+            return 0
+        return 1 + self._count(node.left) + self._count(node.right)
+
+    def height(self):
+        """Return the number of levels, which is 0 for an empty tree and 1 for a lone root."""
+        return self._height(self.root)
+
+    def _height(self, node):
+        if node is None:
+            return 0
+        return 1 + max(self._height(node.left), self._height(node.right))
+
+    def leaf_count(self):
+        """Return the number of nodes without children."""
+        return self._leaf_count(self.root)
+
+    def _leaf_count(self, node):
+        if node is None:
+            return 0
+        if node.left is None and node.right is None:
+            return 1
+        return self._leaf_count(node.left) + self._leaf_count(node.right)
+
+    def min(self):
+        """Return the smallest key, found by always going left."""
+        if self.root is None:
+            raise EmptyError("The tree is empty.")
+        return self._min_value_node(self.root).key
+
+    def max(self):
+        """Return the largest key, found by always going right."""
+        if self.root is None:
+            raise EmptyError("The tree is empty.")
+        node = self.root
+        while node.right is not None:
+            node = node.right
+        return node.key
 
     @staticmethod
     def _min_value_node(node):
@@ -252,6 +307,14 @@ class AVLTree(BinaryTree):
         y.height = 1 + max(self._get_height(y.left), self._get_height(y.right))
 
         return y
+
+    def height(self):
+        """Return the number of levels, which every AVL node already stores."""
+        return self._get_height(self.root)
+
+    def balance_factor(self, node):
+        """Return the balance factor of a node (left height minus right height), always -1, 0 or 1."""
+        return self._get_balance(node)
 
     @staticmethod
     def _get_height(node):

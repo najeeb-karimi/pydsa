@@ -100,9 +100,55 @@ TREE = ComplexityTable(
         ("Insert", "O(log n)", "O(n)", "O(log n)"),
         ("Delete", "O(log n)", "O(n)", "O(log n)"),
         ("Search", "O(log n)", "O(n)", "O(log n)"),
-        ("Traversal", "O(n)", "O(n)", "O(n)"),
+        ("Smallest or largest key", "O(log n)", "O(n)", "O(log n)"),
+        ("Inorder, preorder or postorder", "O(n)", "O(n)", "O(n)"),
+        ("Level order", "O(n)", "O(n)", "O(n)"),
+        ("Height", "O(n)", "O(n)", "O(1)"),
+        ("Node or leaf count", "O(n)", "O(n)", "O(n)"),
     ),
-    "A BST reaches its worst case when keys arrive in sorted order and the tree turns into a chain. An AVL tree rotates to stay balanced, so its height is always O(log n).",
+    "A BST reaches its worst case when keys arrive in sorted order and the tree turns into a chain. An AVL tree rotates to stay balanced, so its height is always O(log n), and every node already stores its own height. Traversals use O(h) extra space for their recursion, where h is the height, and level order uses O(n) for its queue.",
+)
+
+HEAP = ComplexityTable(
+    "Heap operations",
+    ("Operation", "Time", "Extra space"),
+    (
+        ("Insert (sift up)", "O(log n)", "O(1)"),
+        ("Extract the root (sift down)", "O(log n)", "O(1)"),
+        ("Peek at the root", "O(1)", "O(1)"),
+        ("Build from a list (heapify)", "O(n)", "O(1)"),
+        ("The other extreme (largest in a min heap)", "O(n)", "O(1)"),
+        ("Level order", "O(n)", "O(n)"),
+        ("Height, node or leaf count", "O(1)", "O(1)"),
+    ),
+    "n is the number of keys. A heap is a complete binary tree, so it's always log n levels tall, and its shape follows from its size alone. Heapify is O(n) rather than O(n log n) because most nodes sit near the bottom and only sift down a few levels.",
+)
+
+PRIORITY_QUEUE = ComplexityTable(
+    "Priority queue operations",
+    ("Operation", "Time", "Extra space"),
+    (
+        ("Enqueue", "O(log n)", "O(1)"),
+        ("Dequeue", "O(log n)", "O(1)"),
+        ("Peek", "O(1)", "O(1)"),
+        ("Change priority", "O(n)", "O(1)"),
+        ("Size", "O(1)", "O(1)"),
+    ),
+    "Changing a priority takes O(n) because the item has to be found first; moving it to its new place only takes O(log n).",
+)
+
+TRIE = ComplexityTable(
+    "Trie operations",
+    ("Operation", "Time", "Extra space"),
+    (
+        ("Insert a word", "O(L)", "O(L)"),
+        ("Search a word", "O(L)", "O(1)"),
+        ("Delete a word", "O(L)", "O(L)"),
+        ("Check a prefix", "O(P)", "O(1)"),
+        ("Autocomplete", "O(P + K)", "O(K)"),
+        ("Word count", "O(1)", "O(1)"),
+    ),
+    "L is the length of the word, P the length of the prefix and K the number of nodes below the prefix. None of them depend on how many words the trie holds. The trie itself takes space proportional to the total number of characters, minus the prefixes its words share.",
 )
 
 GRAPH = ComplexityTable(

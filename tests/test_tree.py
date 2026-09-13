@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from pydsa.core.errors import InvalidTypeError, NotFoundError
+from pydsa.core.errors import EmptyError, InvalidTypeError, NotFoundError
 from pydsa.core.tree import AVLTree, BinarySearchTree
 
 
@@ -86,6 +86,42 @@ def test_traversal_orders():
     assert tree.inorder() == [10, 20, 30, 50, 60, 70, 80]
     assert tree.preorder() == [50, 30, 10, 20, 70, 60, 80]
     assert tree.postorder() == [20, 10, 30, 60, 80, 70, 50]
+
+
+@pytest.mark.parametrize("tree_class", [BinarySearchTree, AVLTree], ids=lambda cls: cls.__name__)
+def test_tree_metrics_match_brute_force(tree_class):
+    rng = random.Random(9)
+    for _ in range(200):
+        tree, keys = tree_class("num"), [rng.randint(0, 50) for _ in range(rng.randint(0, 25))]
+        for key in keys:
+            tree.insert(key)
+        for key in rng.sample(keys, len(keys) // 3):
+            tree.delete(key)
+            keys.remove(key)
+
+        nodes = []  # (depth, node) in preorder, which visits each level from left to right
+
+        def walk(node, depth):
+            if node is not None:
+                nodes.append((depth, node))
+                walk(node.left, depth + 1)
+                walk(node.right, depth + 1)
+
+        walk(tree.root, 0)
+        by_level = sorted(nodes, key=lambda pair: pair[0])  # A stable sort keeps the left-to-right order
+        assert tree.level_order() == [node.key for _, node in by_level]
+        assert tree.height() == max((depth + 1 for depth, _ in nodes), default=0)
+        assert len(tree) == len(keys)
+        assert tree.leaf_count() == sum(1 for _, node in nodes if node.left is None and node.right is None)
+        if keys:
+            assert tree.min() == min(keys) and tree.max() == max(keys)
+        else:
+            with pytest.raises(EmptyError):
+                tree.min()
+            with pytest.raises(EmptyError):
+                tree.max()
+        if tree_class is AVLTree:
+            assert all(tree.balance_factor(node) in (-1, 0, 1) for _, node in nodes)
 
 
 def test_avl_rotates_a_sorted_insertion_into_balance():

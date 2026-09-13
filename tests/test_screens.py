@@ -201,13 +201,14 @@ def test_circular_linked_lists(play):
 def test_trees(play):
     out = play(
         "2", "1", "1", "1", "0", "1", "1",  # Non-linear > Tree > BST > Create > back > Create > Numbers
-        "6",  # Display the empty tree
+        "7", "6",  # Display the empty tree and its stats
         "2", "1", "50", "2", "1", "30", "2", "2", "70.5",
         "4", "1", "30", "4", "1", "99",
         "3", "1", "99", "3", "1", "50",
         "5", "2", "5", "0",  # Preorder traversal, then back
-        "7", "2", "2", "5", "1",  # New Tree: the AVL example, inorder
-        "8", "0",
+        "6",  # Tree stats
+        "8", "2", "2", "5", "4", "7",  # New Tree: the AVL example, level order, then display
+        "9", "0",
     )
     assert "Created an empty BST for numbers." in out
     assert "The tree is empty." in out
@@ -217,12 +218,112 @@ def test_trees(play):
     assert "99 isn't in the tree, so nothing was deleted." in out
     assert "Deleted 50." in out
     assert "Preorder traversal: 70.5, 30" in out
-    assert "Inorder traversal: 10, 20, 30, 50, 60, 70, 80" in out
+    assert "Height (levels)" in out
+    assert "Level order traversal: 30, 10, 60, 20, 50, 70, 80" in out
+    assert "30 (-1)" in out
+
+
+def test_heaps(play):
+    out = play(
+        "2", "2", "1", "1", "1",  # Non-linear > Heap & Priority Queue > Min Heap > Create > Numbers
+        "3", "4", "7", "8",  # Extract, peek, stats and display on an empty heap
+        "2", "1", "30", "2", "1", "10", "2", "2", "5.5",  # Insert 30, 10 and 5.5
+        "3",  # Extract the min
+        "5", "4, x", "4,,1", "20, 10, 30, 5",  # Build from a list after an invalid and an empty key
+        "4", "6", "7", "8",
+        "9", "2", "2",  # New Heap: the max heap example
+        "3", "4",
+        "10", "0",
+    )
+    assert "The heap is empty, so there's nothing to extract." in out
+    assert "The heap is empty, so there's nothing to peek at." in out
+    assert "The heap is empty." in out
+    assert "Inserted 30 with 0 swaps." in out
+    assert "Inserted 10 with 1 swap." in out
+    assert "Step 1: Moved 5.5 up, swapping it with its parent 10." in out
+    assert "Extracted the smallest key, 5.5." in out
+    assert "Step 0: Moved the last leaf, 10, to the root." in out
+    assert "No swaps were needed" in out
+    assert "'x' isn't a valid number." in out
+    assert "Some of the keys are empty." in out
+    assert "Built a min heap from 4 keys with 3 swaps." in out
+    assert "The smallest key is 5." in out
+    assert "Level order traversal: 5, 10, 30, 20" in out
+    assert "Loaded the example max heap, built from 50, 30, 10, 20, 70, 60 and 80." in out
+    assert "Extracted the largest key, 80." in out
+    assert "The largest key is 70." in out
+
+
+def test_priority_queue(play):
+    out = play(
+        "2", "2", "3", "1",  # Non-linear > Heap & Priority Queue > Priority Queue > Start empty
+        "3", "4",  # Dequeue and peek on an empty queue
+        "2", "1", "write", "2",  # Enqueue 'write' with priority 2
+        "2", "1", "fix", "x", "1",  # Enqueue 'fix' after an invalid priority
+        "2", "1", "test", "1",
+        "5", "1", "nope", "0",  # Change the priority of a missing item
+        "5", "1", "write", "0",  # 'write' jumps to the front
+        "4", "6", "7",
+        "3", "3", "3", "3",  # Dequeue all three items, then one more
+        "8", "3", "2",  # New Heap: the example priority queue
+        "9", "0",
+    )
+    assert "The priority queue is empty, so there's nothing to dequeue." in out
+    assert "The priority queue is empty, so there's nothing to peek at." in out
+    assert "Enqueued 'write' with priority 2." in out
+    assert "The priority must be a whole number." in out
+    assert "Step 1: Moved 1: 'fix' up, swapping it with its parent 2: 'write'." in out
+    assert "'nope' isn't in the priority queue, so nothing changed." in out
+    assert "Changed the priority of 'write' from 2 to 0." in out
+    assert "The next item is 'write', with priority 0." in out
+    assert "The priority queue holds 3 items." in out
+    assert "Serving order" in out
+    assert "Dequeued 'fix', which had priority 1." in out
+    assert "That was the only item, so the priority queue is empty now." in out
+    assert "'Deploy' has the same priority as 'Fix bug'" in out
+
+
+def test_trie(play):
+    out = play(
+        "2", "3", "1",  # Non-linear > Trie > Start empty
+        "3", "car", "8", "7",  # Delete from, display and count an empty trie
+        "2", " ", "card",  # An empty word, then 'card'
+        "2", "car", "2", "car",  # 'car' reuses the nodes of 'card', then it's a duplicate
+        "2", "cat",
+        "4", "ca", "4", "cat", "4", "dog",
+        "5", "ca", "5", "x",
+        "6", "car", "6", "", "6", "z",
+        "3", "car", "3", "card",
+        "7", "8",
+        "9", "2",  # New Trie with the example
+        "10", "0",
+    )
+    assert "'car' isn't in the trie, so nothing was deleted." in out
+    assert "The trie is empty." in out
+    assert "The trie holds 0 words in 0 nodes" in out
+    assert "The word needs at least one character." in out
+    assert "Inserted 'card' with 4 new nodes." in out
+    assert "Inserted 'car' with 0 new nodes." in out
+    assert "The first 3 characters reused nodes that other words already had." in out
+    assert "'car' is already in the trie, so nothing changed." in out
+    assert "'ca' isn't a word in the trie, although some words start with it." in out
+    assert "Found 'cat' in the trie." in out
+    assert "'dog' isn't in the trie." in out
+    assert "Does any word start with 'ca'? Yes." in out
+    assert "Does any word start with 'x'? No." in out
+    assert "Words starting with 'car': 'car', 'card'" in out
+    assert "Words starting with '': 'car', 'card', 'cat'" in out
+    assert "No words start with 'z'." in out
+    assert "Deleted 'car'. Other words still use all of its nodes" in out
+    assert "Deleted 'card' and pruned 2 nodes that no longer led to a word." in out
+    assert "The trie holds 1 word in 3 nodes" in out
+    assert "✓ 'cat'" in out
+    assert "Loaded the example trie with the words 'car', 'card', 'care', 'cat', 'do' and 'dog'." in out
 
 
 def test_graphs(play):
     out = play(
-        "2", "2", "1", "1", "x", "0", "3",  # Non-linear > Graph > Matrix > Create with 3 vertices
+        "2", "4", "1", "1", "x", "0", "3",  # Non-linear > Graph > Matrix > Create with 3 vertices
         "4", "0", "1", "0", "5",  # Add an edge: weight 0 is rejected, then 5
         "4", "0", "1", "7",  # Update it
         "4", "0", "9", "2",  # Missing vertex
@@ -261,7 +362,7 @@ def test_graphs(play):
 
 def test_hash_tables(play):
     out = play(
-        "2", "3", "2", "1", "3",  # Non-linear > Hash Table > Linear Probing > Create with 3 slots
+        "2", "5", "2", "1", "3",  # Non-linear > Hash Table > Linear Probing > Create with 3 slots
         "2", "2", "1", "1", "a",  # Keys 1, 4 and 7 all hash to slot 1
         "2", "2", "4", "1", "b",
         "2", "2", "7", "1", "c",
@@ -288,7 +389,7 @@ def test_hash_tables(play):
 
 def test_hash_sets(play):
     out = play(
-        "2", "3", "3", "1", "3",  # Non-linear > Hash Table > Hash Set > Create two sets with 3 buckets
+        "2", "5", "3", "1", "3",  # Non-linear > Hash Table > Hash Set > Create two sets with 3 buckets
         "2", "1", "2", "1", "2", "1", "2", "2", "2", "1", "1", "x",  # Add 1, 2 and 'x' to A
         "2", "2", "2", "2", "2", "2", "1", "x",  # Add 2 and 'x' to B
         "2", "1", "2", "1",  # A already has 1
@@ -314,7 +415,7 @@ def test_hash_sets(play):
 
 def test_disjoint_sets(play):
     out = play(
-        "2", "4", "1", "x", "5",  # Non-linear > Disjoint Set > Create with 5 elements after an invalid size
+        "2", "6", "1", "x", "5",  # Non-linear > Disjoint Set > Create with 5 elements after an invalid size
         "2", "0", "1", "2", "2", "3", "2", "1", "3",  # Union 0 and 1, 2 and 3, then 1 and 3
         "3", "3",  # Find 3, which compresses its path
         "2", "0", "3",  # Already in the same set

@@ -10,7 +10,9 @@ PyDSA is a Python app that runs in your terminal and helps you learn data struct
 - **Linked List:** items connected like a chain, in singly (one-way) and doubly (two-way) versions. Each one also comes in a circular version, where the last item links back to the first, so you can walk around the loop.
 
 **Non-linear data structures** (items are connected in more complex ways):
-- **Tree:** items arranged like a family tree, as a Binary Search Tree (BST) or a self-balancing AVL tree.
+- **Tree:** items arranged like a family tree, as a Binary Search Tree (BST) or a self-balancing AVL tree. Trees are drawn from the top down, and you can also walk through them level by level or see their height and size.
+- **Heap & Priority Queue:** a min heap always keeps the smallest item on top, and a max heap the largest. You can watch every swap as items move up or down the tree. The priority queue is built on a heap and always serves the most important item first.
+- **Trie:** stores words letter by letter, so words that start the same way share their first letters. It can finish words for you (autocomplete).
 - **Graph:** points connected by lines with weights, stored as a table (adjacency matrix) or as lists (adjacency list). You can walk through it with BFS or DFS.
 - **Hash Table:** stores key-value pairs for fast lookups, using separate chaining or linear probing to handle keys that land in the same spot. There's also a **Hash Set**, which keeps unique items and lets you combine two sets with union, intersection and difference.
 - **Disjoint Set:** splits items into groups that don't overlap and quickly tells you whether two items are in the same group (also called Union-Find).

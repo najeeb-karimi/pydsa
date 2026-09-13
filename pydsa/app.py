@@ -2,10 +2,13 @@
 
 from pydsa.ui import render
 from pydsa.ui.menu import Menu, Nav, back_option, exit_option
-from pydsa.ui.screens import array, deque, disjoint_set, graph, hash_table, linked_list, queue, stack, tree
+from pydsa.ui.screens import array, deque, disjoint_set, graph, hash_table, heap, linked_list, queue, stack, tree, trie
 
 LINEAR = [("Array", array), ("Stack", stack), ("Queue", queue), ("Deque", deque), ("Linked List", linked_list)]
-NON_LINEAR = [("Tree", tree), ("Graph", graph), ("Hash Table", hash_table), ("Disjoint Set", disjoint_set)]
+NON_LINEAR = [
+    ("Tree", tree), ("Heap & Priority Queue", heap), ("Trie", trie),
+    ("Graph", graph), ("Hash Table", hash_table), ("Disjoint Set", disjoint_set),
+]
 
 
 def open_screen(screen):

@@ -9,9 +9,12 @@ from pydsa.core.deque import Deque
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.hash_set import HashSet
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
+from pydsa.core.heap import MinHeap
+from pydsa.core.priority_queue import PriorityQueue
 from pydsa.core.queue import Queue
 from pydsa.core.stack import Stack
-from pydsa.core.tree import BinarySearchTree
+from pydsa.core.tree import AVLTree, BinarySearchTree
+from pydsa.core.trie import Trie
 from pydsa.ui import render
 from pydsa.ui.console import console
 
@@ -131,17 +134,89 @@ def test_long_linked_lists_wrap(capsys):
     assert out.count("┌") == 12
 
 
-def test_binary_tree_labels_children(capsys):
+def test_binary_tree_drawn_top_down(capsys):
     tree = BinarySearchTree("num")
     for key in (50, 30, 70, 60):
         tree.insert(key)
     render.binary_tree(tree)
-    out = capsys.readouterr().out
-    assert "root 50" in out
-    assert "L 30" in out and "R 70" in out and "L 60" in out
+    assert "   50\n┌──┴──┐\n30    70\n    ┌─┘\n    60\n" in capsys.readouterr().out
 
     render.binary_tree(BinarySearchTree("str"))
     assert "The tree is empty." in capsys.readouterr().out
+
+
+def test_avl_tree_shows_balance_factors(capsys):
+    tree = AVLTree("num")
+    for key in (1, 2, 3, 4):
+        tree.insert(key)
+    render.binary_tree(tree, balance=True)
+    out = capsys.readouterr().out
+    assert "2 (-1)" in out and "3 (-1)" in out and "4 (0)" in out
+    assert "balance factor" in out
+
+
+def test_wide_trees_fall_back_to_an_outline(capsys):
+    console.width = 24
+    tree = AVLTree("num")
+    for key in range(1000, 1015):
+        tree.insert(key)
+    render.binary_tree(tree)
+    out = capsys.readouterr().out
+    assert "root 1007" in out and "L 1003" in out and "R 1011" in out
+    assert "┴" not in out
+
+
+def test_tree_stats(capsys):
+    tree = BinarySearchTree("str")
+    for key in ("m", "c", "x", "a"):
+        tree.insert(key)
+    render.tree_stats(tree)
+    out = capsys.readouterr().out
+    assert "Height (levels)" in out and "Leaves" in out
+    assert "'a'" in out and "'x'" in out
+
+    render.tree_stats(MinHeap("num"), "heap")
+    assert "The heap is empty." in capsys.readouterr().out
+
+
+def test_heap_steps_show_the_tree_and_the_array(capsys):
+    heap = MinHeap("num")
+    heap.heapify([10, 20, 30])
+    render.heap_steps(heap.insert(5), "Added 5 as the last leaf.")
+    out = capsys.readouterr().out
+    assert "Step 0: Added 5 as the last leaf." in out
+    assert "Step 1: Moved 5 up, swapping it with its parent 20." in out
+    assert "Step 2: Moved 5 up, swapping it with its parent 10." in out
+    assert "Array: [5*, 10*, 30, 20]" in out
+    assert "* marks the keys that moved" in out
+    assert out.count("┴") == 3  # One tree diagram per step
+
+    render.heap(heap)
+    out = capsys.readouterr().out
+    assert "│ 5 │ 10 │ 30 │ 20 │" in out
+    assert "2i + 1 and 2i + 2" in out
+
+
+def test_priority_queue_serving_order(capsys):
+    queue = PriorityQueue()
+    queue.enqueue("b", 2)
+    queue.enqueue("a", 1)
+    queue.enqueue("c", 2)
+    render.priority_queue(queue)
+    out = capsys.readouterr().out
+    assert "1: 'a'" in out
+    assert "Serving order" in out
+    assert out.index("'b'  ") < out.index("'c'  ")  # Equal priorities in arrival order
+
+
+def test_trie_marks_word_ends(capsys):
+    render.trie(Trie(["car", "cat", "do"]))
+    out = capsys.readouterr().out
+    assert "✓ 'car'" in out and "✓ 'cat'" in out and "✓ 'do'" in out
+    assert "3 words in 6 nodes" in out
+
+    render.trie(Trie())
+    assert "The trie is empty." in capsys.readouterr().out
 
 
 def test_graphs(capsys):

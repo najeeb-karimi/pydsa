@@ -144,6 +144,35 @@ def ask_value(kind="any", what="item"):
             error(f"{text!r} isn't a valid {kind}. Please try again.")
 
 
+def ask_list(question, kind, what="keys"):
+    """Ask for comma-separated values until every one of them is valid; return them as a list.
+
+    kind is "num" (each value becomes an int, or a float if it has a decimal point) or "str" (each value is
+    kept as typed, without the spaces around it); what names the values in error messages.
+    """
+    while True:
+        parts = [part.strip() for part in ask(question).split(",")]
+        if not all(parts):
+            error(f"Some of the {what} are empty. Put a value between every two commas.")
+            continue
+        if kind == "str":
+            return parts
+        try:
+            return [_number(part) for part in parts]
+        except ValueError as problem:
+            error(f"{problem.args[0]!r} isn't a valid number. Please try again.")
+
+
+def _number(text):
+    """Convert text to an int, or to a float if it isn't a whole number; raise ValueError(text) otherwise."""
+    for convert in (int, float):
+        try:
+            return convert(text)
+        except ValueError:
+            pass
+    raise ValueError(text)
+
+
 def ask_item():
     """Ask for a stack or queue item; a whole number can be kept as an int or stored as a str."""
     text = ask("✍️ Enter the item:")

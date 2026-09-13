@@ -55,8 +55,14 @@ def tree_menu(kind):
         ("Delete", lambda: delete(tree)),
         ("Search", lambda: search(tree)),
         ("Traversals", lambda: traversals(tree)),
-        ("Display", lambda: render.binary_tree(tree)),
+        ("Tree Stats", lambda: render.tree_stats(tree)),
+        ("Display", lambda: show(tree)),
     ], definition=show_definition, new_label="New Tree").run()
+
+
+def show(tree):
+    """Draw the tree, with balance factors for an AVL tree."""
+    render.binary_tree(tree, balance=isinstance(tree, AVLTree))
 
 
 def create(kind):
@@ -77,7 +83,7 @@ def example(kind):
     for key in EXAMPLE_KEYS:
         tree.insert(key)
     success(f"Loaded the example {kind.name}.")
-    render.binary_tree(tree)
+    show(tree)
     return tree
 
 
@@ -90,7 +96,7 @@ def insert(tree):
     key = ask_key(tree)
     tree.insert(key)
     success(f"Inserted {fmt(key)}.")
-    render.binary_tree(tree)
+    show(tree)
 
 
 def delete(tree):
@@ -101,7 +107,7 @@ def delete(tree):
         not_found(f"{fmt(key)} isn't in the tree, so nothing was deleted.")
         return
     success(f"Deleted {fmt(key)}.")
-    render.binary_tree(tree)
+    show(tree)
 
 
 def search(tree):
@@ -117,6 +123,7 @@ def traversals(tree):
     Menu("🗂️ Which traversal do you want?", [
         [("Inorder (left, node, right)", lambda: render.traversal("Inorder", tree.inorder())),
          ("Preorder (node, left, right)", lambda: render.traversal("Preorder", tree.preorder())),
-         ("Postorder (left, right, node)", lambda: render.traversal("Postorder", tree.postorder()))],
+         ("Postorder (left, right, node)", lambda: render.traversal("Postorder", tree.postorder())),
+         ("Level order (level by level, left to right)", lambda: render.traversal("Level order", tree.level_order()))],
         [back_option()],
     ]).select()
