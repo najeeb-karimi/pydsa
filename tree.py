@@ -1,4 +1,4 @@
-"""Tree implementation (binary search tree)."""
+"""Tree implementations: binary search tree and AVL tree."""
 
 import utility
 
@@ -276,13 +276,378 @@ def bst_main():
 
 
 # ---------------------------------------------------------------------------
+# AVL Tree
+# ---------------------------------------------------------------------------
+
+class Node:
+    """Node of an AVL tree, which also tracks its height."""
+
+    def __init__(self, key):
+        self.key = key  # Value of the node
+        self.left = None  # Left child
+        self.right = None  # Right child
+        self.height = 1  # Height of the node; a new node is a leaf
+
+
+class AVLTree:
+    """Self-balancing binary search tree that holds either numbers or strings."""
+
+    def __init__(self, type):
+        self.root = None  # The tree starts empty
+        self.data_type = type  # "num" or "str", so the tree only holds one kind of data
+
+    def insert(self, key):
+        """Insert a new key into the AVL tree."""
+        self.root = self._insert(self.root, key)
+
+    def _insert(self, node, key):
+        """Recursively insert a key, rebalance on the way back up and return the new subtree root."""
+        if not node:
+            return Node(key)
+
+        if key < node.key:
+            node.left = self._insert(node.left, key)
+        else:
+            node.right = self._insert(node.right, key)
+
+        node.height = 1 + max(self._get_height(node.left), self._get_height(node.right))
+
+        balance = self._get_balance(node)
+
+        # Rotate to restore the balance
+        if balance > 1 and key < node.left.key:
+            return self._right_rotate(node)  # Left Left case
+        if balance < -1 and key > node.right.key:
+            return self._left_rotate(node)  # Right Right case
+        if balance > 1 and key > node.left.key:
+            node.left = self._left_rotate(node.left)  # Left Right case
+            return self._right_rotate(node)
+        if balance < -1 and key < node.right.key:
+            node.right = self._right_rotate(node.right)  # Right Left case
+            return self._left_rotate(node)
+
+        return node
+
+    def delete(self, key):
+        """Delete a key from the AVL tree."""
+        self.root = self._delete(self.root, key)
+
+    def _delete(self, node, key):
+        """Recursively delete a key, rebalance on the way back up and return the new subtree root."""
+        if not node:
+            return node
+
+        if key < node.key:
+            node.left = self._delete(node.left, key)
+        elif key > node.key:
+            node.right = self._delete(node.right, key)
+        else:
+            if not node.left:
+                return node.right  # Only a right child, or no child
+            elif not node.right:
+                return node.left  # Only a left child
+
+            # Two children: replace the key with its in-order successor's key, then delete the successor
+            temp = self._min_value_node(node.right)
+            node.key = temp.key
+            node.right = self._delete(node.right, temp.key)
+
+        node.height = 1 + max(self._get_height(node.left), self._get_height(node.right))
+
+        balance = self._get_balance(node)
+
+        # Rotate to restore the balance
+        if balance > 1 and self._get_balance(node.left) >= 0:
+            return self._right_rotate(node)  # Left Left case
+        if balance > 1 and self._get_balance(node.left) < 0:
+            node.left = self._left_rotate(node.left)  # Left Right case
+            return self._right_rotate(node)
+        if balance < -1 and self._get_balance(node.right) <= 0:
+            return self._left_rotate(node)  # Right Right case
+        if balance < -1 and self._get_balance(node.right) > 0:
+            node.right = self._right_rotate(node.right)  # Right Left case
+            return self._left_rotate(node)
+
+        return node
+
+    def search(self, key):
+        """Search for a key in the AVL tree and return its node, or None if it isn't there."""
+        return self._search(self.root, key)
+
+    def _search(self, node, key):
+        """Recursively search the subtree rooted at node for a key."""
+        if not node or node.key == key:
+            return node
+
+        if key < node.key:
+            return self._search(node.left, key)
+        return self._search(node.right, key)
+
+    def inorder(self):
+        """Return the keys in in-order (left, node, right)."""
+        return self._inorder(self.root)
+
+    def _inorder(self, node):
+        """Recursively collect keys in in-order."""
+        res = []
+        if node:
+            res = self._inorder(node.left)
+            res.append(node.key)
+            res = res + self._inorder(node.right)
+        return res
+
+    def preorder(self):
+        """Return the keys in pre-order (node, left, right)."""
+        return self._preorder(self.root)
+
+    def _preorder(self, node):
+        """Recursively collect keys in pre-order."""
+        res = []
+        if node:
+            res.append(node.key)
+            res = res + self._preorder(node.left)
+            res = res + self._preorder(node.right)
+        return res
+
+    def postorder(self):
+        """Return the keys in post-order (left, right, node)."""
+        return self._postorder(self.root)
+
+    def _postorder(self, node):
+        """Recursively collect keys in post-order."""
+        res = []
+        if node:
+            res = self._postorder(node.left)
+            res = res + self._postorder(node.right)
+            res.append(node.key)
+        return res
+
+    def _left_rotate(self, z):
+        """Rotate the subtree rooted at z to the left and return its new root."""
+        y = z.right
+        T2 = y.left
+
+        y.left = z
+        z.right = T2
+
+        z.height = 1 + max(self._get_height(z.left), self._get_height(z.right))
+        y.height = 1 + max(self._get_height(y.left), self._get_height(y.right))
+
+        return y
+
+    def _right_rotate(self, z):
+        """Rotate the subtree rooted at z to the right and return its new root."""
+        y = z.left
+        T3 = y.right
+
+        y.right = z
+        z.left = T3
+
+        z.height = 1 + max(self._get_height(z.left), self._get_height(z.right))
+        y.height = 1 + max(self._get_height(y.left), self._get_height(y.right))
+
+        return y
+
+    def _get_height(self, node):
+        """Return the height of a node, or 0 for an empty subtree."""
+        if not node:
+            return 0
+        return node.height
+
+    def _get_balance(self, node):
+        """Return the balance factor of a node (left height minus right height)."""
+        if not node:
+            return 0
+        return self._get_height(node.left) - self._get_height(node.right)
+
+    def _min_value_node(self, node):
+        """Return the node with the smallest key in the subtree rooted at node."""
+        current = node
+        while current.left is not None:
+            current = current.left
+        return current
+
+
+def avl_main():
+    """Create an AVL tree and run the AVL operation menu."""
+    print("\nℹ️ This program implements an AVL that allows nodes of the same general data type & allows duplicates on the right subtree of the root.")
+
+    # Type selection loop; the tree holds either numbers or strings
+    while True:
+        type = input("""\n🤔 Which type of data do you want store in the AVL?
+★1) Numbers (int or float)
+★2) Strings
+>>> """)
+        match type:
+            case "1":
+                avl = AVLTree("num")
+                break
+            case "2":
+                bst = AVLTree("str")
+                break
+            case _:
+                print("Invalid code number!")
+                continue
+
+    # Operation selection loop
+    while True:
+        opr = input("""\n⚔️ Which operation do you want to perform with the AVL TREE?
+★0) Definition
+★1) Insertion
+★2) Deletion
+★3) Searching
+★4) Traversals
+★5) New Tree
+★6) New Data Structure
+★7) Exiting the Program
+
+>>> """)
+        match opr:
+
+            # Definition
+            case "0":
+                tree_intro("def")
+
+            # Insertion
+            case "1":
+                data_type = avl.data_type
+                if data_type == "str":
+                    item = utility.input_verify("str")
+                elif data_type == "num":
+                    item = utility.input_verify("num")
+
+                if item != None:
+                    avl.insert(item)
+                    print("\n✅ Successfully inserted.", end="")
+                    print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
+                else:
+                    print("\n🚫 Invalid data type; item not inserted.")
+
+            # Deletion
+            case "2":
+                data_type = avl.data_type
+                if data_type == "str":
+                    item = utility.input_verify("str")
+                elif data_type == "num":
+                    item = utility.input_verify("num")
+
+                if item != None:
+                    # Look the item up in the in-order traversal first, so a missing node can be reported
+                    nodes = avl.inorder()
+                    if item not in nodes:
+                        print("\n❌ Node not found. Deletion unsuccessful.")
+                    else:
+                        avl.delete(item)
+                        print("\n✅ Successfully deleted.", end="")
+                        print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
+                else:
+                    print("\n🚫 Invalid data type. Deletion unsuccessful.")
+
+            # Searching
+            case "3":
+                data_type = avl.data_type
+                if data_type == "str":
+                    item = utility.input_verify("str")
+                elif data_type == "num":
+                    item = utility.input_verify("num")
+
+                    if item != None:
+                        result = avl.search(item)
+                        if result != None:
+                            print("\n✅ Node available.", end="")
+                            print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
+                        else:
+                            print("\n❌ Node not found.", end=" ")
+                            print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
+                    else:
+                        print("\n🚫 Invalid data type. Deletion unsuccessful.")
+
+            # Traversals
+            case "4":
+
+                # Traversal type selection loop
+                while True:
+                    traversal_type = input("""\n🗂️ Which traversal do you want?
+●1) Inorder Traversal
+●2) Preorder Traversal
+●3) Postorder Traversal
+>>> """)
+                    match traversal_type:
+
+                        # Inorder
+                        case "1":
+                            print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
+                            break
+
+                        # Preorder
+                        case "2":
+                            print(f"\n👉🏻 {avl.preorder()}\nℹ️ Preorder Traversal")
+                            break
+
+                        # Postorder
+                        case "3":
+                            print(f"\n👉🏻 {avl.postorder()}\nℹ️ Postorder Traversal")
+                            break
+
+                        # Invalid
+                        case _:
+                            print("\n❌ Invalid code number!")
+                            continue
+
+            # New tree
+            case "5":
+                utility.clear()
+                tree_intro("full")
+                tree_main()
+                break
+
+            # New data structure
+            case "6":
+                utility.clear()
+                utility.main_intro()
+                break
+
+            # Exit the program
+            case "7":
+                exit()
+
+            # Invalid
+            case _:
+                print("\n🚫 Invalid operation code!")
+
+
+# ---------------------------------------------------------------------------
 # Tree main and intro functions
 # ---------------------------------------------------------------------------
 
 def tree_main():
-    """Show the tree intro and open the binary search tree menu."""
+    """Show the tree intro and let the user pick a BST or an AVL tree.
+
+    Once the chosen tree's menu returns, control goes back to the main menu in main.py.
+    """
     tree_intro("full")
-    bst_main()
+
+    # Tree type selection loop
+    while True:
+        tree_type = input("""\n🧪 Which type of tree do you want?
+★1) BST (Binary Search Tree)
+★2) AVL (Adelson-Velsky and Evgenii Landis)  
+>>> """)
+
+        match tree_type:
+            # BST
+            case "1":
+                bst_main()
+                break
+
+            # AVL
+            case "2":
+                avl_main()
+                break
+
+            # Invalid
+            case _:
+                print("\n🚫 Invalid type code!")
 
 
 def tree_intro(condition):
