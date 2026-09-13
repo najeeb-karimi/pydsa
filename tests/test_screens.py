@@ -2,29 +2,7 @@
 
 import pytest
 
-from pydsa import __version__, app
-
-
-@pytest.fixture
-def play(monkeypatch, capsys):
-    """Run the whole app with scripted answers and return everything it printed."""
-
-    def run_session(*answers):
-        remaining = iter(answers)
-
-        def scripted_input(prompt=""):
-            print(prompt, end="")
-            try:
-                return next(remaining)
-            except StopIteration:
-                raise AssertionError("The app asked for more input than the script provides") from None
-
-        monkeypatch.setattr("builtins.input", scripted_input)
-        app.run()
-        assert list(remaining) == [], "The app exited before using every scripted answer"
-        return capsys.readouterr().out
-
-    return run_session
+from pydsa import __version__
 
 
 def test_home_navigation(play):
@@ -513,3 +491,31 @@ def test_graph_algorithms(play):
     assert "Found a cycle: 2 — 0 — 1 — 2" in out
     assert out.count("Found a minimum spanning tree with 4 edges and a total weight of 11.") == 2
     assert "Left out, because they would close a cycle: 0 — 1 (4), 2 — 3 (8), 2 — 4 (9)." in out
+
+
+@pytest.mark.parametrize("answers, message", [
+    (("1", "1", "3", "1", "5", "0"), "Created an int array with 5 random elements."),
+    (("1", "2", "3", "99", "4", "2", "0"), "Created a stack that holds up to 4 items, with 2 random items pushed onto it."),
+    (("1", "3", "3", "4", "2", "0"), "Created a queue that holds up to 4 items, with 2 random items enqueued."),
+    (("1", "4", "3", "4", "2", "0"), "Created a deque that holds up to 4 items, with 2 random items pushed onto the back."),
+    (("1", "5", "1", "3", "6", "0"), "Created a singly linked list with 6 random nodes."),
+    (("2", "1", "2", "3", "1", "7", "0"), "Created an AVL tree with 7 random keys."),
+    (("2", "2", "1", "3", "2", "6", "0"), "Built a min heap from 6 random keys."),
+    (("2", "2", "3", "3", "5", "0"), "Created a priority queue with 5 random items."),
+    (("2", "3", "3", "5", "0"), "Created a trie with 5 random words."),
+    (("2", "4", "1", "3", "2", "5", "1", "6", "0"), "Created an undirected graph with 5 vertices and 6 random edges."),
+    (("2", "4", "2", "3", "1", "4", "2", "3", "0"), "Created a directed graph with 4 vertices and 3 random edges."),
+    (("2", "5", "1", "3", "5", "8", "0"), "Created a hash table with 5 buckets and 8 random keys."),
+    (("2", "5", "2", "3", "5", "5", "0"), "Created a hash table with 5 slots and 5 random keys."),
+    (("2", "5", "3", "3", "4", "6", "0"), "Created two sets, A and B, from 6 random numbers each."),
+    (("2", "6", "3", "8", "5", "0"), "Created a disjoint set of 8 elements and merged the sets of 5 random pairs."),
+    (("3", "1", "4", "8", "3", "0"), "Created a list of 8 random numbers, sorted backwards."),
+    (("3", "2", "4", "8", "4", "0"), "Created a list of 8 random numbers, with lots of duplicates."),
+    (("3", "3", "3", "2", "5", "1", "6", "0"), "Created an undirected graph with 5 vertices and 6 random edges."),
+], ids=["array", "stack", "queue", "deque", "linked-list", "avl-tree", "min-heap", "priority-queue", "trie",
+        "matrix-graph", "list-graph", "chaining", "probing", "hash-set", "disjoint-set", "sorting", "searching",
+        "graph-algorithms"])
+def test_fill_with_random_values(play, answers, message):
+    out = play(*answers)
+    assert message in out
+    assert "Goodbye!" in out

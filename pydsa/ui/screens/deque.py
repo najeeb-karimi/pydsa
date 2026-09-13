@@ -3,7 +3,7 @@
 from pydsa.content import complexity, texts
 from pydsa.core.deque import Deque
 from pydsa.core.errors import CapacityError, EmptyError
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_item, error, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -17,7 +17,7 @@ def run():
     """Create a deque and run the deque operation menu."""
     render.intro(texts.DEQUE_ASCII, texts.DEQUE_DEFINITION, complexity.DEQUE)
     deque = Menu("🛠️ Do you want to create a deque yourself or use the preloaded example?", [
-        [("Create a deque", create), ("Use the example", example)],
+        [("Create a deque", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
     ]).open()
     if deque is Nav.BACK:
@@ -53,6 +53,17 @@ def example():
     deque.push_back("Messi")
     deque.push_front(2.5)
     success("Loaded the example deque. Pushing 2.5 onto the front wrapped it around to the last slot.")
+    show(deque)
+    return deque
+
+
+def fill_random():
+    """Ask for the capacity and the number of random items, and return a deque holding them."""
+    capacity, count = random_data.ask_capacity_and_count("deque")
+    deque = Deque(capacity)
+    for item in random_data.values("any", count):
+        deque.push_back(item)
+    success(f"Created a deque that holds up to {plural(capacity, 'item')}, with {plural(count, 'random item')} pushed onto the back.")
     show(deque)
     return deque
 

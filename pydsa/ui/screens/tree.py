@@ -5,8 +5,8 @@ from typing import NamedTuple
 from pydsa.content import complexity, texts
 from pydsa.core.errors import NotFoundError
 from pydsa.core.tree import AVLTree, BinarySearchTree
-from pydsa.ui import render
-from pydsa.ui.console import ask_value, info, not_found, success
+from pydsa.ui import random_data, render
+from pydsa.ui.console import ask_value, info, not_found, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
 
@@ -40,11 +40,18 @@ def run():
     ]).open()
 
 
+def run_kind(kind):
+    """Show the tree intro and run the menu of one kind of tree, skipping the choice of kind."""
+    render.intro(texts.TREE_ASCII, texts.TREE_DEFINITION, complexity.TREE)
+    return tree_menu(kind)
+
+
 def tree_menu(kind):
     """Create a tree of the given kind and run its operation menu."""
     info(kind.info)
     tree = Menu(f"🛠️ Do you want to create {kind.with_article} yourself or use the preloaded example?", [
-        [(f"Create {kind.with_article}", lambda: create(kind)), ("Use the example", lambda: example(kind))],
+        [(f"Create {kind.with_article}", lambda: create(kind)), ("Use the example", lambda: example(kind)),
+         ("Fill with random values", lambda: fill_random(kind))],
         [back_option()],
     ]).open()
     if tree is Nav.BACK:
@@ -65,16 +72,35 @@ def show(tree):
     render.binary_tree(tree, balance=isinstance(tree, AVLTree))
 
 
-def create(kind):
-    """Ask whether the tree holds numbers or strings and return an empty tree."""
-    data_type = Menu(f"🤔 Which type of data do you want to store in the {kind.name}?", [
+def ask_data_type(kind):
+    """Ask whether the tree holds numbers or strings; return "num", "str" or Nav.BACK."""
+    return Menu(f"🤔 Which type of data do you want to store in the {kind.name}?", [
         [("Numbers (int or float)", lambda: "num"), ("Strings", lambda: "str")],
         [back_option()],
     ]).open()
+
+
+def create(kind):
+    """Ask whether the tree holds numbers or strings and return an empty tree."""
+    data_type = ask_data_type(kind)
     if data_type is Nav.BACK:
         return Nav.BACK
     success(f"Created an empty {kind.name} for {'numbers' if data_type == 'num' else 'strings'}.")
     return kind.tree_class(data_type)
+
+
+def fill_random(kind):
+    """Ask for the data type and how many random keys to insert, and return the tree."""
+    data_type = ask_data_type(kind)
+    if data_type is Nav.BACK:
+        return Nav.BACK
+    count = random_data.ask_count("keys")
+    tree = kind.tree_class(data_type)
+    for key in random_data.values(data_type, count):
+        tree.insert(key)
+    success(f"Created {kind.with_article} with {plural(count, 'random key')}.")
+    show(tree)
+    return tree
 
 
 def example(kind):

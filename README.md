@@ -119,18 +119,45 @@ If the terminal says the command isn't found, make sure your virtual environment
 - Once you're working with a data structure or an algorithm, its menu offers:
   - **Definition:** shows the explanation and complexity table again.
   - **New ...** (such as **New Stack**): starts that topic over with fresh data.
-  - **New Data Structure** or **Main Menu:** goes back to the first menu.
+  - **Main Menu:** goes back to the first menu.
   - **`0) Exit`:** closes the app.
 - If you type something that isn't allowed, PyDSA tells you what went wrong and asks again, so you can't break anything.
 
+### ⌨️ Shortcuts
+These work in every menu:
+
+| In a menu | While typing a value | What it does |
+| --- | --- | --- |
+| `h` or `?` | `:h` | Shows help and where you are |
+| `b` | `:b` | Goes back to the previous menu, cancelling what you were typing |
+| `q` | `:q` | Quits PyDSA |
+
+While typing a value, the shortcuts start with `:`, so you can still enter a real `q` or `b`. Pressing Ctrl+C also quits cleanly.
+
 ### ✍️ Typing Values
-- **Examples or your own data:** almost every topic lets you start with a preloaded example or create your own, so you can explore before typing anything.
+- **Examples, random values or your own data:** every topic lets you start with a preloaded example, fill it with random values of the size you choose, or create your own, so you can explore before typing anything.
 - **Data types:** when you add an item, PyDSA may ask whether it's a `str` (text), an `int` (whole number) or a `float` (decimal number). Text is shown in quotes, so `'7'` is the text 7 and `7` is the number.
 - **Lists:** when PyDSA asks for several values at once, such as a list to sort, separate them with commas: `5, 3, 8, 1`.
 
+### ⚙️ Settings
+Choose **Settings** on the main menu to change how PyDSA behaves. Your choices are saved in a `.pydsa` folder in your home folder, so they last between sessions:
+- **Explanations:** Brief shows the first sentences of an algorithm's explanation, and Detailed shows all of it.
+- **Colors:** turn colors off if your terminal shows strange symbols.
+- **Clear the Screen:** turn it off to keep everything on screen and scroll back through it.
+- **Welcome Intro:** show the long intro once per session, or every time you return to the main menu.
+
+### 🚩 Command-Line Options
+```bash
+pydsa --topic stack        # open a topic directly
+pydsa --list-topics        # show the ID of every topic
+pydsa --no-color           # turn colors off for this run
+pydsa --reset-settings     # restore the default settings
+pydsa --version            # show the version
+```
+
 ### 🎨 Display Tips
 - Make the terminal window wider if a table looks cramped. Wide arrays, trees and tables switch to a taller layout when the window is narrow.
-- To turn off colors, set the `NO_COLOR` environment variable before starting the app.
+- To turn off colors for good, use Settings, or set the `NO_COLOR` environment variable before starting the app.
 
 ## 🔄 Updating and Uninstalling
 To get the latest version, run these commands inside the `pydsa` folder, with your virtual environment active:

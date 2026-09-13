@@ -7,7 +7,7 @@ from typing import Callable, NamedTuple
 
 from pydsa.algorithms import sorting
 from pydsa.content import complexity, texts
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_list, ask_order, error, info, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 
@@ -48,7 +48,8 @@ def run():
     items = Menu("🛠️ Do you want to type a list yourself or use the preloaded example?", [
         [("Type a list of numbers", lambda: create("num")),
          ("Type a list of words", lambda: create("str")),
-         ("Use the example", example)],
+         ("Use the example", example),
+         ("Fill with random values", random_data.create_number_list)],
         [back_option()],
     ]).open()
     if items is Nav.BACK:
@@ -58,7 +59,7 @@ def run():
         *[(sort.name, lambda sort=sort: sort_copy(items, sort)) for sort in SORTS],
         ("Compare All Algorithms", lambda: compare(items)),
         ("Display", lambda: render.array(items)),
-    ], definition=show_definition, new_label="New List", home_label="Main Menu").run()
+    ], definition=show_definition, new_label="New List").run()
 
 
 def create(kind):

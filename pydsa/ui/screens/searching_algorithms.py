@@ -5,7 +5,7 @@ The array screen searches with the same algorithm list and runner.
 
 from pydsa.algorithms import searching
 from pydsa.content import complexity, texts
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_list, ask_value, error, not_found, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -33,7 +33,8 @@ def run():
     items = Menu("🛠️ Do you want to type a list yourself or use the preloaded example?", [
         [("Type a list of numbers", lambda: create("num")),
          ("Type a list of words", lambda: create("str")),
-         ("Use the example", example)],
+         ("Use the example", example),
+         ("Fill with random values", random_data.create_number_list)],
         [back_option()],
     ]).open()
     if items is Nav.BACK:
@@ -43,7 +44,7 @@ def run():
     return operation_menu("list", [
         *[(search.name, lambda search=search: run_search(items, search, kind, "the list")) for search in SEARCHES],
         ("Display", lambda: render.array(items)),
-    ], definition=show_definition, new_label="New List", home_label="Main Menu").run()
+    ], definition=show_definition, new_label="New List").run()
 
 
 def create(kind):

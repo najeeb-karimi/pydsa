@@ -3,7 +3,7 @@
 from pydsa.content import complexity, texts
 from pydsa.core.errors import CapacityError, EmptyError
 from pydsa.core.stack import Stack
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_item, error, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -13,7 +13,7 @@ def run():
     """Create a stack and run the stack operation menu."""
     render.intro(texts.STACK_ASCII, texts.STACK_DEFINITION, complexity.STACK)
     stack = Menu("🛠️ Do you want to create a stack yourself or use the preloaded example?", [
-        [("Create a stack", create), ("Use the example", example)],
+        [("Create a stack", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
     ]).open()
     if stack is Nav.BACK:
@@ -45,6 +45,17 @@ def example():
     stack.push(10)
     stack.push("Messi")
     success("Loaded the example stack.")
+    render.stack(stack)
+    return stack
+
+
+def fill_random():
+    """Ask for the capacity and the number of random items, and return a stack holding them."""
+    capacity, count = random_data.ask_capacity_and_count("stack")
+    stack = Stack(capacity)
+    for item in random_data.values("any", count):
+        stack.push(item)
+    success(f"Created a stack that holds up to {plural(capacity, 'item')}, with {plural(count, 'random item')} pushed onto it.")
     render.stack(stack)
     return stack
 

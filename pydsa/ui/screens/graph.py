@@ -4,7 +4,7 @@ from pydsa.algorithms import graph_algorithms
 from pydsa.content import complexity, texts
 from pydsa.core.errors import CycleError, DuplicateError, NegativeWeightError, NotFoundError, OutOfBoundsError
 from pydsa.core.graph import ListGraph, MatrixGraph
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, error, info, not_found, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 
@@ -32,12 +32,28 @@ def run():
     ]).open()
 
 
+def run_matrix():
+    """Show the graph intro and run the adjacency matrix menu, skipping the choice of representation."""
+    render.intro(texts.GRAPH_ASCII, texts.GRAPH_DEFINITION, complexity.GRAPH)
+    return matrix_menu()
+
+
+def run_list():
+    """Show the graph intro and run the adjacency list menu, skipping the choice of representation."""
+    render.intro(texts.GRAPH_ASCII, texts.GRAPH_DEFINITION, complexity.GRAPH)
+    return list_menu()
+
+
 # ---------------------------------------------------------------------------
 # Shared by both representations
 # ---------------------------------------------------------------------------
 
 def describe(graph):
     return "directed" if graph.directed else "undirected"
+
+
+def with_article(graph):
+    return "a directed" if graph.directed else "an undirected"
 
 
 def show(graph):
@@ -272,7 +288,8 @@ def matrix_menu():
     """Create an adjacency matrix graph and run its operation menu."""
     info(texts.MATRIX_GRAPH_INFO)
     graph = Menu("🛠️ Do you want to create an adjacency matrix graph yourself or use the preloaded example?", [
-        [("Create a graph", create_matrix), ("Use the example", example_matrix)],
+        [("Create a graph", create_matrix), ("Use the example", example_matrix),
+         ("Fill with random values", lambda: fill_random(MatrixGraph))],
         [back_option()],
     ]).open()
     if graph is Nav.BACK:
@@ -307,7 +324,7 @@ def create_matrix():
         return Nav.BACK
     count = ask_int("🔢 How many vertices should the graph have?", "number of vertices", min_value=1)
     graph = MatrixGraph(count, directed)
-    success(f"Created a {describe(graph)} graph with {plural(count, 'vertex', 'vertices')}, numbered 0 to {count - 1}.")
+    success(f"Created {with_article(graph)} graph with {plural(count, 'vertex', 'vertices')}, numbered 0 to {count - 1}.")
     show(graph)
     return graph
 
@@ -330,7 +347,8 @@ def list_menu():
     """Create an adjacency list graph and run its operation menu."""
     info(texts.LIST_GRAPH_INFO)
     graph = Menu("🛠️ Do you want to create an adjacency list graph yourself or use the preloaded example?", [
-        [("Create a graph", create_list), ("Use the example", example_list)],
+        [("Create a graph", create_list), ("Use the example", example_list),
+         ("Fill with random values", lambda: fill_random(new_list_graph))],
         [back_option()],
     ]).open()
     if graph is Nav.BACK:
@@ -375,4 +393,46 @@ def example_list():
         return Nav.BACK
     graph = ListGraph(directed)
     load_example(graph)
+    return graph
+
+
+# ---------------------------------------------------------------------------
+# Random graphs
+# ---------------------------------------------------------------------------
+
+def new_list_graph(vertex_count, directed):
+    """Return an adjacency list graph with the vertices 0 to vertex_count - 1 and no edges."""
+    graph = ListGraph(directed)
+    for vertex in range(vertex_count):
+        graph.add_vertex(vertex)
+    return graph
+
+
+def fill_random(make_graph):
+    """Ask for the direction, vertices and edges, and return a random graph made with make_graph(count, directed)."""
+    directed = ask_direction()
+    if directed is Nav.BACK:
+        return Nav.BACK
+    count = ask_int("🔢 How many vertices should the graph have?", "number of vertices",
+                    min_value=1, max_value=random_data.MAX_VERTICES)
+    connected = False
+    if count > 1:
+        connected = Menu("🔗 Should every vertex be reachable from vertex 0?", [
+            [("Yes, connect them all", lambda: True), ("No, place the edges anywhere", lambda: False)],
+            [back_option()],
+        ]).select()
+        if connected is Nav.BACK:
+            return Nav.BACK
+    fewest, most = random_data.edge_limits(count, directed, connected)
+    edge_count = 0
+    if most:
+        edge_count = ask_int(f"🎲 How many random edges do you want? Choose {fewest} to {most}.", "number of edges",
+                             min_value=fewest, max_value=most)
+
+    graph = make_graph(count, directed)
+    for u, v, weight in random_data.edges(graph.vertices(), edge_count, directed, connected):
+        graph.add_edge(u, v, weight)
+    success(f"Created {with_article(graph)} graph with {plural(count, 'vertex', 'vertices')} "
+            f"and {plural(edge_count, 'random edge')}.")
+    show(graph)
     return graph

@@ -3,7 +3,7 @@
 from pydsa.content import complexity, texts
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.errors import OutOfBoundsError
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, error, info, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 
@@ -14,7 +14,7 @@ def run():
     """Create a disjoint set and run the disjoint set operation menu."""
     render.intro(texts.DISJOINT_SET_ASCII, texts.DISJOINT_SET_DEFINITION, complexity.DISJOINT_SET)
     union_find = Menu("🛠️ Do you want to create a disjoint set yourself or use the preloaded example?", [
-        [("Create a disjoint set", create), ("Use the example", example)],
+        [("Create a disjoint set", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
     ]).open()
     if union_find is Nav.BACK:
@@ -46,6 +46,19 @@ def example():
         union_find.union(a, b)
     pairs = [f"{a} and {b}" for a, b in EXAMPLE_UNIONS]
     success(f"Loaded the example: 8 elements after merging the sets of {', '.join(pairs[:-1])}, and {pairs[-1]}.")
+    render.disjoint_set(union_find)
+    return union_find
+
+
+def fill_random():
+    """Ask for the number of elements and random unions, and return the disjoint set."""
+    size = ask_int("🔢 How many elements should the disjoint set have?", "number of elements",
+                   min_value=1, max_value=random_data.MAX_ITEMS)
+    count = ask_int("🎲 How many random pairs should be merged?", "count", min_value=0, max_value=random_data.MAX_ITEMS)
+    union_find = DisjointSet(size)
+    for a, b in random_data.unions(size, count):
+        union_find.union(a, b)
+    success(f"Created a disjoint set of {plural(size, 'element')} and merged the sets of {plural(count, 'random pair')}.")
     render.disjoint_set(union_find)
     return union_find
 

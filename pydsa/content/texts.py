@@ -25,10 +25,10 @@ BANNER = r"""
 WELCOME = "Welcome to PyDSA, a console-based Python app that strives to assist you in learning data structures and algorithms! The app is designed to give you a good tour of the major DSes, giving you an opportunity to wrap your head around their distinctions while on the go! All interaction with the app is based on typing the related number codes in the terminal."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ A new Algorithms category for sorting, searching & graph algorithms
-   ★ Merge, Counting & Radix Sort, plus a side-by-side comparison of every sort
-   ★ Jump, Interpolation & Exponential Search
-   ★ Directed & undirected graphs with Dijkstra, Topological Sort, Cycle Detection, Prim & Kruskal"""
+   ★ Shortcuts everywhere: h for help, b to go back & q to quit, plus a clean exit on Ctrl+C
+   ★ A Settings menu that remembers your choices between sessions
+   ★ Command-line options: --topic, --list-topics, --no-color, --reset-settings & --version
+   ★ Fill any data structure or list with random values"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""

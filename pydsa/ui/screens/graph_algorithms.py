@@ -21,7 +21,8 @@ def run():
     info(texts.GRAPH_ALGORITHMS_INFO)
     graph = Menu("🛠️ Which example graph do you want to use?", [
         [("The directed example graph (Dijkstra, Topological Sort, Cycle Detection)", lambda: example(True)),
-         ("The undirected example graph (Dijkstra, Cycle Detection, Prim, Kruskal)", lambda: example(False))],
+         ("The undirected example graph (Dijkstra, Cycle Detection, Prim, Kruskal)", lambda: example(False)),
+         ("A random graph", lambda: graph_screen.fill_random(graph_screen.new_list_graph))],
         [back_option()],
     ]).open()
     if graph is Nav.BACK:
@@ -30,7 +31,7 @@ def run():
     return operation_menu(f"{graph_screen.describe(graph)} graph", [
         *graph_screen.algorithm_options(graph),
         ("Display", lambda: graph_screen.show(graph)),
-    ], definition=show_definition, new_label="New Graph", home_label="Main Menu").run()
+    ], definition=show_definition, new_label="New Graph").run()
 
 
 def example(directed):

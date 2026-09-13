@@ -3,7 +3,7 @@
 from pydsa.content import complexity, texts
 from pydsa.core.errors import CapacityError, EmptyError
 from pydsa.core.queue import Queue
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_item, error, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -17,7 +17,7 @@ def run():
     """Create a queue and run the queue operation menu."""
     render.intro(texts.QUEUE_ASCII, texts.QUEUE_DEFINITION, complexity.QUEUE)
     queue = Menu("🛠️ Do you want to create a queue yourself or use the preloaded example?", [
-        [("Create a queue", create), ("Use the example", example)],
+        [("Create a queue", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
     ]).open()
     if queue is Nav.BACK:
@@ -51,6 +51,17 @@ def example():
         queue.enqueue(item)
     queue.dequeue()
     success("Loaded the example queue. Its first item, 10, was already dequeued.")
+    show(queue)
+    return queue
+
+
+def fill_random():
+    """Ask for the capacity and the number of random items, and return a queue holding them."""
+    capacity, count = random_data.ask_capacity_and_count("queue")
+    queue = Queue(capacity)
+    for item in random_data.values("any", count):
+        queue.enqueue(item)
+    success(f"Created a queue that holds up to {plural(capacity, 'item')}, with {plural(count, 'random item')} enqueued.")
     show(queue)
     return queue
 

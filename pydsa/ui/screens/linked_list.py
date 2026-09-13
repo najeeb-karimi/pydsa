@@ -5,7 +5,7 @@ from typing import NamedTuple
 from pydsa.content import complexity, texts
 from pydsa.core.errors import EmptyError, OutOfBoundsError
 from pydsa.core.linked_list import DoublyCircularLinkedList, DoublyLinkedList, SinglyCircularLinkedList, SinglyLinkedList
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_value, error, info, not_found, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -41,10 +41,17 @@ def run():
     ]).open()
 
 
+def run_kind(kind):
+    """Show the linked list intro and run the menu of one kind of list, skipping the choice of kind."""
+    render.intro(texts.LINKED_LIST_ASCII, texts.LINKED_LIST_DEFINITION, complexity.LINKED_LIST)
+    return list_menu(kind)
+
+
 def list_menu(kind):
     """Create a linked list of the given kind and run its operation menu."""
     linked_list = Menu(f"🛠️ Do you want to start with an empty {kind.name} or use the preloaded example?", [
-        [("Start with an empty list", lambda: create(kind)), ("Use the example", lambda: example(kind))],
+        [("Start with an empty list", lambda: create(kind)), ("Use the example", lambda: example(kind)),
+         ("Fill with random values", lambda: fill_random(kind))],
         [back_option()],
     ]).open()
     if linked_list is Nav.BACK:
@@ -86,6 +93,17 @@ def example(kind):
     for item in EXAMPLE_ITEMS:
         linked_list.insert_at_end(item)
     success(f"Loaded the example {kind.name}.")
+    render.linked_list(list(linked_list), doubly=kind.doubly, circular=kind.circular)
+    return linked_list
+
+
+def fill_random(kind):
+    """Ask how many random nodes to add and return a list holding them."""
+    count = random_data.ask_count("nodes")
+    linked_list = kind.list_class()
+    for item in random_data.values("any", count):
+        linked_list.insert_at_end(item)
+    success(f"Created a {kind.name} with {plural(count, 'random node')}.")
     render.linked_list(list(linked_list), doubly=kind.doubly, circular=kind.circular)
     return linked_list
 

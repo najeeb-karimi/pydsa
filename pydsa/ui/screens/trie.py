@@ -3,7 +3,7 @@
 from pydsa.content import complexity, texts
 from pydsa.core.errors import DuplicateError, NotFoundError
 from pydsa.core.trie import Trie
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask, error, info, not_found, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -19,7 +19,7 @@ def run():
     """Create a trie and run the trie operation menu."""
     render.intro(texts.TRIE_ASCII, texts.TRIE_DEFINITION, complexity.TRIE)
     trie = Menu("🛠️ Do you want to start with an empty trie or use the preloaded example?", [
-        [("Start with an empty trie", create), ("Use the example", example)],
+        [("Start with an empty trie", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
     ]).open()
     if trie is Nav.BACK:
@@ -46,6 +46,15 @@ def example():
     trie = Trie(EXAMPLE_WORDS)
     words = ", ".join(fmt(word) for word in EXAMPLE_WORDS[:-1])
     success(f"Loaded the example trie with the words {words} and {fmt(EXAMPLE_WORDS[-1])}.")
+    render.trie(trie)
+    return trie
+
+
+def fill_random():
+    """Ask how many random words to insert and return the trie."""
+    count = random_data.ask_count("words", maximum=len(random_data.TRIE_WORDS))
+    trie = Trie(random_data.trie_words(count))
+    success(f"Created a trie with {plural(count, 'random word')}.")
     render.trie(trie)
     return trie
 

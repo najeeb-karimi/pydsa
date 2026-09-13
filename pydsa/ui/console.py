@@ -1,10 +1,16 @@
-"""Console input and output built on rich: prompts, status messages and screen clearing."""
+"""Console input and output built on rich: prompts, shortcuts, help, status messages and screen clearing."""
 
-from rich.console import Console
+from rich.columns import Columns
+from rich.console import Console, Group
+from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
 
+from pydsa import settings
+
 PROMPT = ">>> "
+MENU_HINT = "h help · b back · q quit"
 
 # Writes to whatever sys.stdout is at the time. Colors are dropped automatically when the output
 # isn't a terminal or NO_COLOR is set.
@@ -24,10 +30,39 @@ console = Console(
     highlight=False,
 )
 
+_ENV_NO_COLOR = console.no_color  # Set when the NO_COLOR environment variable asks for plain output
+_flag_no_color = False  # Set by the --no-color option
+
+
+class QuitRequested(Exception):
+    """The user typed the quit shortcut."""
+
+
+class BackRequested(Exception):
+    """The user typed the back shortcut at a prompt, cancelling what they were doing."""
+
 
 def clear():
-    """Clear the terminal screen (does nothing when the output isn't a terminal)."""
-    console.clear()
+    """Clear the terminal when the Clear the Screen setting is on (does nothing when the output isn't a terminal)."""
+    if settings.current.clear_screen:
+        console.clear()
+
+
+def colors_forced_off():
+    """Return True if NO_COLOR or --no-color keeps colors off, whatever the Colors setting says."""
+    return _ENV_NO_COLOR or _flag_no_color
+
+
+def force_colors_off(off):
+    """Keep colors off for this run (the --no-color option), or stop doing so."""
+    global _flag_no_color
+    _flag_no_color = off
+    apply_colors()
+
+
+def apply_colors():
+    """Turn colors on or off to match the Colors setting, unless they're forced off."""
+    console.no_color = colors_forced_off() or not settings.current.colors
 
 
 def plural(count, singular, plural_form=None):
@@ -75,40 +110,95 @@ def result(text):
     _message("👉", text, "result")
 
 
+def show_help(location):
+    """Show the shortcuts and where the user is (location is the menu title or question on screen)."""
+    shortcuts = Table(box=None, header_style="muted", padding=(0, 2))
+    shortcuts.add_column("In a menu", style="code", no_wrap=True)
+    shortcuts.add_column("Typing a value", style="code", no_wrap=True)
+    shortcuts.add_column("What it does")
+    shortcuts.add_row("h or ?", ":h", "Show this help")
+    shortcuts.add_row("b", ":b", "Go back to the previous menu, cancelling what you were typing")
+    shortcuts.add_row("q", ":q", "Quit PyDSA")
+    body = Group(
+        Text("Type the number of an option and press Enter. These shortcuts work everywhere:"),
+        Text(),
+        shortcuts,
+        Text(),
+        Text.assemble(("You're at: ", "muted"), location),
+        Text("Choose Definition in a topic's menu to read its explanation again, and Settings on the main "
+             "menu to change how PyDSA behaves.", style="muted"),
+    )
+    console.print()
+    console.print(Panel(body, title="❓ Help", title_align="left", border_style="info", padding=(0, 1)))
+
+
 # ---------------------------------------------------------------------------
 # Prompts
 # ---------------------------------------------------------------------------
 
 def ask(question):
-    """Show question on its own line and return what the user types at the >>> prompt."""
-    console.print()
-    console.print(Text(question, style="title"))
-    return input(PROMPT)
+    """Show question and return what the user types at the >>> prompt.
 
-
-def ask_code(title, groups):
-    """Show title with numbered options and ask until one of their codes is typed; return that code.
-
-    groups is a list of (code, label) lists, shown with a blank line between them.
+    :h shows help and asks again, :b raises BackRequested and :q raises QuitRequested.
     """
-    codes = [code for group in groups for code, _ in group]
-    width = max(len(code) for code in codes)
     while True:
         console.print()
+        console.print(Text(question, style="title"))
+        text = input(PROMPT)
+        command = text.strip().lower()
+        if command in (":h", ":?"):
+            show_help(question)
+            continue
+        if command == ":b":
+            raise BackRequested
+        if command == ":q":
+            raise QuitRequested
+        return text
+
+
+def _print_menu(title, groups, compact):
+    """Print a menu: the title with one option per line, or (compact) just the options in columns."""
+    codes = [code for group in groups for code, _ in group]
+    width = max(len(code) for code in codes)
+    console.print()
+    if compact:
+        options = [Text.assemble((f"{code})", "code"), " ", label) for group in groups for code, label in group]
+        console.print(Columns(options, padding=(0, 4), column_first=True))
+    else:
         console.print(Text(title, style="title"))
         for position, group in enumerate(groups):
             if position:
                 console.print()
             for code, label in group:
                 console.print(Text.assemble("  ", (f"{code:>{width}})", "code"), " ", label))
+    console.print(Text(MENU_HINT, style="muted"))
+
+
+def ask_code(title, groups, compact=False):
+    """Show title with numbered options and ask until one of their codes is typed; return that code.
+
+    groups is a list of (code, label) lists, shown with a blank line between them; compact shows only the
+    options, in columns. h or ? shows help, b raises BackRequested and q raises QuitRequested.
+    """
+    codes = [code for group in groups for code, _ in group]
+    while True:
+        _print_menu(title, groups, compact)
         choice = input(PROMPT).strip()
         if choice in codes:
             return choice
-        error("Invalid choice. Please type one of the numbers shown.")
+        command = choice.lower()
+        if command in ("h", "?"):
+            show_help(title)
+        elif command == "b":
+            raise BackRequested
+        elif command == "q":
+            raise QuitRequested
+        else:
+            error("Invalid choice. Please type one of the numbers shown, or h for help.")
 
 
-def ask_int(question, what, min_value=None):
-    """Ask until a whole number of at least min_value is typed; what names the value in error messages."""
+def ask_int(question, what, min_value=None, max_value=None):
+    """Ask until a whole number between min_value and max_value is typed; what names the value in error messages."""
     while True:
         text = ask(question)
         try:
@@ -118,6 +208,9 @@ def ask_int(question, what, min_value=None):
             continue
         if min_value is not None and value < min_value:
             error(f"The {what} must be at least {min_value}.")
+            continue
+        if max_value is not None and value > max_value:
+            error(f"The {what} must be at most {max_value}.")
             continue
         return value
 

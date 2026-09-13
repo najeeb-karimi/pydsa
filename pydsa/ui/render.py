@@ -3,6 +3,8 @@
 User data always goes into Text objects, so brackets in a value are never read as rich markup.
 """
 
+import re
+
 from rich import box
 from rich.cells import cell_len
 from rich.columns import Columns
@@ -12,7 +14,7 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
-from pydsa import __version__
+from pydsa import __version__, settings
 from pydsa.content import texts
 from pydsa.ui.console import console, info, plural, result
 
@@ -83,6 +85,44 @@ def main_intro():
     show(_panel(texts.OVERVIEW, "🏗️ Data Structures and Algorithms"))
 
 
+_intro_shown = False  # Whether this session already showed the full intro
+
+
+def start_session():
+    """Forget that the intro was shown, so the next home() shows it in full."""
+    global _intro_shown
+    _intro_shown = False
+
+
+def skip_intro():
+    """Treat the intro as shown, for sessions that open a topic directly."""
+    global _intro_shown
+    _intro_shown = True
+
+
+def home():
+    """Show the full intro the first time in a session (or every time, if the Intro setting says so); otherwise a short header."""
+    global _intro_shown
+    if not _intro_shown or settings.current.intro == "always":
+        main_intro()
+        _intro_shown = True
+    else:
+        show(Text.assemble(("🐍 PyDSA ", "accent"), (__version__, "title"), ("  ·  type h in any menu for help", "muted")))
+
+
+def topic_list(topics, categories):
+    """Show the ID and title of every topic, grouped by category, for the --list-topics option."""
+    for category, title in categories.items():
+        table = _table(f"📚 {title}", box=box.SIMPLE_HEAVY)
+        table.add_column("ID", style="code", no_wrap=True)
+        table.add_column("Topic")
+        for topic in topics:
+            if topic.category == category:
+                table.add_row(topic.id, Text(topic.title) if topic.parent is None else Text.assemble(("↳ ", "muted"), topic.title))
+        show(table)
+    note("Open a topic directly with: pydsa --topic ID")
+
+
 def intro(art, definition_text, *tables):
     """Show a data structure's ASCII title, definition and complexity tables."""
     ascii_art(art)
@@ -97,8 +137,16 @@ def definition(text, *tables):
 
 
 def explanation(title, text):
-    """Show an algorithm explanation or a longer note in a panel."""
-    show(_panel(text, f"ℹ️ {title}"))
+    """Show an algorithm explanation in a panel, cut to its first sentences when the Explanations setting is brief."""
+    body = first_sentences(text) if settings.current.detail == "brief" else text
+    show(_panel(body, f"ℹ️ {title}"))
+    if body != text:
+        note("Set Explanations to Detailed in Settings, on the main menu, to read the whole explanation.")
+
+
+def first_sentences(text, count=2):
+    """Return the first count sentences of text."""
+    return " ".join(re.split(r"(?<=[.!?])\s+(?=[A-Z])", text)[:count])
 
 
 def complexity(table):

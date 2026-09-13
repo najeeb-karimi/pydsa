@@ -3,7 +3,7 @@
 from pydsa.content import complexity, texts
 from pydsa.core.errors import NotFoundError
 from pydsa.core.hash_set import HashSet
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_value, info, not_found, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt, set_items
@@ -17,7 +17,7 @@ def run():
     """Create two sets and run the hash set operation menu."""
     render.intro(texts.HASH_SET_ASCII, texts.HASH_SET_DEFINITION, complexity.HASH_SET)
     sets = Menu("🛠️ Do you want to create two sets yourself or use the preloaded example?", [
-        [("Create two empty sets", create), ("Use the example", example)],
+        [("Create two empty sets", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
     ]).open()
     if sets is Nav.BACK:
@@ -32,7 +32,7 @@ def run():
         ("Difference", lambda: difference(sets)),
         ("Subset Check", lambda: subsets(sets)),
         ("Display", lambda: render.hash_sets(sets)),
-    ], definition=show_definition, new_label="New Hash Table").run()
+    ], definition=show_definition, new_label="New Hash Set").run()
 
 
 def create():
@@ -48,6 +48,17 @@ def example():
     """Return the preloaded example sets."""
     sets = {"A": HashSet(5, [1, 2, 3, "Messi"]), "B": HashSet(5, [3, 4, "Messi", 2.5])}
     success("Loaded the example sets.")
+    render.hash_sets(sets)
+    return sets
+
+
+def fill_random():
+    """Ask for the number of buckets and random numbers, and return two sets of numbers from 1 to 20."""
+    size = ask_int("🔢 How many buckets should each set have?", "number of buckets", min_value=1, max_value=random_data.MAX_ITEMS)
+    count = ask_int("🎲 How many random numbers should each set get?", "count", min_value=1, max_value=random_data.MAX_ITEMS)
+    # Numbers from a small range, so the two sets overlap and repeats show that a set keeps each item once
+    sets = {name: HashSet(size, random_data.ints(count, 1, 20)) for name in ("A", "B")}
+    success(f"Created two sets, A and B, from {plural(count, 'random number')} each. Repeated numbers were only added once.")
     render.hash_sets(sets)
     return sets
 

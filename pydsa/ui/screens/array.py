@@ -3,7 +3,7 @@
 from pydsa.content import complexity, texts
 from pydsa.core.array import Array
 from pydsa.core.errors import OutOfBoundsError
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_value, error, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -19,7 +19,7 @@ def run():
     """Create an array and run the array operation menu."""
     render.intro(texts.ARRAY_ASCII, texts.ARRAY_DEFINITION, complexity.ARRAY, complexity.SORTING)
     array = Menu("🛠️ Do you want to create an array yourself or use the preloaded example?", [
-        [("Create an array", create), ("Use the example", example)],
+        [("Create an array", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
     ]).open()
     if array is Nav.BACK:
@@ -41,17 +41,39 @@ def run():
 # Creation
 # ---------------------------------------------------------------------------
 
-def create():
-    """Ask for the data type and size, then return an array filled with that type's default value."""
-    data_type = Menu("🤔 Which data type should the array hold?", [
+def ask_data_type():
+    """Ask which data type the array holds; return int, str or Nav.BACK."""
+    return Menu("🤔 Which data type should the array hold?", [
         [("int", lambda: int), ("str", lambda: str)],
         [back_option()],
     ]).open()
+
+
+def with_article(data_type):
+    return "an int" if data_type is int else "a str"
+
+
+def create():
+    """Ask for the data type and size, then return an array filled with that type's default value."""
+    data_type = ask_data_type()
     if data_type is Nav.BACK:
         return Nav.BACK
     size = ask_int("↔️ How many elements should the array have?", "size", min_value=1)
     array = Array(size, data_type, data_type())
-    success(f"Created a {data_type.__name__} array with {plural(size, 'element')}.")
+    success(f"Created {with_article(data_type)} array with {plural(size, 'element')}.")
+    render.array(array.items)
+    return array
+
+
+def fill_random():
+    """Ask for the data type and size, then return an array full of random values."""
+    data_type = ask_data_type()
+    if data_type is Nav.BACK:
+        return Nav.BACK
+    size = ask_int("↔️ How many elements should the array have?", "size", min_value=1, max_value=random_data.MAX_ITEMS)
+    array = Array(size, data_type, data_type())
+    array.items = random_data.values(data_type.__name__, size)
+    success(f"Created {with_article(data_type)} array with {plural(size, 'random element')}.")
     render.array(array.items)
     return array
 

@@ -2,7 +2,7 @@
 
 from rich.cells import cell_len
 
-from pydsa import __version__
+from pydsa import __version__, settings
 from pydsa.algorithms import graph_algorithms, sorting
 from pydsa.content import complexity, texts
 from pydsa.core.deque import Deque
@@ -16,6 +16,7 @@ from pydsa.core.queue import Queue
 from pydsa.core.stack import Stack
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.core.trie import Trie
+from pydsa.settings import Settings
 from pydsa.ui import render
 from pydsa.ui.console import console
 
@@ -314,6 +315,28 @@ def test_definition_with_complexity_tables(capsys):
     assert "🎯 Definition" in out
     assert "Array operations" in out and "Sorting algorithms" in out
     assert "O(n log n)" in out
+
+
+def test_explanations_follow_the_detail_setting(capsys):
+    render.explanation("How Bubble Sort Works", texts.BUBBLE_SORT_INFO)
+    out = capsys.readouterr().out
+    assert "educational" not in out  # Only the first two sentences
+    assert "Set Explanations to Detailed in Settings" in out
+
+    settings.current = Settings(detail="detailed")
+    render.explanation("How Bubble Sort Works", texts.BUBBLE_SORT_INFO)
+    out = capsys.readouterr().out
+    assert "educational" in out
+    assert "Set Explanations to Detailed" not in out
+
+
+def test_home_shows_the_full_intro_once_per_session(capsys):
+    render.start_session()
+    render.home()
+    render.home()
+    out = capsys.readouterr().out
+    assert out.count("Changelog") == 1
+    assert f"PyDSA {__version__}  ·  type h in any menu for help" in out
 
 
 def test_main_intro_shows_the_version(capsys):

@@ -5,7 +5,7 @@ from typing import Callable, NamedTuple
 from pydsa.content import complexity, texts
 from pydsa.core.errors import CapacityError, NotFoundError
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_value, error, info, not_found, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -43,10 +43,17 @@ def run():
     ]).open()
 
 
+def run_kind(kind):
+    """Show the hash table intro and run the menu of one kind of hash table, skipping the choice."""
+    render.intro(texts.HASH_TABLE_ASCII, texts.HASH_TABLE_DEFINITION, complexity.HASH_TABLE)
+    return table_menu(kind)
+
+
 def table_menu(kind):
     """Create a hash table of the given kind and run its operation menu."""
     table = Menu(f"🛠️ Do you want to create a {kind.name} yourself or use the preloaded example?", [
-        [("Create a hash table", lambda: create(kind)), ("Use the example", lambda: example(kind))],
+        [("Create a hash table", lambda: create(kind)), ("Use the example", lambda: example(kind)),
+         ("Fill with random values", lambda: fill_random(kind))],
         [back_option()],
     ]).open()
     if table is Nav.BACK:
@@ -79,6 +86,20 @@ def example(kind):
     for key, value in EXAMPLE_PAIRS[:kind.example_pairs]:
         table.insert(key, value)
     success("Loaded the example hash table.")
+    kind.show(table)
+    return table
+
+
+def fill_random(kind):
+    """Ask for the table size and how many random keys to insert, and return the table."""
+    size = ask_int(f"🔢 How many {kind.unit}s should the table have?", f"number of {kind.unit}s",
+                   min_value=1, max_value=random_data.MAX_ITEMS)
+    # A linear probing table can't hold more keys than it has slots
+    count = random_data.ask_count("keys", maximum=size if kind is PROBING else random_data.MAX_ITEMS)
+    table = kind.table_class(size)
+    for key, value in random_data.key_value_pairs(count):
+        table.insert(key, value)
+    success(f"Created a hash table with {plural(size, kind.unit)} and {plural(count, 'random key')}.")
     kind.show(table)
     return table
 

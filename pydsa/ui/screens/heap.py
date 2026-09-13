@@ -6,7 +6,7 @@ from pydsa.content import complexity, texts
 from pydsa.core.errors import EmptyError, NotFoundError
 from pydsa.core.heap import MaxHeap, MinHeap
 from pydsa.core.priority_queue import PriorityQueue
-from pydsa.ui import render
+from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_list, ask_value, error, info, not_found, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import entry, fmt
@@ -43,6 +43,18 @@ def run():
     ]).open()
 
 
+def run_kind(kind):
+    """Show the heap intro and run the menu of one kind of heap, skipping the choice."""
+    render.intro(texts.HEAP_ASCII, texts.HEAP_DEFINITION, complexity.HEAP, complexity.PRIORITY_QUEUE)
+    return heap_menu(kind)
+
+
+def run_queue():
+    """Show the heap intro and run the priority queue menu, skipping the choice."""
+    render.intro(texts.HEAP_ASCII, texts.HEAP_DEFINITION, complexity.HEAP, complexity.PRIORITY_QUEUE)
+    return queue_menu()
+
+
 # ---------------------------------------------------------------------------
 # Min and max heaps
 # ---------------------------------------------------------------------------
@@ -51,7 +63,8 @@ def heap_menu(kind):
     """Create a heap of the given kind and run its operation menu."""
     info(texts.HEAP_INFO)
     heap = Menu(f"🛠️ Do you want to create a {kind.name} yourself or use the preloaded example?", [
-        [(f"Create a {kind.name}", lambda: create(kind)), ("Use the example", lambda: example(kind))],
+        [(f"Create a {kind.name}", lambda: create(kind)), ("Use the example", lambda: example(kind)),
+         ("Fill with random values", lambda: fill_random(kind))],
         [back_option()],
     ]).open()
     if heap is Nav.BACK:
@@ -68,16 +81,34 @@ def heap_menu(kind):
     ], definition=show_definition, new_label="New Heap").run()
 
 
-def create(kind):
-    """Ask whether the heap holds numbers or strings and return an empty heap."""
-    data_type = Menu(f"🤔 Which type of data do you want to store in the {kind.name}?", [
+def ask_data_type(kind):
+    """Ask whether the heap holds numbers or strings; return "num", "str" or Nav.BACK."""
+    return Menu(f"🤔 Which type of data do you want to store in the {kind.name}?", [
         [("Numbers (int or float)", lambda: "num"), ("Strings", lambda: "str")],
         [back_option()],
     ]).open()
+
+
+def create(kind):
+    """Ask whether the heap holds numbers or strings and return an empty heap."""
+    data_type = ask_data_type(kind)
     if data_type is Nav.BACK:
         return Nav.BACK
     success(f"Created an empty {kind.name} for {'numbers' if data_type == 'num' else 'strings'}.")
     return kind.heap_class(data_type)
+
+
+def fill_random(kind):
+    """Ask for the data type and how many random keys to use, and return a heap built from them."""
+    data_type = ask_data_type(kind)
+    if data_type is Nav.BACK:
+        return Nav.BACK
+    count = random_data.ask_count("keys")
+    heap = kind.heap_class(data_type)
+    heap.heapify(random_data.values(data_type, count))
+    success(f"Built a {kind.name} from {plural(count, 'random key')}.")
+    render.heap(heap)
+    return heap
 
 
 def example(kind):
@@ -139,7 +170,8 @@ def queue_menu():
     """Create a priority queue and run its operation menu."""
     info(texts.PRIORITY_QUEUE_INFO)
     queue = Menu("🛠️ Do you want to start with an empty priority queue or use the preloaded example?", [
-        [("Start with an empty priority queue", create_queue), ("Use the example", example_queue)],
+        [("Start with an empty priority queue", create_queue), ("Use the example", example_queue),
+         ("Fill with random values", fill_random_queue)],
         [back_option()],
     ]).open()
     if queue is Nav.BACK:
@@ -152,7 +184,7 @@ def queue_menu():
         ("Change Priority", lambda: change_priority(queue)),
         ("Size", lambda: result(f"The priority queue holds {plural(len(queue), 'item')}.")),
         ("Display", lambda: render.priority_queue(queue)),
-    ], definition=show_definition, new_label="New Heap").run()
+    ], definition=show_definition, new_label="New Priority Queue").run()
 
 
 def create_queue():
@@ -167,6 +199,17 @@ def example_queue():
         queue.enqueue(item, priority)
     success("Loaded the example priority queue.")
     info("'Deploy' has the same priority as 'Fix bug' but arrived later, so it's served second.")
+    render.priority_queue(queue)
+    return queue
+
+
+def fill_random_queue():
+    """Ask how many random items to enqueue and return the priority queue."""
+    count = random_data.ask_count("items")
+    queue = PriorityQueue()
+    for item, priority in random_data.priority_items(count):
+        queue.enqueue(item, priority)
+    success(f"Created a priority queue with {plural(count, 'random item')}.")
     render.priority_queue(queue)
     return queue
 
