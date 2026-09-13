@@ -5,39 +5,93 @@ import my_array
 import stack
 import queue
 import linked_list
+import tree
 
 
 def main():
-    """Run the main data structure selection loop."""
+    """Run the main menu: pick a category, then a data structure within it."""
 
-    # Main selection loop; leaving a data structure returns control here
+    # Category selection loop (linear vs non-linear). Choosing "New Data Structure"
+    # inside any data structure breaks out of its menu and returns control here.
     while True:
 
-        choice = input("""\n🏁 Which Linear Data Structure do you want to learn?
+        choice_1 = input("""\n📂 Which type of data structure do you want to learn?
+★1) Linear data structures
+★2) Non-linear data structures
+
+>>> """)
+
+        match choice_1:
+
+            # Linear data structures
+            case "1":
+                while True:
+                    choice_2 = input("""\n🏁 Which Linear Data Structure do you want to learn?
 ★1) Array
 ★2) Stack
 ★3) Queue
 ★4) Linked List
 
+★0) Go Back
+
 >>> """)
+                    match choice_2:
 
-        match choice:
+                        # Array
+                        case "1":
+                            my_array.array_main()
+                            break
 
-            # Array
-            case "1":
-                my_array.array_main()
+                        # Stack
+                        case "2":
+                            stack.stack_main()
+                            break
 
-            # Stack
+                        # Queue
+                        case "3":
+                            queue.queue_main()
+                            break
+
+                        # Linked List
+                        case "4":
+                            linked_list.linked_list_main()
+                            break
+
+                        # Go back
+                        case "0":
+                            main()
+                            break
+
+                        # Invalid
+                        case _:
+                            print("\n❌ Invalid code number!️")
+                            continue
+
+            # Non-linear data structures
             case "2":
-                stack.stack_main()
+                while True:
+                    choice_2 = input("""\n Which Non-linear Data Structure do you want to learn?
+★1) Tree
 
-            # Queue
-            case "3":
-                queue.queue_main()
+★0) Go Back
 
-            # Linked List
-            case "4":
-                linked_list.linked_list_main()
+>>> """)
+                    match choice_2:
+
+                        # Tree
+                        case "1":
+                            tree.tree_main()
+                            break
+
+                        # Go back
+                        case "0":
+                            main()
+                            break
+
+                        # Invalid
+                        case _:
+                            print("\n❌ Invalid code number!️")
+                            continue
 
             # Invalid
             case _:

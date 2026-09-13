@@ -16,8 +16,8 @@ def clear():
 def input_verify(condition="all", msg="item"):
     """Prompt for a value and return it, or None if it can't be converted to the requested type.
 
-    condition is "all" (the user picks str, int or float), "str", "int" or "float";
-    msg names the value in the prompts.
+    condition is "all" (the user picks str, int or float), "str", "num" (the user picks
+    int or float), "int" or "float"; msg names the value in the prompts.
     """
 
     # Any of str, int or float, picked by the user; used in the linked list implementation
@@ -55,10 +55,42 @@ def input_verify(condition="all", msg="item"):
                 else:
                     return item
 
-    # String input only; used in the array implementation
+    # String input only; used in the array and tree implementations
     elif condition == "str":
         item = input(f"\n✍️ Please enter the {msg}. (STRING)\n>>> ")
         return item
+
+    # Numeric input only (int or float, picked by the user); used in the tree implementation
+    elif condition == "num":
+        while True:
+            choice = input("""\n🤔 Please specify the type of NUMERAL data you want to enter:
+•1) int
+•2) float
+>>> """)
+            if choice not in ("1", "2"):
+                print("\n🚫 Invalid code number! Please use code numbers 1 or 2.")
+                continue
+            else:
+                break
+
+        match choice:
+            case "1":
+                item = input(f"\n✍️ Please enter the {msg}. (INT)\n>>> ")
+                try:
+                    item = int(item)
+                except ValueError:
+                    return None
+                else:
+                    return item
+
+            case "2":
+                item = input(f"\n✍️ Please enter the {msg}. (FLOAT)\n>>> ")
+                try:
+                    item = float(item)
+                except ValueError:
+                    return None
+                else:
+                    return item
 
     # Integer input only; used in the array implementation
     elif condition == "int":
