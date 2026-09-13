@@ -1,14 +1,22 @@
-"""Graph screen: adjacency matrix and adjacency list representations."""
+"""Graph screen: adjacency matrix and adjacency list representations, and the graph algorithms that run on them."""
 
+from pydsa.algorithms import graph_algorithms
 from pydsa.content import complexity, texts
-from pydsa.core.errors import DuplicateError, NotFoundError, OutOfBoundsError
-from pydsa.core.graph import ListDirectedWeightedGraph, MatrixDirectedWeightedGraph
+from pydsa.core.errors import CycleError, DuplicateError, NegativeWeightError, NotFoundError, OutOfBoundsError
+from pydsa.core.graph import ListGraph, MatrixGraph
 from pydsa.ui import render
 from pydsa.ui.console import ask_int, error, info, not_found, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 
 # The matrix graph raises OutOfBoundsError for a missing vertex, the list graph NotFoundError
 MISSING_VERTEX = (OutOfBoundsError, NotFoundError)
+
+# Both example graphs have the vertices 0 to 4. The directed one has no cycles, so it can be sorted topologically.
+EXAMPLE_VERTICES = 5
+EXAMPLE_EDGES = {
+    True: [(0, 1, 4), (0, 2, 1), (2, 1, 2), (1, 3, 1), (2, 3, 5), (3, 4, 3)],
+    False: [(0, 1, 4), (0, 2, 1), (1, 2, 2), (1, 3, 5), (2, 3, 8), (3, 4, 3), (2, 4, 9)],
+}
 
 
 def show_definition():
@@ -28,13 +36,40 @@ def run():
 # Shared by both representations
 # ---------------------------------------------------------------------------
 
+def describe(graph):
+    return "directed" if graph.directed else "undirected"
+
+
+def show(graph):
+    if isinstance(graph, MatrixGraph):
+        render.adjacency_matrix(graph.adj_matrix, graph.directed)
+    else:
+        render.adjacency_list(graph.adj_list, graph.directed)
+
+
+def ask_direction():
+    """Ask whether the edges have a direction; return True for directed, False for undirected, or Nav.BACK."""
+    return Menu("🧭 Should the edges have a direction?", [
+        [("Directed (each edge goes one way)", lambda: True),
+         ("Undirected (each edge goes both ways)", lambda: False)],
+        [back_option()],
+    ]).open()
+
+
 def ask_vertex(question):
     return ask_int(question, "vertex")
 
 
-def ask_edge():
-    """Ask for the source and destination vertices of an edge."""
-    return ask_vertex("🔢 Which vertex does the edge start from?"), ask_vertex("🔢 Which vertex does the edge go to?")
+def ask_edge(graph):
+    """Ask for the two vertices of an edge."""
+    if graph.directed:
+        return ask_vertex("🔢 Which vertex does the edge start from?"), ask_vertex("🔢 Which vertex does the edge go to?")
+    return ask_vertex("🔢 What's the first vertex of the edge?"), ask_vertex("🔢 What's the second vertex of the edge?")
+
+
+def edge_name(graph, u, v):
+    """Describe an edge, as in "from 0 to 1" or "between 0 and 1"."""
+    return f"from {u} to {v}" if graph.directed else f"between {u} and {v}"
 
 
 def ask_weight():
@@ -49,28 +84,41 @@ def ask_weight():
 def missing_vertex(graph, *vertices):
     """Report the first of vertices that isn't in the graph, with a hint about the valid ones."""
     vertex = next(v for v in vertices if not graph.has_vertex(v))
-    if isinstance(graph, MatrixDirectedWeightedGraph):
+    if isinstance(graph, MatrixGraph):
         hint = f"Valid vertices are 0 to {graph.num_vertices - 1}." if graph.num_vertices else ""
     else:
         hint = f"Existing vertices: {', '.join(str(v) for v in graph.adj_list)}." if graph.adj_list else ""
     error(f"Vertex {vertex} doesn't exist. {hint or 'The graph has no vertices yet.'}")
 
 
-def graph_menu(name, graph, show, add_vertex, remove_vertex):
+def load_example(graph):
+    """Fill an empty graph with the example edges for its direction."""
+    if isinstance(graph, ListGraph):
+        for vertex in range(EXAMPLE_VERTICES):
+            graph.add_vertex(vertex)
+    for u, v, weight in EXAMPLE_EDGES[graph.directed]:
+        graph.add_edge(u, v, weight)
+    success(f"Loaded the example {describe(graph)} graph. Its vertices are numbered 0 to {EXAMPLE_VERTICES - 1}.")
+    show(graph)
+
+
+def graph_menu(graph, add_vertex, remove_vertex):
     """Run the operation menu shared by both representations."""
-    return operation_menu(name, [
+    representation = "matrix" if isinstance(graph, MatrixGraph) else "list"
+    return operation_menu(f"{describe(graph)} adjacency {representation} graph", [
         ("Add Vertex", add_vertex),
         ("Remove Vertex", remove_vertex),
-        ("Add Edge", lambda: add_edge(graph, show)),
-        ("Remove Edge", lambda: remove_edge(graph, show)),
+        ("Add Edge", lambda: add_edge(graph)),
+        ("Remove Edge", lambda: remove_edge(graph)),
         ("Search Edge", lambda: search_edge(graph)),
         ("Traversals", lambda: traversals(graph)),
-        ("Display", show),
+        ("Graph Algorithms", lambda: pick_algorithm(graph)),
+        ("Display", lambda: show(graph)),
     ], definition=show_definition, new_label="New Graph").run()
 
 
-def add_edge(graph, show):
-    u, v = ask_edge()
+def add_edge(graph):
+    u, v = ask_edge(graph)
     weight = ask_weight()
     try:
         replaced = graph.search_edge(u, v) is not None
@@ -79,37 +127,37 @@ def add_edge(graph, show):
         missing_vertex(graph, u, v)
         return
     if replaced:
-        success(f"Updated the edge from {u} to {v} to weight {weight}.")
+        success(f"Updated the edge {edge_name(graph, u, v)} to weight {weight}.")
     else:
-        success(f"Added an edge from {u} to {v} with weight {weight}.")
-    show()
+        success(f"Added an edge {edge_name(graph, u, v)} with weight {weight}.")
+    show(graph)
 
 
-def remove_edge(graph, show):
-    u, v = ask_edge()
+def remove_edge(graph):
+    u, v = ask_edge(graph)
     try:
         removed = graph.remove_edge(u, v)
     except MISSING_VERTEX:
         missing_vertex(graph, u, v)
         return
     if not removed:
-        not_found(f"There's no edge from {u} to {v}, so nothing was removed.")
+        not_found(f"There's no edge {edge_name(graph, u, v)}, so nothing was removed.")
         return
-    success(f"Removed the edge from {u} to {v}.")
-    show()
+    success(f"Removed the edge {edge_name(graph, u, v)}.")
+    show(graph)
 
 
 def search_edge(graph):
-    u, v = ask_edge()
+    u, v = ask_edge(graph)
     try:
         weight = graph.search_edge(u, v)
     except MISSING_VERTEX:
         missing_vertex(graph, u, v)
         return
     if weight is None:
-        not_found(f"There's no edge from {u} to {v}.")
+        not_found(f"There's no edge {edge_name(graph, u, v)}.")
     else:
-        success(f"Found an edge from {u} to {v} with weight {weight}.")
+        success(f"Found an edge {edge_name(graph, u, v)} with weight {weight}.")
 
 
 def traversals(graph):
@@ -132,6 +180,91 @@ def traverse(graph, name):
 
 
 # ---------------------------------------------------------------------------
+# Graph algorithms
+# ---------------------------------------------------------------------------
+
+def algorithm_options(graph):
+    """Return the (label, action) pairs of the algorithms that fit the graph's direction."""
+    options = [("Dijkstra's Shortest Paths", lambda: shortest_paths(graph))]
+    if graph.directed:
+        options.append(("Topological Sort", lambda: topological_sort(graph)))
+    options.append(("Cycle Detection", lambda: cycle_detection(graph)))
+    if not graph.directed:
+        options += [
+            ("Minimum Spanning Tree (Prim)", lambda: spanning_tree(graph, "Prim")),
+            ("Minimum Spanning Tree (Kruskal)", lambda: spanning_tree(graph, "Kruskal")),
+        ]
+    return options
+
+
+def pick_algorithm(graph):
+    """Let the user pick one of the graph algorithms that fit the graph and run it."""
+    if graph.directed:
+        info("Minimum spanning trees need an undirected graph, so they aren't offered for this one.")
+    else:
+        info("A topological sort needs a directed graph, so it isn't offered for this one.")
+    Menu("🧮 Which graph algorithm do you want to run?", [algorithm_options(graph), [back_option()]]).select()
+
+
+def shortest_paths(graph):
+    render.explanation("How Dijkstra's Algorithm Works", texts.DIJKSTRA_INFO)
+    source = ask_vertex("🔢 Which vertex should the paths start from?")
+    try:
+        paths = graph_algorithms.dijkstra(graph, source)
+    except MISSING_VERTEX:
+        missing_vertex(graph, source)
+        return
+    except NegativeWeightError as problem:
+        u, v, weight = problem.edge
+        error(f"Dijkstra's algorithm can't handle negative weights, but the edge {edge_name(graph, u, v)} weighs {weight}.")
+        return
+    routes = {vertex: graph_algorithms.shortest_path(paths, vertex) for vertex in graph.vertices()}
+    reachable = sum(route is not None for route in routes.values()) - 1
+    success(f"Found the shortest paths from vertex {source} to {plural(reachable, 'other vertex', 'other vertices')}.")
+    render.shortest_paths(paths, routes)
+
+
+def topological_sort(graph):
+    render.explanation("How Topological Sort Works", texts.TOPOLOGICAL_SORT_INFO)
+    try:
+        order = graph_algorithms.topological_sort(graph)
+    except CycleError as problem:
+        error("The graph has a cycle, so it has no topological order.")
+        info(f"These vertices are on a cycle or come after one: {', '.join(str(v) for v in problem.remaining)}.")
+        return
+    if not order:
+        info("The graph has no vertices yet.")
+        return
+    result(f"Topological order: {' → '.join(str(vertex) for vertex in order)}")
+
+
+def cycle_detection(graph):
+    info_text = texts.DIRECTED_CYCLE_INFO if graph.directed else texts.UNDIRECTED_CYCLE_INFO
+    render.explanation("How Cycle Detection Works", info_text)
+    cycle = graph_algorithms.find_cycle(graph)
+    if cycle is None:
+        result("The graph has no cycles.")
+    else:
+        link = " → " if graph.directed else " — "
+        result(f"Found a cycle: {link.join(str(vertex) for vertex in cycle)}")
+
+
+def spanning_tree(graph, name):
+    """Build a minimum spanning tree (or forest) with Prim's or Kruskal's algorithm (name)."""
+    render.explanation(f"How {name}'s Algorithm Works", texts.PRIM_INFO if name == "Prim" else texts.KRUSKAL_INFO)
+    if not graph.vertices():
+        info("The graph has no vertices yet.")
+        return
+    forest = (graph_algorithms.prim if name == "Prim" else graph_algorithms.kruskal)(graph)
+    if forest.trees == 1:
+        success(f"Found a minimum spanning tree with {plural(len(forest.edges), 'edge')} and a total weight of {forest.total}.")
+    else:
+        success(f"Found a minimum spanning forest of {forest.trees} trees with a total weight of {forest.total}.")
+        info("The graph isn't connected, so each connected part gets a tree of its own.")
+    render.spanning_forest(forest)
+
+
+# ---------------------------------------------------------------------------
 # Adjacency Matrix
 # ---------------------------------------------------------------------------
 
@@ -145,13 +278,10 @@ def matrix_menu():
     if graph is Nav.BACK:
         return Nav.BACK
 
-    def show():
-        render.adjacency_matrix(graph.adj_matrix)
-
     def add_vertex():
         vertex = graph.add_vertex()
         success(f"Added vertex {vertex}.")
-        show()
+        show(graph)
 
     def remove_vertex():
         vertex = ask_vertex("🔢 Which vertex do you want to remove?")
@@ -165,27 +295,30 @@ def matrix_menu():
         if vertex < last:
             message += " The vertices after it moved down by one number."
         success(message)
-        show()
+        show(graph)
 
-    return graph_menu("adjacency matrix graph", graph, show, add_vertex, remove_vertex)
+    return graph_menu(graph, add_vertex, remove_vertex)
 
 
 def create_matrix():
-    """Ask for the number of vertices and return a graph with no edges."""
+    """Ask for the direction and the number of vertices, and return a graph with no edges."""
+    directed = ask_direction()
+    if directed is Nav.BACK:
+        return Nav.BACK
     count = ask_int("🔢 How many vertices should the graph have?", "number of vertices", min_value=1)
-    graph = MatrixDirectedWeightedGraph(count)
-    success(f"Created a graph with {plural(count, 'vertex', 'vertices')} and no edges. The vertices are numbered 0 to {count - 1}.")
-    render.adjacency_matrix(graph.adj_matrix)
+    graph = MatrixGraph(count, directed)
+    success(f"Created a {describe(graph)} graph with {plural(count, 'vertex', 'vertices')}, numbered 0 to {count - 1}.")
+    show(graph)
     return graph
 
 
 def example_matrix():
-    """Return the preloaded example matrix graph."""
-    graph = MatrixDirectedWeightedGraph(4)
-    # Vertices are identified by their index, so filling the matrix is the same as adding the edges one by one
-    graph.adj_matrix = [[10, 0, 30, 19], [17, 22, 37, 0], [0, 672, 8, 45], [0, 0, 0, 0]]
-    success("Loaded the example graph. Its vertices are numbered 0 to 3.")
-    render.adjacency_matrix(graph.adj_matrix)
+    """Ask for the direction and return the matching example graph."""
+    directed = ask_direction()
+    if directed is Nav.BACK:
+        return Nav.BACK
+    graph = MatrixGraph(EXAMPLE_VERTICES, directed)
+    load_example(graph)
     return graph
 
 
@@ -203,9 +336,6 @@ def list_menu():
     if graph is Nav.BACK:
         return Nav.BACK
 
-    def show():
-        render.adjacency_list(graph.adj_list)
-
     def add_vertex():
         vertex = ask_vertex("🔢 Which vertex do you want to add?")
         try:
@@ -214,7 +344,7 @@ def list_menu():
             error(f"Vertex {vertex} already exists.")
             return
         success(f"Added vertex {vertex}.")
-        show()
+        show(graph)
 
     def remove_vertex():
         vertex = ask_vertex("🔢 Which vertex do you want to remove?")
@@ -224,21 +354,25 @@ def list_menu():
             missing_vertex(graph, vertex)
             return
         success(f"Removed vertex {vertex} and all of its edges.")
-        show()
+        show(graph)
 
-    return graph_menu("adjacency list graph", graph, show, add_vertex, remove_vertex)
+    return graph_menu(graph, add_vertex, remove_vertex)
 
 
 def create_list():
-    """Return an empty adjacency list graph."""
-    success("Created an empty graph. Start by adding some vertices with Add Vertex.")
-    return ListDirectedWeightedGraph()
+    """Ask for the direction and return an empty adjacency list graph."""
+    directed = ask_direction()
+    if directed is Nav.BACK:
+        return Nav.BACK
+    success(f"Created an empty {'directed' if directed else 'undirected'} graph. Add some vertices with Add Vertex.")
+    return ListGraph(directed)
 
 
 def example_list():
-    """Return the preloaded example adjacency list graph."""
-    graph = ListDirectedWeightedGraph()
-    graph.adj_list = {0: [(0, 10), (2, 30), (3, 19)], 1: [(0, 17), (1, 22), (2, 37)], 2: [(1, 672), (2, 8), (3, 45)], 3: []}
-    success("Loaded the example graph.")
-    render.adjacency_list(graph.adj_list)
+    """Ask for the direction and return the matching example graph."""
+    directed = ask_direction()
+    if directed is Nav.BACK:
+        return Nav.BACK
+    graph = ListGraph(directed)
+    load_example(graph)
     return graph

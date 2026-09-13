@@ -1,27 +1,14 @@
 """Array screen."""
 
-from pydsa.algorithms import searching, sorting
 from pydsa.content import complexity, texts
 from pydsa.core.array import Array
 from pydsa.core.errors import OutOfBoundsError
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, ask_order, ask_value, error, not_found, plural, result, success
+from pydsa.ui.console import ask_int, ask_value, error, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
-
-SORTS = [
-    ("Bubble Sort", sorting.bubble_sort, texts.BUBBLE_SORT_INFO),
-    ("Selection Sort", sorting.selection_sort, texts.SELECTION_SORT_INFO),
-    ("Insertion Sort", sorting.insertion_sort, texts.INSERTION_SORT_INFO),
-    ("Quick Sort", sorting.quick_sort, texts.QUICK_SORT_INFO),
-    ("Heap Sort", sorting.heap_sort, texts.HEAP_SORT_INFO),
-    ("Shell Sort", sorting.shell_sort, texts.SHELL_SORT_INFO),
-]
-
-SEARCHES = [
-    ("Linear Search", searching.linear_search, texts.LINEAR_SEARCH_INFO),
-    ("Binary Search", searching.binary_search, texts.BINARY_SEARCH_INFO),
-]
+from pydsa.ui.screens.searching_algorithms import SEARCHES, run_search
+from pydsa.ui.screens.sorting_algorithms import SORTS, run_sort
 
 
 def show_definition():
@@ -143,35 +130,20 @@ def get(array):
 def sort(array):
     """Let the user pick a sorting algorithm and sort the array with it, showing every step."""
     Menu("🗂️ Which sorting algorithm do you want to use?", [
-        [(name, lambda name=name, algorithm=algorithm, info=info: run_sort(array, name, algorithm, info))
-         for name, algorithm, info in SORTS],
+        [(sort.name, lambda sort=sort: sort_array(array, sort)) for sort in SORTS],
         [back_option()],
     ]).select()
 
 
-def run_sort(array, name, algorithm, info):
-    render.explanation(f"How {name} Works", info)
-    order = ask_order()
-    steps = render.sorting_steps(array.items, algorithm(array.items, order))
-    order_name = "ascending" if order == "asc" else "descending"
-    success(f"Sorted the array in {order_name} order in {plural(steps, 'step')}.")
-    render.array(array.items)
+def sort_array(array, sort):
+    if run_sort(array.items, sort, "the array"):
+        render.array(array.items)
 
 
 def search(array):
     """Let the user pick a searching algorithm and search the array with it."""
     Menu("🔍 Which searching algorithm do you want to use?", [
-        [(name, lambda name=name, algorithm=algorithm, info=info: run_search(array, name, algorithm, info))
-         for name, algorithm, info in SEARCHES],
+        [(search.name, lambda search=search: run_search(array.items, search, array.data_type.__name__, "the array"))
+         for search in SEARCHES],
         [back_option()],
     ]).select()
-
-
-def run_search(array, name, algorithm, info):
-    render.explanation(f"How {name} Works", info)
-    target = ask_value(array.data_type.__name__, "target")
-    index = algorithm(array.items, target)
-    if index == -1:
-        not_found(f"{fmt(target)} isn't in the array.")
-    else:
-        success(f"Found {fmt(target)} at index {index}.")

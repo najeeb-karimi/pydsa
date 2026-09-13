@@ -323,7 +323,7 @@ def test_trie(play):
 
 def test_graphs(play):
     out = play(
-        "2", "4", "1", "1", "x", "0", "3",  # Non-linear > Graph > Matrix > Create with 3 vertices
+        "2", "4", "1", "1", "1", "x", "0", "3",  # Non-linear > Graph > Matrix > Create > Directed with 3 vertices
         "4", "0", "1", "0", "5",  # Add an edge: weight 0 is rejected, then 5
         "4", "0", "1", "7",  # Update it
         "4", "0", "9", "2",  # Missing vertex
@@ -331,13 +331,17 @@ def test_graphs(play):
         "5", "1", "0", "5", "0", "1",
         "2", "3", "1", "3", "7",  # Add a vertex, remove vertex 1, then a missing one
         "7", "1", "0", "7", "2", "5",
-        "8",
-        "9", "2", "1", "8",  # New Graph: an empty adjacency list
+        "8", "2",  # Graph Algorithms > Topological Sort
+        "4", "0", "2", "-3", "8", "1", "0",  # Add a negative edge, then Dijkstra refuses to run
+        "8", "3",  # Cycle Detection
+        "9",
+        "10", "2", "1", "2", "9",  # New Graph: an empty undirected adjacency list
         "2", "0", "2", "1", "2", "1",  # Add vertices 0 and 1, then 1 again
         "4", "0", "1", "4", "4", "0", "5", "3",
         "7", "2", "0",
+        "8", "4",  # Graph Algorithms > Kruskal
         "3", "0",
-        "10", "0",
+        "11", "0",
     )
     assert "The number of vertices must be a whole number." in out
     assert "The weight can't be 0" in out
@@ -353,10 +357,15 @@ def test_graphs(play):
     assert "Vertex 7 doesn't exist. Valid vertices are 0 to 2." in out
     assert "BFS from vertex 0: 0" in out
     assert "Vertex 5 doesn't exist." in out
+    assert "Topological order: 0 → 1 → 2" in out
+    assert "Dijkstra's algorithm can't handle negative weights, but the edge from 0 to 2 weighs -3." in out
+    assert "The graph has no cycles." in out
     assert "The graph has no vertices yet." in out
     assert "Vertex 1 already exists." in out
+    assert "Added an edge between 0 and 1 with weight 4." in out
     assert "Vertex 5 doesn't exist. Existing vertices: 0, 1." in out
     assert "DFS from vertex 0: 0 → 1" in out
+    assert "Found a minimum spanning tree with 1 edge and a total weight of 4." in out
     assert "Removed vertex 0 and all of its edges." in out
 
 
@@ -436,3 +445,71 @@ def test_disjoint_sets(play):
     assert "Element 9 doesn't exist. Valid elements are 0 to 4." in out
     assert "2 sets" in out and "{0, 1, 2, 3}" in out
     assert "Loaded the example" in out
+
+
+def test_sorting_algorithms(play):
+    out = play(
+        "3", "1", "1", "5, x", "3, -1, 2.5",  # Algorithms > Sorting > Type numbers, after an invalid one
+        "8", "1",  # Merge Sort, ascending
+        "9",  # Counting Sort can't sort the float
+        "11", "2",  # Compare all algorithms, descending
+        "12",
+        "13", "3",  # New List: the example
+        "10", "1",  # Radix Sort
+        "9", "2",  # Counting Sort, descending
+        "14", "0",  # Main Menu, then exit
+    )
+    assert "'x' isn't a valid number." in out
+    assert "Created a list of 3 numbers." in out
+    assert "How Merge Sort Works" in out
+    assert "Sorted a copy of the list in ascending order in 2 steps, with 3 comparisons and 5 writes." in out
+    assert "The list itself is unchanged" in out
+    assert "Counting Sort only sorts whole numbers (int) less than 10,000 apart." in out
+    assert "Sorting algorithms compared" in out
+    assert "Loaded the example list." in out
+    assert "Sorted a copy of the list in ascending order in 3 steps, with 0 comparisons and 24 writes." in out
+    assert "Sorted a copy of the list in descending order in 8 steps" in out
+
+
+def test_searching_algorithms(play):
+    out = play(
+        "3", "2", "3",  # Algorithms > Searching > the example
+        "4", "1", "300",  # Jump Search for the int 300
+        "5", "2", "7",  # Interpolation Search for the float 7.0
+        "6", "1", "5",  # Exponential Search for a missing value
+        "2", "1", "2004",
+        "8", "2", "pear, apple, fig",  # New List of words
+        "5",  # Interpolation Search can't search words
+        "3", "fig",
+        "9", "0",
+    )
+    assert "Found 300 at index 7." in out
+    assert "Searched this sorted copy and checked 4 positions" in out
+    assert "Found 7.0 at index 6." in out
+    assert "5 isn't in the list." in out
+    assert "Found 2004 at index 4." in out
+    assert "Checked 5 positions, numbered in order under the values." in out
+    assert "Created a list of 3 words." in out
+    assert "Interpolation Search only works on numbers" in out
+    assert "Found 'fig' at index 2." in out
+
+
+def test_graph_algorithms(play):
+    out = play(
+        "3", "3", "1",  # Algorithms > Graph Algorithms > the directed example
+        "2", "0",  # Dijkstra from vertex 0
+        "3", "4", "5",  # Topological sort, cycle detection, display
+        "2", "9",  # A missing vertex
+        "6", "2",  # New Graph: the undirected example
+        "3", "4", "5",  # Cycle detection, Prim and Kruskal
+        "8", "0",
+    )
+    assert "Found the shortest paths from vertex 0 to 4 other vertices." in out
+    assert "0 → 2 → 1 → 3 → 4" in out
+    assert "Topological order: 0 → 2 → 1 → 3 → 4" in out
+    assert "The graph has no cycles." in out
+    assert "Vertex 9 doesn't exist. Existing vertices: 0, 1, 2, 3, 4." in out
+    assert "Loaded the example undirected graph." in out
+    assert "Found a cycle: 2 — 0 — 1 — 2" in out
+    assert out.count("Found a minimum spanning tree with 4 edges and a total weight of 11.") == 2
+    assert "Left out, because they would close a cycle: 0 — 1 (4), 2 — 3 (8), 2 — 4 (9)." in out

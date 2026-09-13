@@ -88,11 +88,11 @@ class Menu:
                 return result
 
 
-def operation_menu(name, operations, *, definition, new_label):
-    """Build the operation menu of a data structure.
+def operation_menu(name, operations, *, definition, new_label, home_label="New Data Structure"):
+    """Build the operation menu of a data structure or an algorithm screen.
 
     Definition comes first, followed by operations as (label, action) pairs. The last group holds the
-    shared navigation: new_label (start this data structure again), New Data Structure and 0) Exit.
+    shared navigation: new_label (start this screen again), home_label (back to the categories) and 0) Exit.
     """
 
     def start_again():
@@ -108,6 +108,6 @@ def operation_menu(name, operations, *, definition, new_label):
         f"⚔️ What do you want to do with the {name}?",
         [
             [("Definition", definition), *operations],
-            [(new_label, start_again), ("New Data Structure", go_home), exit_option()],
+            [(new_label, start_again), (home_label, go_home), exit_option()],
         ],
     )

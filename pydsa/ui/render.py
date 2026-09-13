@@ -508,7 +508,7 @@ def _add_trie_children(branch, node, spelled):
 # Graphs
 # ---------------------------------------------------------------------------
 
-def adjacency_matrix(matrix):
+def adjacency_matrix(matrix, directed=True):
     """Show an adjacency matrix as a grid with the vertex numbers along both edges."""
     if not matrix:
         info("The graph has no vertices.")
@@ -520,22 +520,29 @@ def adjacency_matrix(matrix):
     for vertex, row in enumerate(matrix):
         table.add_row(str(vertex), *(Text(str(weight), style="muted" if weight == 0 else "code") for weight in row))
     show(table)
-    note("Rows are the source vertex and columns the destination; 0 means no edge.")
+    if directed:
+        note("Rows are the source vertex and columns the destination; 0 means no edge.")
+    else:
+        note("The matrix is symmetric, because every undirected edge is stored both ways; 0 means no edge.")
 
 
-def adjacency_list(adj_list):
-    """Show each vertex with its outgoing edges."""
+def adjacency_list(adj_list, directed=True):
+    """Show each vertex with its edges."""
     if not adj_list:
         info("The graph has no vertices yet.")
         return
+    arrow = "→" if directed else "—"
     table = _table("Adjacency List", box=box.SQUARE)
     table.add_column("Vertex", justify="right", style="code")
     table.add_column("Edges")
     for vertex, edges in adj_list.items():
-        cell = Text("   ".join(f"→ {neighbor} ({weight})" for neighbor, weight in edges)) if edges else Text("no edges", style="muted")
+        cell = Text("   ".join(f"{arrow} {neighbor} ({weight})" for neighbor, weight in edges)) if edges else Text("no edges", style="muted")
         table.add_row(str(vertex), cell)
     show(table)
-    note("Each edge is shown as → neighbor (weight).")
+    if directed:
+        note("Each edge is shown as → neighbor (weight).")
+    else:
+        note("Each edge is shown as — neighbor (weight), under both of its vertices.")
 
 
 # ---------------------------------------------------------------------------
@@ -630,3 +637,72 @@ def disjoint_sets(union_find):
         members = groups[root]
         table.add_row(str(root), Text("{" + ", ".join(str(member) for member in members) + "}"), str(len(members)))
     show(table)
+
+
+# ---------------------------------------------------------------------------
+# Algorithms
+# ---------------------------------------------------------------------------
+
+def sort_comparison(results):
+    """Show how much work every sorting algorithm did on the same list.
+
+    results holds (name, stats, steps) tuples, with stats None for an algorithm that can't sort the list.
+    """
+    table = _table("📊 Sorting algorithms compared", box=box.SQUARE)
+    table.add_column("Algorithm")
+    for column in ("Comparisons", "Writes", "Steps"):
+        table.add_column(column, justify="right", style="code")
+    rejected = False
+    for name, stats, steps in results:
+        if stats is None:
+            rejected = True
+            table.add_row(Text(name, style="muted"), *(Text("—", style="muted") for _ in range(3)))
+        else:
+            table.add_row(name, str(stats.comparisons), str(stats.writes), str(steps))
+    show(table)
+    note("A swap counts as two writes.")
+    if rejected:
+        note("— marks an algorithm that can't sort this list.")
+
+
+def search_probes(values, probes, caption):
+    """Show values with the order in which a search checked each position written under it."""
+    markers = [
+        ",".join(str(number) for number, position in enumerate(probes, start=1) if position == index)
+        for index in range(len(values))
+    ]
+    show(_slots([Text(fmt(value)) for value in values], markers))
+    note(caption)
+
+
+def shortest_paths(paths, routes):
+    """Show the distance and shortest path from the source to every vertex; routes maps each vertex to its path or None."""
+    table = _table("🧭 Shortest paths", box=box.SQUARE)
+    table.add_column("To", justify="right", style="code")
+    table.add_column("Distance", justify="right")
+    table.add_column("Path")
+    for vertex, route in routes.items():
+        if route is None:
+            table.add_row(str(vertex), Text("∞", style="muted"), Text("unreachable", style="muted"))
+        else:
+            table.add_row(str(vertex), str(paths.distances[vertex]), " → ".join(str(step) for step in route))
+    show(table)
+    order = ", ".join(str(vertex) for vertex in paths.order)
+    note(f"Every path starts at vertex {paths.source}. The distances became final in this order: {order}.")
+
+
+def spanning_forest(forest):
+    """Show the edges of a minimum spanning tree or forest in the order they were chosen, and the ones left out."""
+    if forest.edges:
+        # A short title, because a table's title wraps at the table's own width
+        table = _table("🌲 Chosen edges", box=box.SQUARE)
+        table.add_column("#", justify="right", style="muted")
+        table.add_column("Edge", style="code")
+        table.add_column("Weight", justify="right")
+        for number, (u, v, weight) in enumerate(forest.edges, start=1):
+            table.add_row(str(number), f"{u} — {v}", str(weight))
+        show(table)
+    else:
+        info("No edges were chosen, because no edge connects two different vertices.")
+    if forest.skipped:
+        note("Left out, because they would close a cycle: " + ", ".join(f"{u} — {v} ({weight})" for u, v, weight in forest.skipped) + ".")

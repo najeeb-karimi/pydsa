@@ -3,10 +3,11 @@
 from rich.cells import cell_len
 
 from pydsa import __version__
-from pydsa.algorithms import sorting
+from pydsa.algorithms import graph_algorithms, sorting
 from pydsa.content import complexity, texts
 from pydsa.core.deque import Deque
 from pydsa.core.disjoint_set import DisjointSet
+from pydsa.core.graph import ListGraph
 from pydsa.core.hash_set import HashSet
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
 from pydsa.core.heap import MinHeap
@@ -228,6 +229,56 @@ def test_graphs(capsys):
     out = capsys.readouterr().out
     assert "→ 1 (5)   → 2 (30)" in out
     assert "no edges" in out
+
+
+def test_undirected_graphs(capsys):
+    render.adjacency_list({0: [(1, 5)], 1: [(0, 5)]}, directed=False)
+    out = capsys.readouterr().out
+    assert "— 1 (5)" in out and "under both of its vertices" in out
+
+    render.adjacency_matrix([[0, 5], [5, 0]], directed=False)
+    assert "symmetric" in capsys.readouterr().out
+
+
+def test_sort_comparison(capsys):
+    stats = sorting.SortStats()
+    stats.comparisons, stats.writes = 3, 6
+    render.sort_comparison([("Bubble Sort", stats, 3), ("Radix Sort", None, 0)])
+    out = capsys.readouterr().out
+    assert "Sorting algorithms compared" in out
+    assert "Bubble Sort" in out and "—" in out
+    assert "can't sort this list" in out
+
+
+def test_search_probes_are_numbered_under_the_values(capsys):
+    render.search_probes([1, 2, 3], [1, 2, 1], "Checked 3 positions.")
+    out = capsys.readouterr().out
+    assert "1,3" in out
+    assert "Checked 3 positions." in out
+
+
+def test_shortest_paths_and_spanning_forests(capsys):
+    graph = ListGraph()
+    for vertex in range(3):
+        graph.add_vertex(vertex)
+    graph.add_edge(0, 1, 5)
+    paths = graph_algorithms.dijkstra(graph, 0)
+    render.shortest_paths(paths, {vertex: graph_algorithms.shortest_path(paths, vertex) for vertex in graph.vertices()})
+    out = capsys.readouterr().out
+    assert "Shortest paths" in out
+    assert "0 → 1" in out and "unreachable" in out
+    assert "Every path starts at vertex 0. The distances became final in this order: 0, 1." in out
+
+    triangle = ListGraph(directed=False)
+    for vertex in range(3):
+        triangle.add_vertex(vertex)
+    for u, v, weight in [(0, 1, 1), (1, 2, 2), (0, 2, 3)]:
+        triangle.add_edge(u, v, weight)
+    render.spanning_forest(graph_algorithms.kruskal(triangle))
+    out = capsys.readouterr().out
+    assert "Chosen edges" in out
+    assert "0 — 1" in out and "1 — 2" in out
+    assert "Left out, because they would close a cycle: 0 — 2 (3)." in out
 
 
 def test_hash_tables(capsys):

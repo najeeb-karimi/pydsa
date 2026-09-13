@@ -22,13 +22,13 @@ BANNER = r"""
 
 """
 
-WELCOME = "Welcome to PyDSA, a console-based Python app that strives to assist you in learning data structures! The app is designed to give you a good tour of the major DSes, giving you an opportunity to wrap your head around their distinctions while on the go! All interaction with the app is based on typing the related number codes in the terminal."
+WELCOME = "Welcome to PyDSA, a console-based Python app that strives to assist you in learning data structures and algorithms! The app is designed to give you a good tour of the major DSes, giving you an opportunity to wrap your head around their distinctions while on the go! All interaction with the app is based on typing the related number codes in the terminal."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ Min & Max Heaps with step-by-step sift-up & sift-down
-   ★ Priority Queue built on a heap
-   ★ Trie (Prefix Tree) with autocomplete
-   ★ Top-down tree diagrams, level-order traversal & tree stats"""
+   ★ A new Algorithms category for sorting, searching & graph algorithms
+   ★ Merge, Counting & Radix Sort, plus a side-by-side comparison of every sort
+   ★ Jump, Interpolation & Exponential Search
+   ★ Directed & undirected graphs with Dijkstra, Topological Sort, Cycle Detection, Prim & Kruskal"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""
@@ -265,9 +265,9 @@ GRAPH_DEFINITION = """A graph is a non-linear data structure consisting of verti
 
 🌟 An adjacency list represents a graph using an array of lists. Each element in the array corresponds to a vertex, and the list at each index contains the vertices adjacent to that vertex. This representation is more space-efficient for sparse graphs, as it only stores existing edges, resulting in a space complexity of O(V + E). Adjacency lists allow for efficient traversal of the graph, making them ideal for algorithms like Depth-First Search (DFS) and Breadth-First Search (BFS). However, edge lookups can be slower compared to an adjacency matrix, with a time complexity proportional to the degree of the vertex."""
 
-MATRIX_GRAPH_INFO = "PyDSA implements a directed weighted graph using an adjacency matrix. For an unweighted graph, simply set every weight to 1."
+MATRIX_GRAPH_INFO = "PyDSA implements a weighted graph using an adjacency matrix, and you choose whether its edges are directed or undirected. For an unweighted graph, simply set every weight to 1."
 
-LIST_GRAPH_INFO = "PyDSA implements a directed weighted graph using an adjacency list. For an unweighted graph, simply set every weight to 1."
+LIST_GRAPH_INFO = "PyDSA implements a weighted graph using an adjacency list, and you choose whether its edges are directed or undirected. For an unweighted graph, simply set every weight to 1."
 
 # ---------------------------------------------------------------------------
 # Hash table
@@ -339,3 +339,116 @@ DISJOINT_SET_DEFINITION = """A disjoint set, also called Union-Find, keeps track
 🌟 Each set is stored as a tree inside a parent array: every element points to its parent, and a root points to itself. PyDSA numbers the elements from 0, so the parent array can be a plain list.
 
 🌟 Two optimizations keep the trees flat. Union by rank attaches the root of the shorter tree under the root of the taller one, using a rank that is an upper bound on the tree's height. Path compression makes every element visited during a find point directly at the root, so later finds are faster. Together, they make both operations run in nearly constant amortized time, O(α(n)), where α is the extremely slow-growing inverse Ackermann function."""
+
+# ---------------------------------------------------------------------------
+# Sorting algorithms
+# ---------------------------------------------------------------------------
+
+SORTING_ASCII = r"""
+
+   .-'''-.     ,-----.    .-------. ,---------. .-./`) ,---.   .--.  .-_'''-.
+  / _     \  .'  .-,  '.  |  _ _   \\          \\ .-.')|    \  |  | '_( )_   \
+ (`' )/`--' / ,-.|  \ _ \ | ( ' )  | `--.  ,---'/ `-' \|  ,  \ |  ||(_ o _)|  '
+(_ o _).   ;  \  '_ /  | :|(_ o _) /    |   \    `-'`"`|  |\_ \|  |. (_,_)/___|
+ (_,_). '. |  _`,/ \ _/  || (_,_).' __  :_ _:    .---. |  _( )_\  ||  |  .-----.
+.---.  \  :: (  '\_/ \   ;|  |\ \  |  | (_I_)    |   | | (_ o _)  |'  \  '-   .'
+\    `-'  | \ `"/  \  ) / |  | \ `'   /(_(=)_)   |   | |  (_,_)\  | \  `-'`   |
+ \       /   '. \_/``".'  |  |  \    /  (_I_)    |   | |  |    |  |  \        /
+  `-...-'      '-----'    ''-'   `'-'   '---'    '---' '--'    '--'   `'-...-'
+"""
+
+SORTING_DEFINITION = """Sorting means arranging a collection of elements in a particular order, such as numbers from smallest to largest or words in alphabetical order. Sorted data is easier for people to read and much faster for computers to work with: it allows binary search, puts duplicates next to each other, and is the first step of many other algorithms. Sorting algorithms differ in speed, in how much extra memory they need, and in whether they keep equal elements in their original order, which is called stability.
+
+🌟 Comparison sorts, such as Bubble, Selection, Insertion, Quick, Heap, Shell and Merge Sort, decide the order by comparing pairs of elements. No comparison sort can beat O(n log n) in the worst case.
+
+🌟 Non-comparison sorts, such as Counting and Radix Sort, look at the values themselves instead of comparing them, which lets them run in linear time when the values are whole numbers in a limited range.
+
+🌟 PyDSA sorts a copy of your list, so you can try every algorithm on the same data, watch each step, and compare how much work each algorithm needs."""
+
+SORT_COMPARISON_INFO = "The comparison runs every sorting algorithm on its own copy of the same list and counts the work each one does. Comparisons are how many times two values were compared, writes are how many times a value was stored in the list (a swap counts as two writes), and steps are the rows each algorithm shows when it runs on its own. Counting Sort and Radix Sort never compare values, so they only have writes. Try an already sorted list, a reversed one and one full of duplicates to see how differently the algorithms react."
+
+MERGE_SORT_INFO = "Merge Sort is an efficient, comparison-based sorting algorithm that uses the divide-and-conquer strategy. It splits the list into two halves, sorts each half recursively until the pieces hold a single element, and then merges the sorted halves back together. Merging repeatedly compares the front elements of the two halves and takes the one that comes first, so two sorted halves become one sorted list in a single pass. Merge Sort has a time complexity of O(n log n) in the best, average and worst case, because the list can only be halved log n times and every level of merging touches all n elements. Its space complexity is O(n), since merging needs room for a temporary copy of the elements. Merge Sort is stable, which means equal elements keep their original order, and it's a popular choice for sorting linked lists and data too large to fit in memory. PyDSA shows the list after every merge."
+
+COUNTING_SORT_INFO = "Counting Sort is a non-comparison sorting algorithm for whole numbers. Instead of comparing elements, it counts how many times each value appears, using one counter for every value between the smallest and the largest. It then walks through the counters in order and writes each value back into the list as many times as it was counted. To handle negative numbers, PyDSA subtracts the smallest value from every value, which turns the smallest value into counter 0. Counting Sort runs in O(n + k) time, where n is the number of elements and k is the distance between the smallest and largest value, and it needs O(k) extra space for the counters. That makes it faster than any comparison sort when the values fall in a small range, but wasteful when they're spread far apart, which is why PyDSA only accepts values less than 10,000 apart. PyDSA shows the list after all copies of a value have been written back."
+
+RADIX_SORT_INFO = "Radix Sort is a non-comparison sorting algorithm that sorts whole numbers one digit at a time. PyDSA's version starts with the least significant digit (the ones), deals every number into one of ten buckets by that digit, and then collects the buckets in order from 0 to 9. It repeats this for the tens, the hundreds and so on, up to the number of digits in the largest value. Because each pass keeps the numbers in the same bucket in the order they arrived, the order from the earlier digits is preserved, and after the last pass the list is fully sorted. Radix Sort runs in O(d · (n + b)) time, where n is the number of elements, d the number of digits and b the number of buckets (10 here), and it needs O(n + b) extra space. It's very fast for large lists of numbers with only a few digits. PyDSA's version sorts numbers that aren't negative and shows the list after every digit."
+
+# ---------------------------------------------------------------------------
+# Searching algorithms
+# ---------------------------------------------------------------------------
+
+SEARCHING_ASCII = r"""
+
+   .-'''-.     .-''-.     ____    .-------.        _______   .---.  .---..-./`) ,---.   .--.  .-_'''-.
+  / _     \  .'_ _   \  .'  __ `. |  _ _   \      /   __  \  |   |  |_ _|\ .-.')|    \  |  | '_( )_   \
+ (`' )/`--' / ( ` )   '/   '  \  \| ( ' )  |     | ,_/  \__) |   |  ( ' )/ `-' \|  ,  \ |  ||(_ o _)|  '
+(_ o _).   . (_ o _)  ||___|  /  ||(_ o _) /   ,-./  )       |   '-(_{;}_)`-'`"`|  |\_ \|  |. (_,_)/___|
+ (_,_). '. |  (_,_)___|   _.-`   || (_,_).' __ \  '_ '`)     |      (_,_) .---. |  _( )_\  ||  |  .-----.
+.---.  \  :'  \   .---..'   _    ||  |\ \  |  | > (_)  )  __ | _ _--.   | |   | | (_ o _)  |'  \  '-   .'
+\    `-'  | \  `-'    /|  _( )_  ||  | \ `'   /(  .  .-'_/  )|( ' ) |   | |   | |  (_,_)\  | \  `-'`   |
+ \       /   \       / \ (_ o _) /|  |  \    /  `-'`-'     / (_{;}_)|   | |   | |  |    |  |  \        /
+  `-...-'     `'-..-'   '.(_,_).' ''-'   `'-'     `._____.'  '(_,_) '---' '---' '--'    '--'   `'-...-'
+"""
+
+SEARCHING_DEFINITION = """Searching means finding where a target value is stored in a collection, or finding out that it isn't there. Some searching algorithms work on any data, while others need the data to be sorted first and, in exchange, get to skip most of the elements.
+
+🌟 Linear Search checks the elements one by one and works on any list. Binary, Jump, Interpolation and Exponential Search need sorted data, because they use the order to rule out the parts of the list that can't hold the target.
+
+🌟 PyDSA runs the searches that need sorted data on a sorted copy, so your list keeps its order, and reports the index where the target first appears in the original list. After every search, it shows the positions the algorithm checked, in order, so you can see how much of the list each one skipped."""
+
+JUMP_SEARCH_INFO = "Jump Search is a searching algorithm for sorted lists that checks elements in fixed-size jumps instead of one by one. With n elements, it jumps ahead √n positions at a time and looks at the last element of each block. As soon as it reaches a block whose last element is greater than or equal to the target, the target can only be inside that block, so it checks that block from the start with a linear search. Jump Search has a time complexity of O(√n), because it makes at most √n jumps and then checks at most √n elements, and a space complexity of O(1). It's slower than Binary Search but only ever moves forward through the list, which helps when going back is expensive, such as when reading data from a tape."
+
+INTERPOLATION_SEARCH_INFO = "Interpolation Search is a searching algorithm for sorted lists of numbers that guesses where the target should be from its value, much like opening a phone book near the end to find a name starting with W. Instead of always checking the middle like Binary Search, it estimates the position with low + (target − values[low]) × (high − low) ÷ (values[high] − values[low]), then narrows the range to the left or right of that guess and repeats. When the numbers are spread out evenly, its guesses land very close, giving an average time complexity of O(log log n). When the numbers are bunched up unevenly, the guesses can be far off and the worst case degrades to O(n). Its space complexity is O(1). Because it does arithmetic on the values, it only works with numbers."
+
+EXPONENTIAL_SEARCH_INFO = "Exponential Search is a searching algorithm for sorted lists that first finds a range that must contain the target, then runs a Binary Search inside it. It checks the elements at positions 1, 2, 4, 8, 16 and so on, doubling the position each time, until it finds an element that is greater than or equal to the target or runs past the end of the list. The target can then only lie between the last two positions it checked, and Binary Search finishes the job in that range. Exponential Search has a time complexity of O(log i), where i is the position of the target, so it's especially fast when the target is near the start, and it's useful for lists whose length is unknown. Its space complexity is O(1)."
+
+# ---------------------------------------------------------------------------
+# Graph algorithms
+# ---------------------------------------------------------------------------
+
+GRAPH_ALGORITHMS_ASCII = r"""
+
+  .-_'''-.   .-------.       ____    .-------. .---.  .---.
+ '_( )_   \  |  _ _   \    .'  __ `. \  _(`)_ \|   |  |_ _|
+|(_ o _)|  ' | ( ' )  |   /   '  \  \| (_ o._)||   |  ( ' )
+. (_,_)/___| |(_ o _) /   |___|  /  ||  (_,_) /|   '-(_{;}_)
+|  |  .-----.| (_,_).' __    _.-`   ||   '-.-' |      (_,_)
+'  \  '-   .'|  |\ \  |  |.'   _    ||   |     | _ _--.   |
+ \  `-'`   | |  | \ `'   /|  _( )_  ||   |     |( ' ) |   |
+  \        / |  |  \    / \ (_ o _) //   )     (_{;}_)|   |
+   `'-...-'  ''-'   `'-'   '.(_,_).' `---'     '(_,_) '---'
+
+   ____      .---.     .-_'''-.       ,-----.    .-------.   .-./`) ,---------. .---.  .---. ,---.    ,---.   .-'''-.
+ .'  __ `.   | ,_|    '_( )_   \    .'  .-,  '.  |  _ _   \  \ .-.')\          \|   |  |_ _| |    \  /    |  / _     \
+/   '  \  \,-./  )   |(_ o _)|  '  / ,-.|  \ _ \ | ( ' )  |  / `-' \ `--.  ,---'|   |  ( ' ) |  ,  \/  ,  | (`' )/`--'
+|___|  /  |\  '_ '`) . (_,_)/___| ;  \  '_ /  | :|(_ o _) /   `-'`"`    |   \   |   '-(_{;}_)|  |\_   /|  |(_ o _).
+   _.-`   | > (_)  ) |  |  .-----.|  _`,/ \ _/  || (_,_).' __ .---.     :_ _:   |      (_,_) |  _( )_/ |  | (_,_). '.
+.'   _    |(  .  .-' '  \  '-   .': (  '\_/ \   ;|  |\ \  |  ||   |     (_I_)   | _ _--.   | | (_ o _) |  |.---.  \  :
+|  _( )_  | `-'`-'|___\  `-'`   |  \ `"/  \  ) / |  | \ `'   /|   |    (_(=)_)  |( ' ) |   | |  (_,_)  |  |\    `-'  |
+\ (_ o _) /  |        \\        /   '. \_/``".'  |  |  \    / |   |     (_I_)   (_{;}_)|   | |  |      |  | \       /
+ '.(_,_).'   `--------` `'-...-'      '-----'    ''-'   `'-'  '---'     '---'   '(_,_) '---' '--'      '--'  `-...-'
+"""
+
+GRAPH_ALGORITHMS_DEFINITION = """Graph algorithms answer questions about the connections in a graph: how to get from one vertex to another as cheaply as possible, in which order to do tasks that depend on each other, whether the connections loop back on themselves, and how to connect every vertex as cheaply as possible. They power maps and navigation, build systems, course planners, network design and much more.
+
+🌟 Dijkstra's algorithm finds the shortest paths from one vertex to all the others in a graph whose weights aren't negative.
+
+🌟 A topological sort orders the vertices of a directed graph so every edge points forward, which is only possible when the graph has no cycles.
+
+🌟 Cycle detection finds a path that leads back to where it started. Directed graphs are checked with a depth-first search, and undirected graphs with a disjoint set.
+
+🌟 A minimum spanning tree connects every vertex of an undirected graph using edges with the smallest possible total weight. Prim's algorithm grows one tree vertex by vertex, while Kruskal's algorithm adds the lightest edges that don't close a cycle."""
+
+GRAPH_ALGORITHMS_INFO = "This screen runs the graph algorithms on an example graph. To run them on a graph you build yourself, open Graph under the non-linear data structures and choose Graph Algorithms."
+
+DIJKSTRA_INFO = "Dijkstra's algorithm finds the shortest path from a source vertex to every other vertex in a weighted graph whose weights aren't negative. It keeps a tentative distance for every vertex, starting at 0 for the source and infinity for the rest, and a min heap of vertices ordered by distance. It repeatedly takes the closest vertex whose distance isn't final yet, makes its distance final, and relaxes each of its edges: if going through this vertex reaches a neighbor with a smaller distance than the neighbor has so far, the neighbor's distance and previous vertex are updated. Following the previous vertices back from any vertex rebuilds its shortest path. With a min heap and an adjacency list, Dijkstra's algorithm runs in O((V + E) log V) time, where V is the number of vertices and E the number of edges. A negative weight could make a finished vertex cheaper to reach later, which breaks the algorithm, so PyDSA refuses to run it on graphs with negative weights."
+
+TOPOLOGICAL_SORT_INFO = "A topological sort arranges the vertices of a directed graph in a line so that every edge goes from an earlier vertex to a later one, like ordering courses so every prerequisite comes before the courses that need it. PyDSA uses Kahn's algorithm, which counts how many edges point into each vertex (its in-degree) and starts with the vertices that have none. It repeatedly places one of those vertices and removes its outgoing edges, which lowers the in-degree of its neighbors, and any neighbor that drops to zero is ready to be placed next. If vertices are left over once no vertex is ready, they're on a cycle or come after one, and the graph has no topological order. Kahn's algorithm runs in O(V + E) time, where V is the number of vertices and E the number of edges."
+
+DIRECTED_CYCLE_INFO = "To find a cycle in a directed graph, PyDSA runs a depth-first search that tracks three states for every vertex: not visited yet, on the current path, and finished. When the search reaches a vertex, the vertex joins the current path, and once all of its edges have been explored, it's marked as finished and leaves the path. If an edge ever leads to a vertex that is still on the current path, the search has found its way back to where it came from, and the part of the path from that vertex onward is a cycle. Edges into finished vertices are safe, because everything reachable from them has already been explored without finding a cycle. This check runs in O(V + E) time, where V is the number of vertices and E the number of edges."
+
+UNDIRECTED_CYCLE_INFO = "To find a cycle in an undirected graph, PyDSA uses a disjoint set (Union-Find) that starts with every vertex in a set of its own. It goes through the edges one by one: if an edge's two vertices are already in the same set, there's already a path between them, so this edge closes a cycle. Otherwise, the edge merges their two sets. Once a cycle is found, PyDSA follows the edges added so far to show the path around it. With union by rank and path compression, this check runs in nearly O(V + E) time, where V is the number of vertices and E the number of edges."
+
+PRIM_INFO = "Prim's algorithm builds a minimum spanning tree: the edges that connect every vertex of an undirected graph with the smallest possible total weight. It starts from a single vertex and grows the tree one vertex at a time. Every edge leaving the tree goes into a min heap, and the algorithm repeatedly takes the lightest one. If that edge leads to a vertex that's already in the tree, it would close a cycle and is left out; otherwise, the edge and its new vertex join the tree, and the new vertex's edges go into the heap. When the graph isn't connected, PyDSA starts a new tree from the next vertex that isn't in one yet, which produces a minimum spanning forest. With a min heap and an adjacency list, Prim's algorithm runs in O(E log V) time, where V is the number of vertices and E the number of edges."
+
+KRUSKAL_INFO = "Kruskal's algorithm builds a minimum spanning tree: the edges that connect every vertex of an undirected graph with the smallest possible total weight. It sorts all edges from lightest to heaviest and goes through them in that order, adding each edge unless it would close a cycle. To check that quickly, it keeps a disjoint set (Union-Find) of the vertices that are already connected: an edge whose two vertices are in the same set is left out, and any other edge merges their sets. When the graph isn't connected, Kruskal's algorithm naturally produces a minimum spanning forest instead. Sorting the edges dominates its running time, which is O(E log E), where E is the number of edges."

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pydsa"
 dynamic = ["version"]
-description = "A console-based Python app for learning data structures."
+description = "A console-based Python app for learning data structures and algorithms."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["rich>=13"]

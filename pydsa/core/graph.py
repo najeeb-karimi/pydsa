@@ -1,4 +1,8 @@
-"""Directed weighted graphs stored as an adjacency matrix and as an adjacency list."""
+"""Weighted graphs, directed or undirected, stored as an adjacency matrix and as an adjacency list.
+
+Both classes offer vertices() and edges(v), the shared interface the graph algorithms work through. An
+undirected edge is stored both ways, so it shows up in the edges of both of its vertices.
+"""
 
 from collections import deque
 
@@ -6,15 +10,16 @@ from pydsa.core.errors import DuplicateError, NotFoundError, OutOfBoundsError
 
 
 # ---------------------------------------------------------------------------
-# Adjacency Matrix Directed Weighted Graph
+# Adjacency Matrix Weighted Graph
 # ---------------------------------------------------------------------------
 
-class MatrixDirectedWeightedGraph:
-    """Directed weighted graph stored as an adjacency matrix, with vertices numbered from 0."""
+class MatrixGraph:
+    """Weighted graph stored as an adjacency matrix, with vertices numbered from 0."""
 
-    def __init__(self, num_vertices):
+    def __init__(self, num_vertices, directed=True):
         """Initialize the graph with a given number of vertices and no edges."""
         self.num_vertices = num_vertices
+        self.directed = directed
         # A weight of 0 means there is no edge
         self.adj_matrix = [[0] * num_vertices for _ in range(num_vertices)]
 
@@ -27,17 +32,29 @@ class MatrixDirectedWeightedGraph:
         if not all(self.has_vertex(v) for v in vertices):
             raise OutOfBoundsError(f"Valid vertices are in the range 0 to {self.num_vertices - 1}.")
 
+    def vertices(self):
+        """Return every vertex in increasing order."""
+        return list(range(self.num_vertices))
+
+    def edges(self, v):
+        """Return the (neighbor, weight) pairs of the edges leaving v."""
+        return [(neighbor, weight) for neighbor, weight in enumerate(self.adj_matrix[v]) if weight != 0]
+
     def add_edge(self, u, v, weight):
-        """Add (or overwrite) a directed edge from u to v with the given weight."""
+        """Add (or overwrite) an edge from u to v with the given weight, and from v to u if undirected."""
         self._check_vertices(u, v)
         self.adj_matrix[u][v] = weight
+        if not self.directed:
+            self.adj_matrix[v][u] = weight
 
     def remove_edge(self, u, v):
-        """Remove the directed edge from u to v; return False if there was no such edge."""
+        """Remove the edge from u to v (both ways if undirected); return False if there was no such edge."""
         self._check_vertices(u, v)
         if self.adj_matrix[u][v] == 0:
             return False
         self.adj_matrix[u][v] = 0
+        if not self.directed:
+            self.adj_matrix[v][u] = 0
         return True
 
     def search_edge(self, u, v):
@@ -106,18 +123,19 @@ class MatrixDirectedWeightedGraph:
 
 
 # ---------------------------------------------------------------------------
-# Adjacency List Directed Weighted Graph
+# Adjacency List Weighted Graph
 # ---------------------------------------------------------------------------
 
-class ListDirectedWeightedGraph:
-    """Directed weighted graph stored as an adjacency list."""
+class ListGraph:
+    """Weighted graph stored as an adjacency list."""
 
-    def __init__(self):
+    def __init__(self, directed=True):
         """Initialize an empty graph.
 
         adj_list maps each vertex to a list of (neighbor, weight) tuples, one per outgoing edge.
         """
         self.adj_list = {}
+        self.directed = directed
 
     def has_vertex(self, v):
         """Return True if v is a vertex of the graph."""
@@ -128,6 +146,14 @@ class ListDirectedWeightedGraph:
         missing = [v for v in vertices if v not in self.adj_list]
         if missing:
             raise NotFoundError(f"Vertex {missing[0]} does not exist.")
+
+    def vertices(self):
+        """Return every vertex in the order they were added."""
+        return list(self.adj_list)
+
+    def edges(self, v):
+        """Return the (neighbor, weight) pairs of the edges leaving v."""
+        return list(self.adj_list[v])
 
     def add_vertex(self, vertex):
         """Add a vertex with no edges."""
@@ -144,18 +170,27 @@ class ListDirectedWeightedGraph:
         # Remove the vertex itself, along with its outgoing edges
         del self.adj_list[vertex]
 
-    def add_edge(self, u, v, weight):
-        """Add a directed edge from u to v with the given weight, replacing any existing u -> v edge."""
-        self._check_vertices(u, v)
+    def _link(self, u, v, weight):
+        """Store the edge from u to v, replacing any existing u -> v edge; a weight of None only removes it."""
         self.adj_list[u] = [edge for edge in self.adj_list[u] if edge[0] != v]
-        self.adj_list[u].append((v, weight))
+        if weight is not None:
+            self.adj_list[u].append((v, weight))
+
+    def add_edge(self, u, v, weight):
+        """Add an edge from u to v with the given weight (and from v to u if undirected), replacing any existing one."""
+        self._check_vertices(u, v)
+        self._link(u, v, weight)
+        if not self.directed and u != v:
+            self._link(v, u, weight)
 
     def remove_edge(self, u, v):
-        """Remove the directed edge from u to v; return False if there was no such edge."""
+        """Remove the edge from u to v (both ways if undirected); return False if there was no such edge."""
         self._check_vertices(u, v)
         if not any(edge[0] == v for edge in self.adj_list[u]):
             return False
-        self.adj_list[u] = [edge for edge in self.adj_list[u] if edge[0] != v]
+        self._link(u, v, None)
+        if not self.directed:
+            self._link(v, u, None)
         return True
 
     def search_edge(self, u, v):

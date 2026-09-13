@@ -35,8 +35,38 @@ SORTING = ComplexityTable(
         ("Quick sort", "O(n log n)", "O(n log n)", "O(n²)", "O(log n)"),
         ("Heap sort", "O(n log n)", "O(n log n)", "O(n log n)", "O(1)"),
         ("Shell sort", "O(n log n)", "Depends on the gaps", "O(n²)", "O(1)"),
+        ("Merge sort", "O(n log n)", "O(n log n)", "O(n log n)", "O(n)"),
+        ("Counting sort", "O(n + k)", "O(n + k)", "O(n + k)", "O(k)"),
+        ("Radix sort", "O(d · n)", "O(d · n)", "O(d · n)", "O(n)"),
     ),
-    "Quick sort's extra space is for its recursive calls and can grow to O(n) in the worst case.",
+    "Quick sort's extra space is for its recursive calls and can grow to O(n) in the worst case. k is the distance between the smallest and largest value, and d is the number of digits in the largest value.",
+)
+
+SEARCHING = ComplexityTable(
+    "Searching algorithms",
+    ("Algorithm", "Best", "Average", "Worst", "Needs sorted data"),
+    (
+        ("Linear search", "O(1)", "O(n)", "O(n)", "No"),
+        ("Binary search", "O(1)", "O(log n)", "O(log n)", "Yes"),
+        ("Jump search", "O(1)", "O(√n)", "O(√n)", "Yes"),
+        ("Interpolation search", "O(1)", "O(log log n)", "O(n)", "Yes, of numbers"),
+        ("Exponential search", "O(1)", "O(log i)", "O(log i)", "Yes"),
+    ),
+    "i is the target's position in the sorted data. Interpolation search reaches its average when the numbers are spread out evenly. Every search uses O(1) extra space, but PyDSA searches a sorted copy to keep the original order, and making that copy takes O(n log n) time and O(n) space.",
+)
+
+GRAPH_ALGORITHMS = ComplexityTable(
+    "Graph algorithms",
+    ("Algorithm", "Time", "Extra space"),
+    (
+        ("Dijkstra's shortest paths (min heap)", "O((V + E) log V)", "O(V + E)"),
+        ("Topological sort (Kahn)", "O(V + E)", "O(V)"),
+        ("Cycle detection, directed (DFS)", "O(V + E)", "O(V)"),
+        ("Cycle detection, undirected (disjoint set)", "O(V + E · α(V))", "O(V)"),
+        ("Minimum spanning tree (Prim, min heap)", "O(E log V)", "O(V + E)"),
+        ("Minimum spanning tree (Kruskal, disjoint set)", "O(E log E)", "O(V + E)"),
+    ),
+    "V is the number of vertices and E the number of edges. The times assume an adjacency list; with an adjacency matrix, listing a vertex's edges takes O(V), so V + E grows to V². Dijkstra's algorithm needs non-negative weights, and minimum spanning trees need an undirected graph.",
 )
 
 STACK = ComplexityTable(
