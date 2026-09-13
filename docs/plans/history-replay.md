@@ -11,7 +11,7 @@ The code itself tells us how to order the replay. `utility.main_intro()` says **
 - The repo is already set up on branch `main`. `old/` stays where it is and is hidden from git through `.git/info/exclude`, so it never shows up in any commit or in `.gitignore`.
 - One step per pass. Claude writes the files for that step, runs the checks, and then hands over a **conventional commit message**:
   - The title is `type(scope): summary`.
-  - The body is one or two short, plain-language paragraphs on what changed.
+  - The body is one or two short, plain-language paragraphs on what changed. Each paragraph goes on a single line with no hard wraps, and paragraphs are separated by one blank line.
 
   The user reviews and makes the commit (and any tag). Claude doesn't run `git commit`.
 - Commit dates are simply when the commits are made. Nothing gets pushed. Pushing (force-push over the existing repo or a new repo) is decided later.

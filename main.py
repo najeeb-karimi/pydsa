@@ -1,6 +1,7 @@
 """PyDSA entry point: shows the intro and runs the main data structure menu."""
 
 import utility
+import my_array
 
 
 def main():
@@ -18,7 +19,7 @@ def main():
 
             # Array
             case "1":
-                print("\n🚧 Array is coming soon!")
+                my_array.array_main()
 
             # Invalid
             case _:
