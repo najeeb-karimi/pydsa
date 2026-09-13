@@ -177,6 +177,36 @@ class Array:
 
         return self.array
 
+    def linear_search(self, target):
+        """Search the array using Linear Search and print the index of the target."""
+        for index, value in enumerate(self.array):
+            if value == target:
+                print(f"\n✅ Element found at index: {index}.")
+                return index
+        print("\n❌ Element not found.")
+        return -1
+
+    def binary_search(self, target):
+        """Search the array using Binary Search and print the original index of the target."""
+        index_mapping = {value: index for index, value in enumerate(self.array)}
+        # Sort a copy so the original array keeps its order
+        sorted_array = self.array[:]
+        sorted_array.sort()
+
+        left, right = 0, len(sorted_array) - 1
+        while left <= right:
+            mid = (left + right) // 2
+            if sorted_array[mid] == target:
+                # Map the match back to its index in the original array
+                original_index = index_mapping[sorted_array[mid]]
+                print(f"\n✅ Element found at index: {original_index}.")
+                return
+            elif sorted_array[mid] < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+        print("\n❌ Element not found.")
+
     def size_check(self):
         """Print the size of the array."""
         size = self.size
@@ -231,16 +261,17 @@ def array_main():
 ★2) Deletion
 ★3) Indexing
 ★4) Sorting
-★5) Size Check
-★6) Type Check
-★7) Displaying
-★8) New Array
-★9) New Data Structure
-★10) Exit the Program
+★5) Searching
+★6) Size Check
+★7) Type Check
+★8) Displaying
+★9) New Array
+★10) New Data Structure
+★11) Exit the Program
 
 >>> """)
 
-        if opr not in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"):
+        if opr not in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"):
             print("\n❌️ Invalid code number.")
             continue
 
@@ -368,33 +399,84 @@ def array_main():
                 case _:
                     print("\n🚫 Invalid code number.")
 
-        # Size check
+        # Searching
         elif opr == "5":
+
+            # Searching algorithm selection
+            search_alg = input("""\n🔍 Which searching algorithm do you want to use?
+●1) Linear search
+●2) Binary search
+>>> """)
+            match search_alg:
+                # Linear search
+                case "1":
+                    print("\nℹ️ Linear Search is a straightforward search algorithm that checks each element in a list sequentially until the desired element is found or the list ends. It starts at the first element and compares each element with the target value. If a match is found, the search is successful, and the index of the element is returned. If the end of the list is reached without finding the target, the search concludes that the element is not present. Linear Search has a time complexity of O(n), where n is the number of elements in the list, because in the worst case, it may need to check every element. Its space complexity is O(1) since it requires no additional memory beyond the input list. Linear Search is simple to implement and works well for small or unsorted datasets, but it is inefficient for large lists compared to more advanced search algorithms like binary search.")
+                    data_type = array.data_type.__name__
+
+                    if data_type == "int":
+                        target = utility.input_verify("int", "target element")
+                        if target is not None:
+                            array.linear_search(target)
+                        else:
+                            print("\n🚫 Invalid data type!")
+
+                    elif data_type == "str":
+                        target = utility.input_verify("str", "target element")
+                        if target is not None:
+                            array.linear_search(target)
+                        else:
+                            print("\n🚫 Invalid data type!")
+
+                # Binary search
+                case "2":
+                    print("\nℹ️ Binary Search is an efficient algorithm for finding an element in a sorted array by repeatedly dividing the search interval in half. It begins by comparing the target value to the middle element of the array. If the target value matches the middle element, the search is successful. If the target value is less than the middle element, the search continues on the left half of the array; otherwise, it continues on the right half. This process is repeated until the target value is found or the search interval is empty. Binary Search has a time complexity of O(log n), where n is the number of elements in the array, because it halves the search space with each step. Its space complexity is O(1) for the iterative version, as it requires a constant amount of additional memory. The best-case time complexity is O(1) when the target value is at the middle of the array.")
+                    data_type = array.data_type.__name__
+
+                    if data_type == "int":
+                        target = utility.input_verify("int", "target element")
+                        if target is not None:
+                            array.binary_search(target)
+                        else:
+                            print("\n🚫 Invalid data type!")
+
+                    elif data_type == "str":
+                        target = utility.input_verify("str", "target element")
+                        if target is not None:
+                            array.binary_search(target)
+                        else:
+                            print("\n🚫 Invalid data type!")
+
+                # Invalid
+                case _:
+                    print("\n🚫 Invalid code number!")
+
+        # Size check
+        elif opr == "6":
             array.size_check()
 
         # Type check
-        elif opr == "6":
+        elif opr == "7":
             array.type_check()
 
         # Displaying
-        elif opr == "7":
+        elif opr == "8":
             array.display()
 
         # New array
-        elif opr == "8":
+        elif opr == "9":
             utility.clear()
             utility.main_intro()
             array_main()
             break
 
         # New data structure
-        elif opr == "9":
+        elif opr == "10":
             utility.clear()
             utility.main_intro()
             break
 
         # Exit the program
-        elif opr == "10":
+        elif opr == "11":
             exit()
 
 

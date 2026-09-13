@@ -13,6 +13,38 @@ def clear():
         os.system('clear')
 
 
+def input_verify(condition, msg="item"):
+    """Prompt for a value of the given type and return it, or None if the conversion fails.
+
+    condition is "str", "int" or "float"; msg names the value in the prompt.
+    """
+
+    # String input only; used in the array implementation
+    if condition == "str":
+        item = input(f"\n✍️ Please enter the {msg}. (STRING)\n>>> ")
+        return item
+
+    # Integer input only; used in the array implementation
+    elif condition == "int":
+        item = input(f"\n✍️ Please enter the {msg}. (INT)\n>>> ")
+        try:
+            item = int(item)
+        except ValueError:
+            return None
+        else:
+            return item
+
+    # Float input only; used in the array implementation
+    elif condition == "float":
+        item = input(f"\n✍️ Please enter the {msg}. (FLOAT)\n>>> ")
+        try:
+            item = float(item)
+        except ValueError:
+            return None
+        else:
+            return item
+
+
 def order_verify():
     """Ask for a sorting order and return "asc" or "desc"."""
     while True:
