@@ -1,4 +1,4 @@
-"""Graph implementation: directed weighted graph using an adjacency matrix."""
+"""Graph implementations: directed weighted graph using an adjacency matrix and an adjacency list."""
 
 import utility
 
@@ -245,13 +245,259 @@ def adj_matrix_main():
 
 
 # ---------------------------------------------------------------------------
+# Adjacency List Directed Weighted Graph
+# ---------------------------------------------------------------------------
+
+class ListDirectedWeightedGraph:
+    """Directed weighted graph stored as an adjacency list."""
+
+    def __init__(self):
+        """Initialize an empty graph.
+
+        adj_list maps each vertex to a list of (neighbor, weight) tuples, one per outgoing edge.
+        """
+        self.adj_list = {}
+        print("\n✅ Adjacency List successfully initialized.")
+
+    def add_vertex(self, vertex):
+        """Add a vertex with no edges, unless it already exists."""
+        if vertex not in self.adj_list:
+            self.adj_list[vertex] = []
+            print(f"\n✅ Vertex addition successful. Vertex {vertex} added.")
+        else:
+            print(f"\n🚫 Vertex addition unsuccessful Vertex {vertex} already exists.")
+
+    def remove_vertex(self, vertex):
+        """Remove a vertex along with every edge to and from it."""
+        if vertex in self.adj_list:
+            # Remove every edge that points to this vertex
+            for u in self.adj_list:
+                self.adj_list[u] = [edge for edge in self.adj_list[u] if edge[0] != vertex]
+            # Remove the vertex itself, along with its outgoing edges
+            del self.adj_list[vertex]
+            print(f"\n✅ Vertex removal successful. Vertex {vertex} removed.")
+        else:
+            print(f"\n🚫 Vertex removal unsuccessful. Vertex {vertex} does not exist.")
+
+    def add_edge(self, u, v, weight):
+        """Add a directed edge from u to v with the given weight, replacing any existing u -> v edge."""
+        if u in self.adj_list and v in self.adj_list:
+            # Drop an existing u -> v edge first so the new weight replaces it
+            for (neighbor, _weight) in self.adj_list[u]:
+                if neighbor == v:
+                    self.adj_list[u].remove((neighbor, _weight))
+                    break
+            self.adj_list[u].append((v, weight))
+            print(f"\n✅ Edge addition successful. Edge added from {u} to {v} with weight {weight}.")
+        else:
+            print(f"\n🚫 Edge addition unsuccessful. One or both vertices {u}, {v} do not exist.")
+
+    def remove_edge(self, u, v):
+        """Remove the directed edge from u to v."""
+        if u in self.adj_list and v in self.adj_list:
+            self.adj_list[u] = [edge for edge in self.adj_list[u] if edge[0] != v]
+            print(f"\n✅ Edge removal successful. Edge removed from {u} to {v}.")
+        else:
+            print(f"\n🚫 Edge removal unsuccessful. One or both vertices {u}, {v} do not exist.")
+
+    def dfs_util(self, v, visited):
+        """Visit v, print it, then recursively visit its unvisited neighbors."""
+        visited.add(v)
+        print(v, end=' ')
+        for neighbor, _ in self.adj_list[v]:
+            if neighbor not in visited:
+                self.dfs_util(neighbor, visited)
+
+    def dfs(self, start_vertex):
+        """Print a depth-first traversal starting from start_vertex."""
+        visited = set()
+        self.dfs_util(start_vertex, visited)
+        print("\nℹ️ DFS Traversal")  # Ends the traversal line and labels it
+
+    def bfs(self, start_vertex):
+        """Print a breadth-first traversal starting from start_vertex."""
+        visited = set()
+        queue = [start_vertex]
+        visited.add(start_vertex)
+
+        while queue:
+            v = queue.pop(0)
+            print(v, end=' ')
+            for neighbor, _ in self.adj_list[v]:
+                if neighbor not in visited:
+                    queue.append(neighbor)
+                    visited.add(neighbor)
+        print("\nℹ️ BFS Traversal")  # Ends the traversal line and labels it
+
+    def search_edge(self, u, v):
+        """Print whether there is an edge from u to v; return True or False, or None if u doesn't exist."""
+        if u in self.adj_list:
+            for neighbor, weight in self.adj_list[u]:
+                if neighbor == v:
+                    print(f"\n✅ Edge searching successful. Edge found from {u} to {v} with weight {weight}.")
+                    return True
+            print(f"\n❌ Edge searching successful. No edge found from {u} to {v}.")
+            return False
+        else:
+            print(f"\n🚫 Edge searching unsuccessful. Vertex {u} does not exist.")
+
+    def display(self):
+        """Print each vertex followed by its (neighbor, weight) edges."""
+        for vertex in self.adj_list:
+            print("🔹", vertex, self.adj_list[vertex])
+
+
+def adj_list_main():
+    """Create an adjacency list graph and run its operation menu."""
+    print("\nℹ️ This program implements a Directed Weighted Graph through the Adjacency List representation. If an unweighted graph is desired, the weights can be simply set to 1.")
+
+    # The graph starts empty, so vertices have to be added before anything else
+    adj_list = ListDirectedWeightedGraph()
+    print("\n⚠️ Make sure to add vertices through operation #1 before going for other operations.")
+
+    # Operation selection loop
+    while True:
+        opr = input("""\n⚔️ Which operation do you want to perform with the Adjacency List Graph?
+★0) Definition
+★1) Adding a Vertex
+★2) Removing a Vertex
+★3) Adding an Edge
+★4) Removing an Edge
+★5) Searching an Edge
+★6) Traversals
+★7) Displaying
+★8) New Graph
+★9) New Data Structure
+★10) Exiting the Program
+
+>>> """)
+        match opr:
+
+            # Definition
+            case "0":
+                graph_intro("def")
+
+            # Adding a vertex
+            case "1":
+                u = get_u(msg="vertex that you want to add")
+                adj_list.add_vertex(u)
+                adj_list.display()
+
+            # Removing a vertex
+            case "2":
+                u = get_u(msg="vertex that you want to remove")
+                adj_list.remove_vertex(u)
+                adj_list.display()
+
+            # Adding an edge
+            case "3":
+                u = get_u()
+                v = get_v()
+                weight = get_weight()
+                adj_list.add_edge(u, v, weight)
+                adj_list.display()
+
+            # Removing an edge
+            case "4":
+                u = get_u()
+                v = get_v()
+                adj_list.remove_edge(u, v)
+                adj_list.display()
+
+            # Searching an edge
+            case "5":
+                u = get_u()
+                v = get_v()
+                adj_list.search_edge(u, v)
+
+            # Traversals
+            case "6":
+
+                # Traversal type selection loop
+                while True:
+                    traversal_type = input("""\n🗂️ Which traversal do you want?
+●1) BFS (Breadth-First Search)
+●2) DFS (Depth-First Search)
+>>> """)
+                    match traversal_type:
+                        # BFS
+                        case "1":
+                            start_vertex = get_u(msg="starting vertex for the BFS")
+                            print("\n👉🏻 ", end="")
+                            adj_list.bfs(start_vertex)
+                            break
+
+                        # DFS
+                        case "2":
+                            start_vertex = get_u(msg="starting vertex for the DFS")
+                            print("\n👉🏻 ", end="")
+                            adj_list.dfs(start_vertex)
+                            break
+
+                        # Invalid
+                        case _:
+                            print("\n❌ Invalid code number!")
+                            continue
+
+            # Displaying
+            case "7":
+                print("\n👇🏻 Here's your Adjacency List:")
+                adj_list.display()
+
+            # New graph
+            case "8":
+                utility.clear()
+                graph_intro("full")
+                graph_main()
+                break
+
+            # New data structure
+            case "9":
+                utility.clear()
+                utility.main_intro()
+                break
+
+            # Exit the program
+            case "10":
+                exit()
+
+            # Invalid
+            case _:
+                print("\n🚫 Invalid operation code!")
+
+
+# ---------------------------------------------------------------------------
 # Graph main and intro functions
 # ---------------------------------------------------------------------------
 
 def graph_main():
-    """Show the graph intro and open the adjacency matrix graph menu."""
+    """Show the graph intro and let the user pick an adjacency matrix or adjacency list graph.
+
+    Once the chosen graph's menu returns, control goes back to the main menu in main.py.
+    """
     graph_intro("full")
-    adj_matrix_main()
+
+    # Graph representation selection loop
+    while True:
+        graph_repr = input("""\n🧪 Which type of graph representation do you want?
+★1) Adjacency Matrix
+★2) Adjacency List
+>>> """)
+
+        match graph_repr:
+            # Matrix
+            case "1":
+                adj_matrix_main()
+                break
+
+            # List
+            case "2":
+                adj_list_main()
+                break
+
+            # Invalid
+            case _:
+                print("\n🚫 Invalid representation type code!")
 
 
 def graph_intro(condition):
