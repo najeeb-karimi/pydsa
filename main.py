@@ -4,6 +4,7 @@ import utility
 import my_array
 import stack
 import queue
+import linked_list
 
 
 def main():
@@ -16,6 +17,7 @@ def main():
 ★1) Array
 ★2) Stack
 ★3) Queue
+★4) Linked List
 
 >>> """)
 
@@ -32,6 +34,10 @@ def main():
             # Queue
             case "3":
                 queue.queue_main()
+
+            # Linked List
+            case "4":
+                linked_list.linked_list_main()
 
             # Invalid
             case _:
