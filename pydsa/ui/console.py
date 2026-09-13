@@ -1,120 +1,156 @@
-"""Console input helpers: screen clearing and validated prompts."""
+"""Console input and output built on rich: prompts, status messages and screen clearing."""
 
-import os
+from rich.console import Console
+from rich.text import Text
+from rich.theme import Theme
+
+PROMPT = ">>> "
+
+# Writes to whatever sys.stdout is at the time. Colors are dropped automatically when the output
+# isn't a terminal or NO_COLOR is set.
+console = Console(
+    theme=Theme({
+        "title": "bold",
+        "code": "bold cyan",
+        "accent": "magenta",
+        "muted": "dim",
+        "result": "bold",
+        "success": "green",
+        "error": "red",
+        "warning": "yellow",
+        "info": "cyan",
+        "changed": "bold reverse",
+    }),
+    highlight=False,
+)
 
 
 def clear():
-    """Clear the terminal screen."""
-    # Windows
-    if os.name == "nt":
-        os.system("cls")
-    # macOS and Linux (os.name is "posix")
-    else:
-        os.system("clear")
+    """Clear the terminal screen (does nothing when the output isn't a terminal)."""
+    console.clear()
 
 
-def value_prompt(msg, label):
-    """Return the standard prompt for entering a value of the labeled type, e.g. "(INT)"."""
-    return f"\n✍️ Please enter the {msg}. ({label})\n>>> "
+def plural(count, singular, plural_form=None):
+    """Return the count with the right form of the noun, e.g. "1 item" or "3 items"."""
+    word = singular if count == 1 else plural_form or f"{singular}s"
+    return f"{count} {word}"
 
 
-def ask_choice(prompt, codes, invalid):
-    """Ask with prompt until one of codes is entered and return it; invalid is printed otherwise."""
+# ---------------------------------------------------------------------------
+# Status messages
+# ---------------------------------------------------------------------------
+
+def _message(emoji, text, style):
+    console.print()
+    console.print(Text(f"{emoji} {text}", style=style))
+
+
+def success(text):
+    """Report an operation that worked."""
+    _message("✅", text, "success")
+
+
+def error(text):
+    """Report invalid input or an operation that was rejected."""
+    _message("🚫", text, "error")
+
+
+def not_found(text):
+    """Report something that was looked for but isn't there."""
+    _message("❌", text, "warning")
+
+
+def info(text):
+    """Show a note or tip."""
+    _message("ℹ️", text, "info")
+
+
+def result(text):
+    """Show the answer to a question such as a size check or a traversal."""
+    _message("👉", text, "result")
+
+
+# ---------------------------------------------------------------------------
+# Prompts
+# ---------------------------------------------------------------------------
+
+def ask(question):
+    """Show question on its own line and return what the user types at the >>> prompt."""
+    console.print()
+    console.print(Text(question, style="title"))
+    return input(PROMPT)
+
+
+def ask_code(title, groups):
+    """Show title with numbered options and ask until one of their codes is typed; return that code.
+
+    groups is a list of (code, label) lists, shown with a blank line between them.
+    """
+    codes = [code for group in groups for code, _ in group]
+    width = max(len(code) for code in codes)
     while True:
-        choice = input(prompt)
+        console.print()
+        console.print(Text(title, style="title"))
+        for position, group in enumerate(groups):
+            if position:
+                console.print()
+            for code, label in group:
+                console.print(Text.assemble("  ", (f"{code:>{width}})", "code"), " ", label))
+        choice = input(PROMPT).strip()
         if choice in codes:
             return choice
-        print(invalid)
+        error("Invalid choice. Please type one of the numbers shown.")
 
 
-def ask_int(prompt, invalid, min_value=None, too_small=None):
-    """Ask with prompt until a whole number of at least min_value is entered and return it.
-
-    invalid is printed when the input isn't an int, and too_small (invalid by default) when it's
-    below min_value.
-    """
+def ask_int(question, what, min_value=None):
+    """Ask until a whole number of at least min_value is typed; what names the value in error messages."""
     while True:
+        text = ask(question)
         try:
-            value = int(input(prompt))
+            value = int(text)
         except ValueError:
-            print(invalid)
+            error(f"The {what} must be a whole number.")
             continue
         if min_value is not None and value < min_value:
-            print(invalid if too_small is None else too_small)
+            error(f"The {what} must be at least {min_value}.")
             continue
         return value
 
 
-def _convert(text, data_type):
-    """Return text converted to data_type, or None if it can't be converted."""
-    try:
-        return data_type(text)
-    except ValueError:
-        return None
+TYPES = {"str": str, "int": int, "float": float}
 
 
-def ask_value(kind="all", msg="item"):
-    """Ask for a value and return it, or None if it can't be converted to the requested type.
+def ask_value(kind="any", what="item"):
+    """Ask for a value of the given kind, asking again until the typed text converts to it.
 
-    kind is "all" (the user picks str, int or float), "str", "num" (the user picks int or float),
-    "int" or "float"; msg names the value in the prompts.
+    kind is "any" (the user picks str, int or float), "num" (the user picks int or float), "str",
+    "int" or "float"; what names the value in the prompts.
     """
-    # Any of str, int or float, picked by the user
-    if kind == "all":
-        choice = ask_choice(
-            f"""\n🤔 Please specify the data type of the {msg}:
-•1) str
-•2) int
-•3) float
->>> """,
-            ("1", "2", "3"),
-            "\n🚫 Invalid code number! Please use code numbers 1–3.",
-        )
-        text = input(f"\n✍️ Please enter the {msg}.\n>>> ")
-        return _convert(text, {"1": str, "2": int, "3": float}[choice])
-
-    # String input only
-    if kind == "str":
-        return input(value_prompt(msg, "STRING"))
-
-    # Numeric input only, with int or float picked by the user
-    if kind == "num":
-        choice = ask_choice(
-            """\n🤔 Please specify the type of NUMERAL data you want to enter:
-•1) int
-•2) float
->>> """,
-            ("1", "2"),
-            "\n🚫 Invalid code number! Please use code numbers 1 or 2.",
-        )
-        kind = "int" if choice == "1" else "float"
-
-    if kind == "int":
-        return _convert(input(value_prompt(msg, "INT")), int)
-    if kind == "float":
-        return _convert(input(value_prompt(msg, "FLOAT")), float)
-    raise ValueError(f"Unknown value kind: {kind}")
+    if kind in ("any", "num"):
+        names = ["str", "int", "float"] if kind == "any" else ["int", "float"]
+        code = ask_code(f"🤔 Which data type is the {what}?", [[(str(i), name) for i, name in enumerate(names, start=1)]])
+        kind = names[int(code) - 1]
+    convert = TYPES[kind]
+    while True:
+        text = ask(f"✍️ Enter the {what} ({kind}):")
+        try:
+            return convert(text)
+        except ValueError:
+            error(f"{text!r} isn't a valid {kind}. Please try again.")
 
 
 def ask_item():
-    """Ask for a stack or queue item; numeric input can be kept as an int or turned into a str."""
-    item = input("\n✍️ Please write the item.\n>>> ")
+    """Ask for a stack or queue item; a whole number can be kept as an int or stored as a str."""
+    text = ask("✍️ Enter the item:")
     try:
-        number = int(item)
+        number = int(text)
     except ValueError:
-        return item
-    choice = input("\n🤔 Do you want to add the item as an int or str? Type 1 for int or anything else for str.\n>>> ")
-    return number if choice == "1" else str(number)
+        return text
+    code = ask_code(f"🤔 Should {text} be stored as an int or a str?", [[("1", "int"), ("2", "str")]])
+    return number if code == "1" else text
 
 
 def ask_order():
     """Ask for a sorting order and return "asc" or "desc"."""
-    order = ask_choice(
-        """\n🤔 Please specify the order.
-•1) Ascending
-•2) Descending
->>> """,
-        ("1", "2"),
-        "\n🚫 Invalid code number.",
-    )
-    return "asc" if order == "1" else "desc"
+    code = ask_code("↕️ Which order do you want?", [[("1", "Ascending"), ("2", "Descending")]])
+    return "asc" if code == "1" else "desc"

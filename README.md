@@ -1,5 +1,5 @@
 # 🐍 PyDSA
-PyDSA is a Python app that runs in your terminal and helps you learn data structures. For each data structure, you get a short explanation, a ready-made example to play with, and a list of things you can do with it. You choose what to do by typing a number.
+PyDSA is a Python app that runs in your terminal and helps you learn data structures. For each data structure, you get a short explanation, a table of how fast its operations are, a ready-made example to play with, and a list of things you can do with it. Every change is drawn right away as a colorful table or diagram, so you can see what happened. You choose what to do by typing a number.
 
 ## ✨ What You Can Learn
 **Linear data structures** (items are kept in a line, one after another):
@@ -14,7 +14,7 @@ PyDSA is a Python app that runs in your terminal and helps you learn data struct
 - **Hash Table:** stores key-value pairs for fast lookups, using separate chaining or linear probing to handle keys that land in the same spot.
 
 ## 📋 Requirements
-You need Python 3.10 or newer. To check your version, run `python --version`.
+You need Python 3.10 or newer. To check your version, run `python --version`. The only other package PyDSA needs is [rich](https://github.com/Textualize/rich), which is installed for you automatically.
 
 ## 📦 Installation
 Download the project and install it:
@@ -31,7 +31,7 @@ pydsa
 ```
 If that command isn't found, run `python -m pydsa` instead.
 
-Then follow the menus on the screen. Type the number next to the option you want and press Enter.
+Then follow the menus on the screen. Type the number next to the option you want and press Enter. In every menu, `0` takes you back or exits.
 
 ## 🧪 Running the Tests
 If you want to change the code, install the project in editable mode together with the testing tools, then run the tests:
@@ -45,6 +45,6 @@ All the code is inside the `pydsa` folder:
 - `core/`: the data structures themselves.
 - `algorithms/`: the sorting and searching algorithms.
 - `ui/`: everything you see and type in the terminal, such as menus, prompts and output.
-- `content/`: the longer texts, like explanations and ASCII art titles.
+- `content/`: the longer texts, like explanations and ASCII art titles, plus the complexity tables.
 
 The tests are in the `tests` folder.

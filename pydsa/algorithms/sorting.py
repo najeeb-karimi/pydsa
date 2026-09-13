@@ -15,10 +15,15 @@ def bubble_sort(items, order="asc"):
     """Bubble Sort, yielding the list after every swap."""
     n = len(items)
     for i in range(n):
+        swapped = False
         for j in range(n - i - 1):
             if _out_of_order(items[j], items[j + 1], order):
                 items[j], items[j + 1] = items[j + 1], items[j]
+                swapped = True
                 yield list(items)
+        # A pass without swaps means the list is already sorted
+        if not swapped:
+            break
     return items
 
 
@@ -100,23 +105,25 @@ def heap_sort(items, order="asc"):
 
 def _heapify(items, n, i, order):
     """Sift node i down so its subtree is a max heap (or a min heap for descending order)."""
-    # Start by treating the root as the largest (or smallest)
-    largest_smallest = i
-    left = 2 * i + 1
-    right = 2 * i + 2
+    while True:
+        # Start by treating the root as the largest (or smallest)
+        largest_smallest = i
+        left = 2 * i + 1
+        right = 2 * i + 2
 
-    # Check whether the left child should replace the root
-    if left < n and _out_of_order(items[left], items[largest_smallest], order):
-        largest_smallest = left
+        # Check whether the left child should replace the root
+        if left < n and _out_of_order(items[left], items[largest_smallest], order):
+            largest_smallest = left
 
-    # Check whether the right child should replace the current pick
-    if right < n and _out_of_order(items[right], items[largest_smallest], order):
-        largest_smallest = right
+        # Check whether the right child should replace the current pick
+        if right < n and _out_of_order(items[right], items[largest_smallest], order):
+            largest_smallest = right
 
-    # Swap and keep sifting down if the root changed
-    if largest_smallest != i:
+        # Stop once the root is in place; otherwise swap and keep sifting down from the child
+        if largest_smallest == i:
+            return
         items[i], items[largest_smallest] = items[largest_smallest], items[i]
-        _heapify(items, n, largest_smallest, order)
+        i = largest_smallest
 
 
 def shell_sort(items, order="asc"):

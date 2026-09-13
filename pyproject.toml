@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "A console-based Python app for learning data structures."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["rich>=13"]
 
 [project.optional-dependencies]
 test = ["pytest>=8"]

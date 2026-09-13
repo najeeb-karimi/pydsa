@@ -1,79 +1,360 @@
-"""Console output for the intro and the data structures."""
+"""Rich renderers for the intro, definitions, explanations and every data structure.
+
+User data always goes into Text objects, so brackets in a value are never read as rich markup.
+"""
+
+from rich import box
+from rich.cells import cell_len
+from rich.measure import Measurement
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
+from rich.tree import Tree
 
 from pydsa import __version__
 from pydsa.content import texts
-
-
-def main_intro():
-    """Print the PyDSA banner, welcome message, version, changelog and data structure overview."""
-    print(texts.BANNER)
-    print(texts.WELCOME)
-    print(f"⏳ Version {__version__}")
-    print(texts.CHANGELOG)
-    print(texts.SOURCE_CODE)
-    print(texts.OVERVIEW)
-
-
-def intro(ascii_art, definition):
-    """Print a data structure's ASCII title followed by its definition."""
-    print(ascii_art)
-    print(definition)
-
-
-def values(items):
-    """Print a list of values (array, stack) on one line."""
-    print(f"\n👉 {items}")
-
+from pydsa.ui.console import console, info, plural, result
 
 STRIKE = chr(0x0336)  # Combining long stroke overlay
 
 
-def strike(value):
-    """Return value as a string with every character struck out."""
-    return "".join(char + STRIKE for char in str(value))
+def fmt(value):
+    """Show a value the way Python writes it, so the str '7' and the int 7 look different."""
+    return repr(value)
 
 
-def queue_slots(queue):
-    """Print every slot of a circular queue, striking out items that were already dequeued."""
-    slots = [
-        slot if slot is None or queue.is_live(index) else strike(slot)
-        for index, slot in enumerate(queue.slots)
-    ]
-    values(slots)
+def strike(text):
+    """Return text with every character struck out; unlike a color, this stays visible in piped output."""
+    return "".join(char + STRIKE for char in text)
 
 
-def sorting_steps(steps):
-    """Print each intermediate state yielded by a sorting generator."""
-    for step in steps:
-        print("🔹", step)
+def plain_output():
+    """Return True when colors aren't shown (piped output, NO_COLOR or a terminal without colors).
+
+    Highlights then need a text marker instead of a style.
+    """
+    return console.no_color or console.color_system is None
 
 
-def linked_list(items, separator, empty_message):
-    """Print linked list items joined by separator, or empty_message if there are none."""
+def show(renderable, **options):
+    """Print a blank line, then the renderable."""
+    console.print()
+    console.print(renderable, **options)
+
+
+def note(text):
+    """Print a dimmed explanatory line, usually right below a table."""
+    console.print(Text(text, style="muted"))
+
+
+def _panel(text, title, style="info"):
+    return Panel(Text(text), title=title, title_align="left", border_style=style, padding=(0, 1))
+
+
+def _table(title=None, **options):
+    return Table(title=title, title_justify="left", title_style="title", header_style="muted", **options)
+
+
+# ---------------------------------------------------------------------------
+# Intro, definitions and explanations
+# ---------------------------------------------------------------------------
+
+def ascii_art(art):
+    """Print an ASCII title exactly as drawn, without wrapping it to the terminal width."""
+    show(Text(art.strip("\n"), style="accent"), soft_wrap=True)
+
+
+def main_intro():
+    """Show the PyDSA banner, the welcome panel with version and changelog, and the overview."""
+    ascii_art(texts.BANNER)
+    about = Text(texts.WELCOME)
+    about.append(f"\n\n⏳ Version {__version__}\n", style="title")
+    about.append(texts.CHANGELOG)
+    about.append("\n\n")
+    about.append(texts.SOURCE_CODE)
+    show(Panel(about, title="💻 PyDSA", title_align="left", border_style="accent", padding=(0, 1)))
+    show(_panel(texts.OVERVIEW, "🏗️ Data Structures and Algorithms"))
+
+
+def intro(art, definition_text, *tables):
+    """Show a data structure's ASCII title, definition and complexity tables."""
+    ascii_art(art)
+    definition(definition_text, *tables)
+
+
+def definition(text, *tables):
+    """Show a definition in a panel, followed by its complexity tables."""
+    show(_panel(text, "🎯 Definition"))
+    for table in tables:
+        complexity(table)
+
+
+def explanation(title, text):
+    """Show an algorithm explanation or a longer note in a panel."""
+    show(_panel(text, f"ℹ️ {title}"))
+
+
+def complexity(table):
+    """Show a ComplexityTable and its note."""
+    grid = _table(f"⏱️ {table.title}", box=box.SIMPLE_HEAVY)
+    for position, column in enumerate(table.columns):
+        grid.add_column(column, style="code" if position else None)
+    for row in table.rows:
+        grid.add_row(*row)
+    show(grid)
+    if table.note:
+        note(table.note)
+
+
+def goodbye():
+    """Say goodbye when the user exits."""
+    show(Text("👋 Thanks for learning with PyDSA. Goodbye!", style="accent"))
+
+
+# ---------------------------------------------------------------------------
+# Arrays, stacks and queues
+# ---------------------------------------------------------------------------
+
+def _slots(cells, markers=None):
+    """Return a table with one column per slot, or one row per slot if that's too wide for the terminal.
+
+    cells holds a Text per slot and markers an optional label per slot (such as "front").
+    """
+    wide = Table(box=box.SQUARE, header_style="muted", show_footer=markers is not None, footer_style="accent")
+    for index in range(len(cells)):
+        wide.add_column(str(index), footer=markers[index] if markers else "", justify="center", no_wrap=True)
+    wide.add_row(*cells)
+    # Measure without the terminal's width limit to get the width the table really needs
+    natural_width = Measurement.get(console, console.options.update(width=10_000), wide).maximum
+    if natural_width <= console.width:
+        return wide
+
+    tall = Table(box=box.SQUARE, header_style="muted")
+    tall.add_column("Index", justify="right", style="muted")
+    tall.add_column("Value")
+    if markers is not None:
+        tall.add_column("", style="accent")
+    for index, cell in enumerate(cells):
+        tall.add_row(str(index), cell, *([markers[index]] if markers is not None else []))
+    return tall
+
+
+def array(items):
+    """Show an array as a row of indexed cells."""
+    show(_slots([Text(fmt(item)) for item in items]))
+
+
+def stack(stack):
+    """Show a stack from the top down, marking the top item and summarizing unused slots."""
+    size = len(stack)
+    empty = stack.capacity - size
+    table = Table(box=box.SQUARE, header_style="muted")
+    table.add_column("Index", justify="right", style="muted")
+    table.add_column("Item", justify="center", min_width=9)
+    table.add_column("", style="accent")
+    if empty > 3:
+        table.add_row(f"{size}–{stack.capacity - 1}", Text(f"{empty} empty slots", style="muted"), "")
+    else:
+        for index in range(stack.capacity - 1, size - 1, -1):
+            table.add_row(str(index), Text("empty", style="muted"), "")
+    for index in range(size - 1, -1, -1):
+        table.add_row(str(index), Text(fmt(stack.items[index])), "← top" if index == size - 1 else "")
+    show(table)
+
+
+def queue(queue):
+    """Show every slot of a circular queue with front and rear markers; dequeued leftovers are struck out."""
+    cells, markers = [], []
+    leftovers = False
+    for index, slot in enumerate(queue.slots):
+        if queue.is_live(index):
+            cells.append(Text(fmt(slot)))
+        elif slot is None:
+            cells.append(Text("empty", style="muted"))
+        else:
+            leftovers = True
+            cells.append(Text(strike(fmt(slot)), style="muted"))
+        ends = [] if queue.is_empty() else [name for name, at in (("front", queue.front), ("rear", queue.rear)) if at == index]
+        markers.append("/".join(ends))
+    show(_slots(cells, markers))
+    if leftovers:
+        note("Struck-out items were already dequeued; their slots are free to reuse.")
+
+
+def sorting_steps(items, steps):
+    """Show items before sorting and after every step from a sorting generator; return the number of steps.
+
+    Values that changed since the previous step are highlighted, and marked with * when colors aren't shown.
+    """
+    marker = "*" if plain_output() else ""
+    table = _table("🪜 Sorting steps", box=box.SIMPLE_HEAVY)
+    table.add_column("Step", justify="right", style="muted")
+    table.add_column("Array")
+    previous = list(items)
+    table.add_row("start", _values(previous))
+    count = 0
+    for count, step in enumerate(steps, start=1):
+        changed = {index for index, (old, new) in enumerate(zip(previous, step)) if old != new}
+        table.add_row(str(count), _values(step, changed, marker))
+        previous = step
+    show(table)
+    if marker:
+        note("* marks the values that moved in each step.")
+    return count
+
+
+def _values(values, changed=(), marker=""):
+    """Return a list of values as Text, highlighting the positions in changed."""
+    text = Text("[")
+    for index, value in enumerate(values):
+        if index:
+            text.append(", ")
+        if index in changed:
+            text.append(fmt(value) + marker, style="changed")
+        else:
+            text.append(fmt(value))
+    text.append("]")
+    return text
+
+
+# ---------------------------------------------------------------------------
+# Linked lists
+# ---------------------------------------------------------------------------
+
+def _node(label):
+    """Return the three lines of a boxed node."""
+    bar = "─" * (cell_len(label) + 2)
+    return (
+        Text(f"┌{bar}┐", style="code"),
+        Text.assemble(("│ ", "code"), label, (" │", "code")),
+        Text(f"└{bar}┘", style="code"),
+    )
+
+
+def _link(arrow):
+    """Return the three lines of an arrow between nodes, drawn on the middle line."""
+    padding = " " * cell_len(arrow)
+    return Text(padding), Text(arrow, style="accent"), Text(padding)
+
+
+def linked_list(items, doubly=False, backward=False):
+    """Show linked list items as boxed nodes joined by arrows, wrapping onto more rows when needed."""
     if not items:
-        print(empty_message)
+        info("The list is empty.")
         return
-    print("\n👉", separator.join(str(item) for item in items))
+
+    pieces = [_link("None ← ")] if doubly else []
+    for position, item in enumerate(items):
+        if position:
+            pieces.append(_link(" ⇄ " if doubly else " → "))
+        pieces.append(_node(fmt(item)))
+    pieces.append(_link(" → None"))
+
+    rows, width = [[]], 0
+    for piece in pieces:
+        piece_width = cell_len(piece[1].plain)
+        if rows[-1] and width + piece_width > console.width:
+            rows.append([])
+            width = 0
+        rows[-1].append(piece)
+        width += piece_width
+
+    console.print()
+    for row in rows:
+        for line in range(3):
+            console.print(Text.assemble(*(piece[line] for piece in row)), soft_wrap=True)
+    if backward:
+        note("Read from the tail back to the head by following the prev links.")
+    else:
+        note(f"{plural(len(items), 'node')}, from the head on the left to the tail on the right.")
 
 
-def tree_traversal(keys, name):
-    """Print the keys of a tree traversal and label it."""
-    print(f"\n👉🏻 {keys}\nℹ️ {name} Traversal")
+# ---------------------------------------------------------------------------
+# Trees
+# ---------------------------------------------------------------------------
+
+def binary_tree(tree):
+    """Show a binary tree with each child labeled L (left) or R (right)."""
+    if tree.root is None:
+        info("The tree is empty.")
+        return
+    view = Tree(Text.assemble(("root ", "muted"), fmt(tree.root.key)), guide_style="muted")
+    _add_children(view, tree.root)
+    show(view)
 
 
-def vertex_order(order, name):
-    """Print the vertices of a graph traversal and label it."""
-    print("".join(f"{vertex} " for vertex in order), end="")
-    print(f"\nℹ️ {name} Traversal")
+def _add_children(branch, node):
+    for side, child in (("L", node.left), ("R", node.right)):
+        if child is not None:
+            _add_children(branch.add(Text.assemble((f"{side} ", "muted"), fmt(child.key))), child)
 
 
-def indexed_rows(rows):
-    """Print one numbered line per row: adjacency matrix rows, hash table buckets or slots."""
-    for index, row in enumerate(rows):
-        print("🔹", index, row)
+def traversal(name, keys):
+    """Show the keys visited by a tree traversal."""
+    result(f"{name} traversal: {', '.join(fmt(key) for key in keys) or 'the tree is empty'}")
+
+
+# ---------------------------------------------------------------------------
+# Graphs
+# ---------------------------------------------------------------------------
+
+def adjacency_matrix(matrix):
+    """Show an adjacency matrix as a grid with the vertex numbers along both edges."""
+    if not matrix:
+        info("The graph has no vertices.")
+        return
+    table = _table("Adjacency Matrix", box=box.SQUARE)
+    table.add_column(Text("from \\ to"), justify="right", style="muted")
+    for vertex in range(len(matrix)):
+        table.add_column(str(vertex), justify="right")
+    for vertex, row in enumerate(matrix):
+        table.add_row(str(vertex), *(Text(str(weight), style="muted" if weight == 0 else "code") for weight in row))
+    show(table)
+    note("Rows are the source vertex and columns the destination; 0 means no edge.")
 
 
 def adjacency_list(adj_list):
-    """Print each vertex followed by its (neighbor, weight) edges."""
+    """Show each vertex with its outgoing edges."""
+    if not adj_list:
+        info("The graph has no vertices yet.")
+        return
+    table = _table("Adjacency List", box=box.SQUARE)
+    table.add_column("Vertex", justify="right", style="code")
+    table.add_column("Edges")
     for vertex, edges in adj_list.items():
-        print("🔹", vertex, edges)
+        cell = Text("   ".join(f"→ {neighbor} ({weight})" for neighbor, weight in edges)) if edges else Text("no edges", style="muted")
+        table.add_row(str(vertex), cell)
+    show(table)
+    note("Each edge is shown as → neighbor (weight).")
+
+
+# ---------------------------------------------------------------------------
+# Hash tables
+# ---------------------------------------------------------------------------
+
+def chaining_table(table):
+    """Show every bucket of a separate chaining hash table with its chain of key-value pairs."""
+    grid = _table("Separate Chaining Hash Table", box=box.SQUARE)
+    grid.add_column("Bucket", justify="right", style="code")
+    grid.add_column("Chain")
+    for index, bucket in enumerate(table.table):
+        chain = " → ".join(f"{fmt(key)}: {fmt(value)}" for key, value in bucket)
+        grid.add_row(str(index), Text(chain) if bucket else Text("empty", style="muted"))
+    show(grid)
+
+
+def probing_table(table):
+    """Show every slot of a linear probing hash table, including the slot each key hashes to."""
+    grid = _table("Linear Probing Hash Table", box=box.SQUARE)
+    grid.add_column("Slot", justify="right", style="code")
+    grid.add_column("Key")
+    grid.add_column("Value")
+    grid.add_column("Home slot", justify="right", style="muted")
+    for index, slot in enumerate(table.table):
+        if slot is None:
+            grid.add_row(str(index), Text("empty", style="muted"), "", "")
+        else:
+            key, value = slot
+            grid.add_row(str(index), Text(fmt(key)), Text(fmt(value)), str(table.hash_function(key)))
+    show(grid)
+    note("The home slot is where a key's hash points; a key that collided sits further along.")

@@ -1,50 +1,134 @@
 """Graph screen: adjacency matrix and adjacency list representations."""
 
-from pydsa.content import texts
+from pydsa.content import complexity, texts
 from pydsa.core.errors import DuplicateError, NotFoundError, OutOfBoundsError
 from pydsa.core.graph import ListDirectedWeightedGraph, MatrixDirectedWeightedGraph
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, value_prompt
-from pydsa.ui.menu import Menu, operation_menu
+from pydsa.ui.console import ask_int, error, info, not_found, plural, result, success
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+
+# The matrix graph raises OutOfBoundsError for a missing vertex, the list graph NotFoundError
+MISSING_VERTEX = (OutOfBoundsError, NotFoundError)
+
+
+def show_definition():
+    render.definition(texts.GRAPH_DEFINITION, complexity.GRAPH)
 
 
 def run():
     """Show the graph intro, let the user pick a representation and run its menu."""
-    render.intro(texts.GRAPH_ASCII, texts.GRAPH_DEFINITION)
-    return Menu(
-        "\n🧪 Which type of graph representation do you want?",
-        [[("Adjacency Matrix", matrix_menu), ("Adjacency List", list_menu)]],
-        invalid="\n🚫 Invalid representation type code!",
-    ).select()
+    render.intro(texts.GRAPH_ASCII, texts.GRAPH_DEFINITION, complexity.GRAPH)
+    return Menu("🧪 Which graph representation do you want?", [
+        [("Adjacency Matrix", matrix_menu), ("Adjacency List", list_menu)],
+        [back_option()],
+    ]).open()
 
 
 # ---------------------------------------------------------------------------
-# Input helpers for vertices and weights
+# Shared by both representations
 # ---------------------------------------------------------------------------
 
-def ask_vertex(msg="first vertex"):
-    """Ask for a vertex until an int is entered; msg customizes the prompt."""
-    return ask_int(value_prompt(msg, "INT"), "\n🚫 Vertices are identified by integers.")
+def ask_vertex(question):
+    return ask_int(question, "vertex")
 
 
 def ask_edge():
-    """Ask for the two vertices of an edge."""
-    return ask_vertex(), ask_vertex("second vertex")
+    """Ask for the source and destination vertices of an edge."""
+    return ask_vertex("🔢 Which vertex does the edge start from?"), ask_vertex("🔢 Which vertex does the edge go to?")
 
 
 def ask_weight():
-    """Ask for an edge weight until an int is entered."""
-    return ask_int(value_prompt("weight", "INT"), "\n🚫 Weight can only be an INT.")
+    """Ask for an edge weight until a whole number other than 0 is typed."""
+    while True:
+        weight = ask_int("⚖️ What's the weight of the edge?", "weight")
+        if weight != 0:
+            return weight
+        error("The weight can't be 0, because 0 means \"no edge\" in an adjacency matrix. Use 1 for an unweighted edge.")
 
 
-def traversals(run_traversal):
-    """Let the user pick BFS or DFS; run_traversal(name) asks for the start vertex and prints the result."""
-    Menu(
-        "\n🗂️ Which traversal do you want?",
-        [[("BFS (Breadth-First Search)", lambda: run_traversal("BFS")),
-          ("DFS (Depth-First Search)", lambda: run_traversal("DFS"))]],
-        bullet="●",
-    ).select()
+def missing_vertex(graph, *vertices):
+    """Report the first of vertices that isn't in the graph, with a hint about the valid ones."""
+    vertex = next(v for v in vertices if not graph.has_vertex(v))
+    if isinstance(graph, MatrixDirectedWeightedGraph):
+        hint = f"Valid vertices are 0 to {graph.num_vertices - 1}." if graph.num_vertices else ""
+    else:
+        hint = f"Existing vertices: {', '.join(str(v) for v in graph.adj_list)}." if graph.adj_list else ""
+    error(f"Vertex {vertex} doesn't exist. {hint or 'The graph has no vertices yet.'}")
+
+
+def graph_menu(name, graph, show, add_vertex, remove_vertex):
+    """Run the operation menu shared by both representations."""
+    return operation_menu(name, [
+        ("Add Vertex", add_vertex),
+        ("Remove Vertex", remove_vertex),
+        ("Add Edge", lambda: add_edge(graph, show)),
+        ("Remove Edge", lambda: remove_edge(graph, show)),
+        ("Search Edge", lambda: search_edge(graph)),
+        ("Traversals", lambda: traversals(graph)),
+        ("Display", show),
+    ], definition=show_definition, new_label="New Graph").run()
+
+
+def add_edge(graph, show):
+    u, v = ask_edge()
+    weight = ask_weight()
+    try:
+        replaced = graph.search_edge(u, v) is not None
+        graph.add_edge(u, v, weight)
+    except MISSING_VERTEX:
+        missing_vertex(graph, u, v)
+        return
+    if replaced:
+        success(f"Updated the edge from {u} to {v} to weight {weight}.")
+    else:
+        success(f"Added an edge from {u} to {v} with weight {weight}.")
+    show()
+
+
+def remove_edge(graph, show):
+    u, v = ask_edge()
+    try:
+        removed = graph.remove_edge(u, v)
+    except MISSING_VERTEX:
+        missing_vertex(graph, u, v)
+        return
+    if not removed:
+        not_found(f"There's no edge from {u} to {v}, so nothing was removed.")
+        return
+    success(f"Removed the edge from {u} to {v}.")
+    show()
+
+
+def search_edge(graph):
+    u, v = ask_edge()
+    try:
+        weight = graph.search_edge(u, v)
+    except MISSING_VERTEX:
+        missing_vertex(graph, u, v)
+        return
+    if weight is None:
+        not_found(f"There's no edge from {u} to {v}.")
+    else:
+        success(f"Found an edge from {u} to {v} with weight {weight}.")
+
+
+def traversals(graph):
+    """Let the user pick BFS or DFS and show the order the vertices are visited in."""
+    Menu("🗂️ Which traversal do you want?", [
+        [("BFS (Breadth-First Search)", lambda: traverse(graph, "BFS")),
+         ("DFS (Depth-First Search)", lambda: traverse(graph, "DFS"))],
+        [back_option()],
+    ]).select()
+
+
+def traverse(graph, name):
+    start = ask_vertex(f"🔢 Which vertex should the {name} start from?")
+    try:
+        order = graph.bfs(start) if name == "BFS" else graph.dfs(start)
+    except MISSING_VERTEX:
+        missing_vertex(graph, start)
+        return
+    result(f"{name} from vertex {start}: {' → '.join(str(vertex) for vertex in order)}")
 
 
 # ---------------------------------------------------------------------------
@@ -53,104 +137,45 @@ def traversals(run_traversal):
 
 def matrix_menu():
     """Create an adjacency matrix graph and run its operation menu."""
-    print(texts.MATRIX_GRAPH_INFO)
-    graph = Menu(
-        "\n🛠️ Do you want to create an Adjacency Matrix graph yourself or use the preloaded example?",
-        [[("Create an Adjacency Matrix Graph", create_matrix), ("Use the example", example_matrix)]],
-        bullet="●",
-    ).select()
+    info(texts.MATRIX_GRAPH_INFO)
+    graph = Menu("🛠️ Do you want to create an adjacency matrix graph yourself or use the preloaded example?", [
+        [("Create a graph", create_matrix), ("Use the example", example_matrix)],
+        [back_option()],
+    ]).open()
+    if graph is Nav.BACK:
+        return Nav.BACK
 
     def show():
-        render.indexed_rows(graph.adj_matrix)
-
-    def invalid_range():
-        return f"\nValid vertices are in the range 0 to {graph.num_vertices - 1}."
+        render.adjacency_matrix(graph.adj_matrix)
 
     def add_vertex():
         vertex = graph.add_vertex()
-        print(f"\n✅ Vertex addition successful. Vertex {vertex} added.")
+        success(f"Added vertex {vertex}.")
         show()
 
     def remove_vertex():
-        vertex = ask_vertex("vertex that you want to remove")
+        vertex = ask_vertex("🔢 Which vertex do you want to remove?")
+        last = graph.num_vertices - 1
         try:
             graph.remove_vertex(vertex)
-            print(f"\n✅ Vertex removal successful. Vertex {vertex} removed.")
         except OutOfBoundsError:
-            print(f"\n🚫 Vertex removal unsuccessful. Invalid vertex: {vertex}.{invalid_range()}")
-        show()
-
-    def add_edge():
-        u, v = ask_edge()
-        weight = ask_weight()
-        try:
-            graph.add_edge(u, v, weight)
-            print(f"\n✅ Edge addition successful. Edge added from vertex {u} to {v} with weight {weight}.")
-        except OutOfBoundsError:
-            print(f"\n🚫 Edge addition unsuccessful. Invalid vertices: {u}, {v}.{invalid_range()}")
-        show()
-
-    def remove_edge():
-        u, v = ask_edge()
-        try:
-            if graph.remove_edge(u, v):
-                print(f"\n✅ Edge removal successful. Edge removed from vertex {u} to {v}.")
-            else:
-                print(f"\n❌ Edge removal unsuccessful. No edge found from vertex {u} to {v}.")
-        except OutOfBoundsError:
-            print(f"\n🚫 Edge removal unsuccessful. Invalid vertices: {u}, {v}.{invalid_range()}")
-        show()
-
-    def search_edge():
-        u, v = ask_edge()
-        try:
-            weight = graph.search_edge(u, v)
-        except OutOfBoundsError:
-            print(f"\n🚫 Edge searching unsuccessful. Invalid vertices: {u}, {v}.{invalid_range()}")
+            missing_vertex(graph, vertex)
             return
-        if weight is not None:
-            print(f"\n✅ Edge searching successful. Edge with weight {weight} found from vertex {u} to {v}.")
-        else:
-            print(f"\n❌ Edge searching successful. No edge found from vertex {u} to {v}.")
-
-    def run_traversal(name):
-        start = ask_vertex(f"starting vertex for the {name}")
-        print("\n👉🏻 ", end="")
-        try:
-            order = graph.bfs(start) if name == "BFS" else graph.dfs(start)
-        except OutOfBoundsError:
-            print(f"\n🚫 {name} traversal unsuccessful. Invalid vertex: {start}.{invalid_range()}")
-            return
-        render.vertex_order(order, name)
-
-    def display():
-        print("\n👇🏻 Here's your Adjacency Matrix:")
+        message = f"Removed vertex {vertex} and all of its edges."
+        if vertex < last:
+            message += " The vertices after it moved down by one number."
+        success(message)
         show()
 
-    return operation_menu("Adjacency Matrix Graph", texts.GRAPH_DEFINITION, [
-        ("Adding a Vertex", add_vertex),
-        ("Removing a Vertex", remove_vertex),
-        ("Adding an Edge", add_edge),
-        ("Removing an Edge", remove_edge),
-        ("Searching an Edge", search_edge),
-        ("Traversals", lambda: traversals(run_traversal)),
-        ("Displaying", display),
-    ], new_label="New Graph", new_intro=False).run()
-
-
-def matrix_created(graph, heading):
-    """Print a new matrix graph under heading, with a reminder of how vertices are numbered."""
-    print(heading)
-    render.indexed_rows(graph.adj_matrix)
-    print(f"\n⚠️ Keep in mind that the vertices are identified with integers in the range zero to number of vertices minus 1, which means 0 to {graph.num_vertices - 1} as of now.")
+    return graph_menu("adjacency matrix graph", graph, show, add_vertex, remove_vertex)
 
 
 def create_matrix():
     """Ask for the number of vertices and return a graph with no edges."""
-    num_vertices = ask_int(value_prompt("total number of vertices you want in the Adjacency Matrix", "INT"),
-                           "\n🚫 The number of vertices must be an INT of at least 1.", min_value=1)
-    graph = MatrixDirectedWeightedGraph(num_vertices)
-    matrix_created(graph, f"\n👇🏻 Here's your Adjacency Matrix with {num_vertices} vertices:")
+    count = ask_int("🔢 How many vertices should the graph have?", "number of vertices", min_value=1)
+    graph = MatrixDirectedWeightedGraph(count)
+    success(f"Created a graph with {plural(count, 'vertex', 'vertices')} and no edges. The vertices are numbered 0 to {count - 1}.")
+    render.adjacency_matrix(graph.adj_matrix)
     return graph
 
 
@@ -159,7 +184,8 @@ def example_matrix():
     graph = MatrixDirectedWeightedGraph(4)
     # Vertices are identified by their index, so filling the matrix is the same as adding the edges one by one
     graph.adj_matrix = [[10, 0, 30, 19], [17, 22, 37, 0], [0, 672, 8, 45], [0, 0, 0, 0]]
-    matrix_created(graph, "\n👇🏻 Here's an example Adjacency Matrix with 4 vertices:")
+    success("Loaded the example graph. Its vertices are numbered 0 to 3.")
+    render.adjacency_matrix(graph.adj_matrix)
     return graph
 
 
@@ -169,106 +195,50 @@ def example_matrix():
 
 def list_menu():
     """Create an adjacency list graph and run its operation menu."""
-    print(texts.LIST_GRAPH_INFO)
-    graph = Menu(
-        "\n🛠️ Do you want to create an Adjacency List graph yourself or use the preloaded example?",
-        [[("Create an Adjacency List Graph", create_list), ("Use the example", example_list)]],
-        bullet="●",
-    ).select()
+    info(texts.LIST_GRAPH_INFO)
+    graph = Menu("🛠️ Do you want to create an adjacency list graph yourself or use the preloaded example?", [
+        [("Create a graph", create_list), ("Use the example", example_list)],
+        [back_option()],
+    ]).open()
+    if graph is Nav.BACK:
+        return Nav.BACK
 
     def show():
         render.adjacency_list(graph.adj_list)
 
     def add_vertex():
-        vertex = ask_vertex("vertex that you want to add")
+        vertex = ask_vertex("🔢 Which vertex do you want to add?")
         try:
             graph.add_vertex(vertex)
-            print(f"\n✅ Vertex addition successful. Vertex {vertex} added.")
         except DuplicateError:
-            print(f"\n🚫 Vertex addition unsuccessful. Vertex {vertex} already exists.")
+            error(f"Vertex {vertex} already exists.")
+            return
+        success(f"Added vertex {vertex}.")
         show()
 
     def remove_vertex():
-        vertex = ask_vertex("vertex that you want to remove")
+        vertex = ask_vertex("🔢 Which vertex do you want to remove?")
         try:
             graph.remove_vertex(vertex)
-            print(f"\n✅ Vertex removal successful. Vertex {vertex} removed.")
         except NotFoundError:
-            print(f"\n🚫 Vertex removal unsuccessful. Vertex {vertex} does not exist.")
-        show()
-
-    def add_edge():
-        u, v = ask_edge()
-        weight = ask_weight()
-        try:
-            graph.add_edge(u, v, weight)
-            print(f"\n✅ Edge addition successful. Edge added from {u} to {v} with weight {weight}.")
-        except NotFoundError:
-            print(f"\n🚫 Edge addition unsuccessful. One or both vertices {u}, {v} do not exist.")
-        show()
-
-    def remove_edge():
-        u, v = ask_edge()
-        try:
-            if graph.remove_edge(u, v):
-                print(f"\n✅ Edge removal successful. Edge removed from {u} to {v}.")
-            else:
-                print(f"\n❌ Edge removal unsuccessful. No edge found from {u} to {v}.")
-        except NotFoundError:
-            print(f"\n🚫 Edge removal unsuccessful. One or both vertices {u}, {v} do not exist.")
-        show()
-
-    def search_edge():
-        u, v = ask_edge()
-        try:
-            weight = graph.search_edge(u, v)
-        except NotFoundError:
-            print(f"\n🚫 Edge searching unsuccessful. Vertex {u} does not exist.")
+            missing_vertex(graph, vertex)
             return
-        if weight is not None:
-            print(f"\n✅ Edge searching successful. Edge found from {u} to {v} with weight {weight}.")
-        else:
-            print(f"\n❌ Edge searching successful. No edge found from {u} to {v}.")
-
-    def run_traversal(name):
-        start = ask_vertex(f"starting vertex for the {name}")
-        print("\n👉🏻 ", end="")
-        try:
-            order = graph.bfs(start) if name == "BFS" else graph.dfs(start)
-        except NotFoundError:
-            print(f"\n🚫 {name} traversal unsuccessful. Vertex {start} does not exist.")
-            return
-        render.vertex_order(order, name)
-
-    def display():
-        print("\n👇🏻 Here's your Adjacency List:")
+        success(f"Removed vertex {vertex} and all of its edges.")
         show()
 
-    return operation_menu("Adjacency List Graph", texts.GRAPH_DEFINITION, [
-        ("Adding a Vertex", add_vertex),
-        ("Removing a Vertex", remove_vertex),
-        ("Adding an Edge", add_edge),
-        ("Removing an Edge", remove_edge),
-        ("Searching an Edge", search_edge),
-        ("Traversals", lambda: traversals(run_traversal)),
-        ("Displaying", display),
-    ], new_label="New Graph", new_intro=False).run()
+    return graph_menu("adjacency list graph", graph, show, add_vertex, remove_vertex)
 
 
 def create_list():
     """Return an empty adjacency list graph."""
-    graph = ListDirectedWeightedGraph()
-    print("\n✅ Adjacency List successfully initialized.")
-    # The graph starts empty, so vertices have to be added before anything else
-    print("\n⚠️ Make sure to add vertices through operation #1 before going for other operations.")
-    return graph
+    success("Created an empty graph. Start by adding some vertices with Add Vertex.")
+    return ListDirectedWeightedGraph()
 
 
 def example_list():
     """Return the preloaded example adjacency list graph."""
     graph = ListDirectedWeightedGraph()
-    print("\n✅ Adjacency List successfully initialized.")
     graph.adj_list = {0: [(0, 10), (2, 30), (3, 19)], 1: [(0, 17), (1, 22), (2, 37)], 2: [(1, 672), (2, 8), (3, 45)], 3: []}
-    print("\n👇🏻 Here's an example Adjacency List Graph:")
+    success("Loaded the example graph.")
     render.adjacency_list(graph.adj_list)
     return graph

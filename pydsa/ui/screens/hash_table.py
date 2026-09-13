@@ -1,178 +1,120 @@
 """Hash table screen: separate chaining and linear probing."""
 
-from pydsa.content import texts
+from typing import Callable, NamedTuple
+
+from pydsa.content import complexity, texts
 from pydsa.core.errors import CapacityError, NotFoundError
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, ask_value, value_prompt
-from pydsa.ui.menu import Menu, operation_menu
+from pydsa.ui.console import ask_int, ask_value, error, info, not_found, plural, success
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.render import fmt
+
+
+class TableKind(NamedTuple):
+    """The class, wording and renderer for one kind of hash table."""
+
+    table_class: type
+    name: str
+    unit: str  # What a position in the table is called: bucket or slot
+    show: Callable
+    example_pairs: int  # How many of EXAMPLE_PAIRS the example holds
+
+
+CHAINING = TableKind(ChainingHashTable, "chaining hash table", "bucket", render.chaining_table, 4)
+PROBING = TableKind(LinearProbingHashTable, "linear probing hash table", "slot", render.probing_table, 3)
 
 EXAMPLE_PAIRS = [("Messi", "10"), ("Apple", 1976), (2024, -273.15), ("UFO", "Roswell, NM")]
 
 
+def show_definition():
+    render.definition(texts.HASH_TABLE_DEFINITION, complexity.HASH_TABLE)
+
+
 def run():
     """Show the hash table intro, let the user pick a collision resolution technique and run its menu."""
-    render.intro(texts.HASH_TABLE_ASCII, texts.HASH_TABLE_DEFINITION)
-    return Menu(
-        "\n🧪 Which type of collision resolution do you want in the hash table?",
-        [[("Separate Chaining (Open Hashing)", chaining_menu),
-          ("Linear Probing (from the Open Addressing [Closed Hashing] category)", probing_menu)]],
-        invalid="\n🚫 Invalid collision resolution type code!",
-    ).select()
+    render.intro(texts.HASH_TABLE_ASCII, texts.HASH_TABLE_DEFINITION, complexity.HASH_TABLE)
+    return Menu("🧪 Which collision resolution technique do you want?", [
+        [("Separate Chaining (Open Hashing)", lambda: table_menu(CHAINING)),
+         ("Linear Probing (Open Addressing)", lambda: table_menu(PROBING))],
+        [back_option()],
+    ]).open()
 
 
-# ---------------------------------------------------------------------------
-# Shared pieces
-# ---------------------------------------------------------------------------
+def table_menu(kind):
+    """Create a hash table of the given kind and run its operation menu."""
+    table = Menu(f"🛠️ Do you want to create a {kind.name} yourself or use the preloaded example?", [
+        [("Create a hash table", lambda: create(kind)), ("Use the example", lambda: example(kind))],
+        [back_option()],
+    ]).open()
+    if table is Nav.BACK:
+        return Nav.BACK
 
-def ask_table_size(unit):
-    """Ask for the number of buckets or slots (unit) until an int of at least 1 is entered."""
-    return ask_int(value_prompt(f"the total number of {unit} you want; in other words, the size of the hash table", "INT"),
-                   "\n🚫 Invalid data type. Hash table size must be an INT of at least 1.", min_value=1)
-
-
-def create(build, example_count, example_name):
-    """Build a hash table from scratch or load the preloaded example.
-
-    build(size) creates and announces an empty table; the example inserts the first example_count pairs.
-    """
-
-    def custom():
-        table = build(ask_table_size("buckets" if example_name == "Chaining" else "slots"))
-        render.indexed_rows(table.table)
-        return table
-
-    def example():
-        table = build(5)
-        # The table can't be filled in directly: Python's hash() for strings changes between runs,
-        # so the keys land in different buckets each time and hard-coded positions would be wrong
-        for key, value in EXAMPLE_PAIRS[:example_count]:
-            table.insert(key, value)
-        print(f"👇🏻 Here's an example {example_name} Hash Table:")
-        render.indexed_rows(table.table)
-        return table
-
-    return Menu(
-        "\n🛠️ Do you want to create a hash table yourself or use the preloaded example?",
-        [[("Create a hash table", custom), ("Use the example", example)]],
-        bullet="●",
-    ).select()
+    return operation_menu(kind.name, [
+        ("Insert", lambda: insert(kind, table)),
+        ("Delete", lambda: delete(kind, table)),
+        ("Search", lambda: search(kind, table)),
+        ("Display", lambda: kind.show(table)),
+    ], definition=show_definition, new_label="New Hash Table").run()
 
 
-def ask_key(msg="key"):
-    """Ask for a key of any type until a valid one is entered; msg customizes the prompt."""
-    print("\n🔑 Specify the Key:")
-    while True:
-        key = ask_value(msg=msg)
-        if key is not None:
-            return key
-        print("\n🚫 Invalid data type for the key.")
+def create(kind):
+    """Ask for the number of buckets or slots and return an empty hash table."""
+    size = ask_int(f"🔢 How many {kind.unit}s should the table have?", f"number of {kind.unit}s", min_value=1)
+    table = kind.table_class(size)
+    success(f"Created an empty hash table with {plural(size, kind.unit)}.")
+    if kind is CHAINING:
+        info(texts.CHAINING_INFO)
+    kind.show(table)
+    return table
 
 
-def ask_pair_value():
-    """Ask for a value of any type until a valid one is entered."""
-    print("\n🚪 Specify the Value:")
-    while True:
-        value = ask_value(msg="value")
-        if value is not None:
-            return value
-        print("\n🚫 Invalid data type for the value.")
+def example(kind):
+    """Return the preloaded example hash table."""
+    table = kind.table_class(5)
+    # The table can't be filled in directly: Python's hash() for strings changes between runs,
+    # so the keys land in different buckets each time and hard-coded positions would be wrong
+    for key, value in EXAMPLE_PAIRS[:kind.example_pairs]:
+        table.insert(key, value)
+    success("Loaded the example hash table.")
+    kind.show(table)
+    return table
 
 
-def insert(table):
-    """Insert or update a key-value pair typed by the user."""
-    key = ask_key()
-    value = ask_pair_value()
+def insert(kind, table):
+    key = ask_value(what="key")
+    value = ask_value(what="value")
     try:
         index, updated = table.insert(key, value)
     except CapacityError:
-        print("\n🚫 Insertion unsuccessful. Hash table is full; cannot insert new key.")
+        error(f"The table is full, so key {fmt(key)} wasn't inserted.")
         return
     action = "Updated" if updated else "Inserted"
-    print(f"\n✅ Insertion successful. {action} key ({key}) with value ({value}) at index {index}.")
+    success(f"{action} key {fmt(key)} with value {fmt(value)} in {kind.unit} {index}.")
+    kind.show(table)
 
 
-def search(table):
-    """Look up a key typed by the user."""
-    key = ask_key("key that you want to search for")
+def delete(kind, table):
+    key = ask_value(what="key")
+    try:
+        if kind is PROBING:
+            index, rehashed = table.delete(key)
+        else:
+            index, rehashed = table.delete(key), 0
+    except NotFoundError:
+        not_found(f"Key {fmt(key)} isn't in the table, so nothing was deleted.")
+        return
+    success(f"Deleted key {fmt(key)} from {kind.unit} {index}.")
+    if rehashed:
+        info(f"Rehashed {plural(rehashed, 'key')} from the same cluster, so they can still be found.")
+    kind.show(table)
+
+
+def search(kind, table):
+    key = ask_value(what="key")
     try:
         index, value = table.lookup(key)
     except NotFoundError:
-        print(f"\n❌ Searching successful. Key ({key}) not found.")
+        not_found(f"Key {fmt(key)} isn't in the table.")
         return
-    print(f"\n✅ Searching successful. Key ({key}) found at index {index} with value ({value}).")
-
-
-def operations(table, delete):
-    """Return the operations both hash tables offer; delete is the table-specific deletion action."""
-
-    def display():
-        print("\n👇🏻 Here's a display of your Hash Table:")
-        render.indexed_rows(table.table)
-
-    return [
-        ("Insertion", lambda: insert(table)),
-        ("Deletion", delete),
-        ("Searching", lambda: search(table)),
-        ("Displaying", display),
-    ]
-
-
-# ---------------------------------------------------------------------------
-# Separate Chaining
-# ---------------------------------------------------------------------------
-
-def build_chaining(size):
-    """Return an empty chaining hash table and announce it."""
-    table = ChainingHashTable(size)
-    print(f"\n✅ Initialized hash table with {size} buckets.")
-    print(texts.CHAINING_INFO)
-    return table
-
-
-def chaining_menu():
-    """Create a separate chaining hash table and run its operation menu."""
-    table = create(build_chaining, 4, "Chaining")
-
-    def delete():
-        key = ask_key("key that you want to delete")
-        try:
-            index = table.delete(key)
-        except NotFoundError:
-            print(f"\n🚫 Deletion unsuccessful. Key ({key}) not found, nothing to delete.")
-            return
-        print(f"\n✅ Deletion successful. Deleted key ({key}) from index {index}.")
-
-    return operation_menu("Chaining Hash Table", texts.HASH_TABLE_DEFINITION, operations(table, delete),
-                          new_label="New Hash Table", new_intro=False).run()
-
-
-# ---------------------------------------------------------------------------
-# Linear Probing
-# ---------------------------------------------------------------------------
-
-def build_probing(size):
-    """Return an empty linear probing hash table and announce it."""
-    table = LinearProbingHashTable(size)
-    print(f"\n✅ Initialized hash table with {size} slots.")
-    return table
-
-
-def probing_menu():
-    """Create a linear probing hash table and run its operation menu."""
-    table = create(build_probing, 3, "Linear Probing")
-
-    def delete():
-        key = ask_key("key that you want to delete")
-        try:
-            index, rehashed = table.delete(key)
-        except NotFoundError:
-            print(f"\n🚫 Deletion unsuccessful. Key ({key}) not found, nothing to delete.")
-            return
-        message = f"\n✅ Deletion successful. Deleted key ({key}) from index {index}."
-        if rehashed:
-            message += f"\n♻️ Rehashed {rehashed} key(s) from the same cluster."
-        print(message)
-
-    return operation_menu("Linear Probing Hash Table", texts.HASH_TABLE_DEFINITION, operations(table, delete),
-                          new_label="New Hash Table", new_intro=False).run()
+    success(f"Found key {fmt(key)} in {kind.unit} {index} with value {fmt(value)}.")

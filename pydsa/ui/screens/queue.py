@@ -1,75 +1,81 @@
 """Queue screen."""
 
-from pydsa.content import texts
+from pydsa.content import complexity, texts
 from pydsa.core.errors import CapacityError, EmptyError
 from pydsa.core.queue import Queue
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, ask_item
-from pydsa.ui.menu import Menu, operation_menu
+from pydsa.ui.console import ask_int, ask_item, error, plural, result, success
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.render import fmt
+from pydsa.ui.screens.stack import yes_no
 
 
 def run():
     """Create a queue and run the queue operation menu."""
-    render.intro(texts.QUEUE_ASCII, texts.QUEUE_DEFINITION)
-    queue = Menu(
-        "\n🛠️ Do you want to create a queue yourself or use the preloaded example?",
-        [[("Create a queue", create), ("Use the example", example)]],
-        bullet="●",
-    ).select()
+    render.intro(texts.QUEUE_ASCII, texts.QUEUE_DEFINITION, complexity.QUEUE)
+    queue = Menu("🛠️ Do you want to create a queue yourself or use the preloaded example?", [
+        [("Create a queue", create), ("Use the example", example)],
+        [back_option()],
+    ]).open()
+    if queue is Nav.BACK:
+        return Nav.BACK
 
-    return operation_menu("QUEUE", texts.QUEUE_DEFINITION, [
+    return operation_menu("queue", [
         ("Enqueue", lambda: enqueue(queue)),
         ("Dequeue", lambda: dequeue(queue)),
-        ("Front", lambda: show_end(queue.get_front, "Front")),
-        ("Rear", lambda: show_end(queue.get_rear, "Rear")),
-        ("isEmpty", lambda: print(f"\n👉 isEmpty: {queue.is_empty()}.")),
-        ("isFull", lambda: print(f"\n👉 isFull: {queue.is_full()}.")),
-        ("Size Check", lambda: print(f"\n👉 Queue size: {len(queue)}/{queue.capacity}")),
-        ("Displaying", lambda: render.queue_slots(queue)),
-    ], new_label="New Queue", exit_label="Exit the Program").run()
+        ("Peek Front", lambda: peek(queue.get_front, "front")),
+        ("Peek Rear", lambda: peek(queue.get_rear, "rear")),
+        ("Check if Empty", lambda: result(f"Is the queue empty? {yes_no(queue.is_empty())}.")),
+        ("Check if Full", lambda: result(f"Is the queue full? {yes_no(queue.is_full())}.")),
+        ("Size", lambda: result(f"The queue holds {len(queue)} of {plural(queue.capacity, 'item')}.")),
+        ("Display", lambda: render.queue(queue)),
+    ], definition=lambda: render.definition(texts.QUEUE_DEFINITION, complexity.QUEUE), new_label="New Queue").run()
 
 
 def create():
-    """Ask for the queue size and return an empty queue."""
-    size = ask_int("\n↔️ Please specify the size of the queue.\n>>> ",
-                   "\n❌ Invalid, the size can only be an integer!",
-                   min_value=1, too_small="\n❌ Invalid, the size must be at least 1!")
-    queue = Queue(size)
-    print("\n✅ Here's your queue:", end="")
-    render.queue_slots(queue)
+    """Ask for the capacity and return an empty queue."""
+    capacity = ask_int("↔️ How many items should the queue be able to hold?", "size", min_value=1)
+    queue = Queue(capacity)
+    success(f"Created an empty queue that holds up to {plural(capacity, 'item')}.")
+    render.queue(queue)
     return queue
 
 
 def example():
     """Return the preloaded example queue."""
     queue = Queue(5)
-    print("\n✅ Here's an example queue with size 5:", end="")
-    render.queue_slots(queue)
+    for item in (10, "Messi", 2.5):
+        queue.enqueue(item)
+    queue.dequeue()
+    success("Loaded the example queue. Its first item, 10, was already dequeued.")
+    render.queue(queue)
     return queue
 
 
 def enqueue(queue):
-    """Enqueue an item typed by the user."""
     item = ask_item()
     try:
         queue.enqueue(item)
     except CapacityError:
-        print("\n🚫 Queue is full; item not enqueued.", end="")
-    render.queue_slots(queue)
+        error(f"The queue is full, so {fmt(item)} wasn't enqueued.")
+        return
+    success(f"Enqueued {fmt(item)} at the rear.")
+    render.queue(queue)
 
 
 def dequeue(queue):
-    """Dequeue the front item."""
     try:
-        queue.dequeue()
+        item = queue.dequeue()
     except EmptyError:
-        print("\n🚫 Queue is empty.", end="")
-    render.queue_slots(queue)
+        error("The queue is empty, so there's nothing to dequeue.")
+        return
+    success(f"Dequeued {fmt(item)} from the front.")
+    render.queue(queue)
 
 
-def show_end(get_item, name):
-    """Show the front or rear item, using get_item to fetch it."""
+def peek(get_item, end):
+    """Show the item at the front or rear (end), using get_item to fetch it."""
     try:
-        print(f"\n👉 {name} item: {get_item()}")
+        result(f"The {end} item is {fmt(get_item())}.")
     except EmptyError:
-        print("\n🚫 Queue is empty.")
+        error("The queue is empty, so there's nothing to peek at.")

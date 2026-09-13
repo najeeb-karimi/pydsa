@@ -1,77 +1,81 @@
 """Stack screen."""
 
-from pydsa.content import texts
+from pydsa.content import complexity, texts
 from pydsa.core.errors import CapacityError, EmptyError
 from pydsa.core.stack import Stack
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, ask_item
-from pydsa.ui.menu import Menu, operation_menu
+from pydsa.ui.console import ask_int, ask_item, error, plural, result, success
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.render import fmt
+
+
+def yes_no(value):
+    return "Yes" if value else "No"
 
 
 def run():
     """Create a stack and run the stack operation menu."""
-    render.intro(texts.STACK_ASCII, texts.STACK_DEFINITION)
-    stack = Menu(
-        "\n🛠️ Do you want to create a stack yourself or use the preloaded example?",
-        [[("Create a stack", create), ("Use the example", example)]],
-        bullet="●",
-    ).select()
+    render.intro(texts.STACK_ASCII, texts.STACK_DEFINITION, complexity.STACK)
+    stack = Menu("🛠️ Do you want to create a stack yourself or use the preloaded example?", [
+        [("Create a stack", create), ("Use the example", example)],
+        [back_option()],
+    ]).open()
+    if stack is Nav.BACK:
+        return Nav.BACK
 
-    return operation_menu("STACK", texts.STACK_DEFINITION, [
-        ("Pushing", lambda: push(stack)),
-        ("Popping", lambda: pop(stack)),
-        ("Top/Peek", lambda: peek(stack)),
-        ("isEmpty", lambda: print(f"\n👉 isEmpty: {stack.is_empty()}")),
-        ("isFull", lambda: print(f"\n👉 isFull: {stack.is_full()}")),
-        ("Size Check", lambda: print(f"\n👉 Stack size: {len(stack)}/{stack.capacity}")),
-        ("Displaying", lambda: render.values(stack.items)),
-    ], new_label="New Stack", exit_label="Exit the Program").run()
+    return operation_menu("stack", [
+        ("Push", lambda: push(stack)),
+        ("Pop", lambda: pop(stack)),
+        ("Peek", lambda: peek(stack)),
+        ("Check if Empty", lambda: result(f"Is the stack empty? {yes_no(stack.is_empty())}.")),
+        ("Check if Full", lambda: result(f"Is the stack full? {yes_no(stack.is_full())}.")),
+        ("Size", lambda: result(f"The stack holds {len(stack)} of {plural(stack.capacity, 'item')}.")),
+        ("Display", lambda: render.stack(stack)),
+    ], definition=lambda: render.definition(texts.STACK_DEFINITION, complexity.STACK), new_label="New Stack").run()
 
 
 def create():
-    """Ask for the stack size and return an empty stack."""
-    size = ask_int("\n↔️ Please specify the size of the stack.\n>>> ",
-                   "\n🚫 Invalid, the size can only be an integer!",
-                   min_value=1, too_small="\n🚫 Invalid, the size must be at least 1!")
-    stack = Stack(size)
-    print("\n✅ Here's your stack:", end="")
-    render.values(stack.items)
+    """Ask for the capacity and return an empty stack."""
+    capacity = ask_int("↔️ How many items should the stack be able to hold?", "size", min_value=1)
+    stack = Stack(capacity)
+    success(f"Created an empty stack that holds up to {plural(capacity, 'item')}.")
+    render.stack(stack)
     return stack
 
 
 def example():
     """Return the preloaded example stack."""
     stack = Stack(5)
-    print("\n✅ Here's an example stack with size 5:", end="")
     stack.push(10)
     stack.push("Messi")
-    render.values(stack.items)
+    success("Loaded the example stack.")
+    render.stack(stack)
     return stack
 
 
 def push(stack):
-    """Push an item typed by the user."""
     item = ask_item()
     try:
         stack.push(item)
     except CapacityError:
-        print("\n🚫 Stack is full; item not pushed.", end="")
-    render.values(stack.items)
+        error(f"The stack is full, so {fmt(item)} wasn't pushed.")
+        return
+    success(f"Pushed {fmt(item)} onto the stack.")
+    render.stack(stack)
 
 
 def pop(stack):
-    """Pop the top item and show what was removed."""
     try:
         item = stack.pop()
-        print(f"\n👋 Item removed: {item}", end="")
     except EmptyError:
-        print("\n🚫 Stack is empty.", end="")
-    render.values(stack.items)
+        error("The stack is empty, so there's nothing to pop.")
+        return
+    success(f"Popped {fmt(item)} from the top.")
+    render.stack(stack)
 
 
 def peek(stack):
-    """Show the top item."""
     try:
-        print(f"\n👉 Top item: {stack.peek()}")
+        result(f"The top item is {fmt(stack.peek())}.")
     except EmptyError:
-        print("\n🚫 Stack is empty.")
+        error("The stack is empty, so there's nothing to peek at.")

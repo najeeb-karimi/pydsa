@@ -1,109 +1,139 @@
 """Linked list screen: singly and doubly linked lists."""
 
-from pydsa.content import texts
+from typing import NamedTuple
+
+from pydsa.content import complexity, texts
 from pydsa.core.errors import EmptyError, OutOfBoundsError
 from pydsa.core.linked_list import DoublyLinkedList, SinglyLinkedList
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, ask_value
-from pydsa.ui.menu import Menu, operation_menu
+from pydsa.ui.console import ask_int, ask_value, error, not_found, success
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.render import fmt
+
+
+class ListKind(NamedTuple):
+    """The class and name of one kind of linked list."""
+
+    list_class: type
+    name: str
+    doubly: bool
+
+
+SINGLY = ListKind(SinglyLinkedList, "singly linked list", False)
+DOUBLY = ListKind(DoublyLinkedList, "doubly linked list", True)
+
+EXAMPLE_ITEMS = [10, "Messi", 2.5]
+
+
+def show_definition():
+    render.definition(texts.LINKED_LIST_DEFINITION, complexity.LINKED_LIST)
 
 
 def run():
-    """Show the linked list intro, let the user pick a singly or doubly linked list and run its menu."""
-    render.intro(texts.LINKED_LIST_ASCII, texts.LINKED_LIST_DEFINITION)
-    return Menu(
-        "\n🧪 Which type of linked list do you want?",
-        [[("Singly Linked List", singly), ("Doubly Linked List", doubly)]],
-        spaced=True,
-        invalid="\n🚫 Invalid!",
-    ).select()
+    """Show the linked list intro, let the user pick a kind of list and run its menu."""
+    render.intro(texts.LINKED_LIST_ASCII, texts.LINKED_LIST_DEFINITION, complexity.LINKED_LIST)
+    return Menu("🧪 Which type of linked list do you want?", [
+        [("Singly Linked List", lambda: list_menu(SINGLY)), ("Doubly Linked List", lambda: list_menu(DOUBLY))],
+        [back_option()],
+    ]).open()
 
 
-def singly():
-    """Run the singly linked list operation menu on a new, empty list."""
-    sll = SinglyLinkedList()
-
-    def show():
-        render.linked_list(list(sll), " => ", "\n❌ List is empty.")
-
-    return operation_menu("SINGLY LINKED LIST", texts.LINKED_LIST_DEFINITION, [
-        *shared_operations(sll, show),
-        ("Traversing/Displaying", show),
-        ("Searching", lambda: search(sll, texts.LINKED_LIST_SEARCH_INFO)),
-    ], new_label="New Linked List").run()
-
-
-def doubly():
-    """Run the doubly linked list operation menu on a new, empty list."""
-    dll = DoublyLinkedList()
+def list_menu(kind):
+    """Create a linked list of the given kind and run its operation menu."""
+    linked_list = Menu(f"🛠️ Do you want to start with an empty {kind.name} or use the preloaded example?", [
+        [("Start with an empty list", lambda: create(kind)), ("Use the example", lambda: example(kind))],
+        [back_option()],
+    ]).open()
+    if linked_list is Nav.BACK:
+        return Nav.BACK
 
     def show():
-        render.linked_list(list(dll), " <=> ", "\n👉 List is empty.")
+        render.linked_list(list(linked_list), doubly=kind.doubly)
 
-    return operation_menu("DOUBLY LINKED LIST", texts.LINKED_LIST_DEFINITION, [
-        *shared_operations(dll, show),
-        ("Traversing Forward", show),
-        ("Traversing Backward", lambda: render.linked_list(dll.backward(), " <=> ", "\n👉 List is empty.")),
-        ("Searching", lambda: search(dll)),
-    ], new_label="New Linked List").run()
+    if kind.doubly:
+        displays = [
+            ("Display Forward", show),
+            ("Display Backward", lambda: render.linked_list(linked_list.backward(), doubly=True, backward=True)),
+        ]
+    else:
+        displays = [("Display", show)]
 
-
-def shared_operations(linked_list, show):
-    """Return the insertion and deletion operations both lists offer; show prints the list."""
-    return [
-        ("Insertion at the Beginning", lambda: insert(show, linked_list.insert_at_beginning)),
-        ("Insertion at a Specific Point", lambda: insert(show, linked_list.insert_at_position, ask_index())),
-        ("Insertion at the End", lambda: insert(show, linked_list.insert_at_end)),
-        ("Deletion from the Beginning", lambda: delete(show, linked_list.delete_from_beginning)),
-        ("Deletion from a Specific Point", lambda: delete(show, linked_list.delete_from_position, ask_index())),
-        ("Deletion from the End", lambda: delete(show, linked_list.delete_from_end)),
-    ]
-
-
-def ask_index():
-    """Ask for a position until a whole number is entered."""
-    return ask_int("\n🔟 Please enter the index.\n>>> ", "\n🚫 Invalid index!")
+    return operation_menu(kind.name, [
+        ("Insert at Beginning", lambda: insert(linked_list, show, "beginning")),
+        ("Insert at Position", lambda: insert(linked_list, show, "position")),
+        ("Insert at End", lambda: insert(linked_list, show, "end")),
+        ("Delete from Beginning", lambda: delete(linked_list, show, "beginning")),
+        ("Delete from Position", lambda: delete(linked_list, show, "position")),
+        ("Delete from End", lambda: delete(linked_list, show, "end")),
+        ("Search", lambda: search(linked_list)),
+        *displays,
+    ], definition=show_definition, new_label="New Linked List").run()
 
 
-def insert(show, method, *position):
-    """Ask for an item and insert it with method, passing the position first if one is given."""
+def create(kind):
+    success(f"Created an empty {kind.name}.")
+    return kind.list_class()
+
+
+def example(kind):
+    linked_list = kind.list_class()
+    for item in EXAMPLE_ITEMS:
+        linked_list.insert_at_end(item)
+    success(f"Loaded the example {kind.name}.")
+    render.linked_list(list(linked_list), doubly=kind.doubly)
+    return linked_list
+
+
+def ask_position():
+    return ask_int("🔢 Which position?", "position")
+
+
+def insert(linked_list, show, where):
+    """Ask for an item and insert it at the beginning, at a position or at the end (where)."""
+    position = ask_position() if where == "position" else None
     item = ask_value()
-    if item is None:
-        print("\n🚫 Invalid data type; item not inserted.")
-        return
     try:
-        method(*position, item)
+        if where == "beginning":
+            linked_list.insert_at_beginning(item)
+        elif where == "end":
+            linked_list.insert_at_end(item)
+        else:
+            linked_list.insert_at_position(position, item)
     except OutOfBoundsError:
-        print("\n🚫 Position out of bounds. Insertion unsuccessful.")
+        error(f"Position {position} is out of bounds. Valid positions are 0 to {len(linked_list)}.")
         return
-    print("\n✅ Insertion successful.", end="")
+    place = f"position {position}" if where == "position" else f"the {where}"
+    success(f"Inserted {fmt(item)} at {place}.")
     show()
 
 
-def delete(show, method, *position):
-    """Delete a node with method, passing the position if one is given."""
+def delete(linked_list, show, where):
+    """Delete the node at the beginning, at a position or at the end (where)."""
+    position = ask_position() if where == "position" else None
     try:
-        method(*position)
+        if where == "beginning":
+            item = linked_list.delete_from_beginning()
+        elif where == "end":
+            item = linked_list.delete_from_end()
+        else:
+            item = linked_list.delete_from_position(position)
     except EmptyError:
-        print("\n🚫 List is empty.")
+        error("The list is empty, so there's nothing to delete.")
         return
     except OutOfBoundsError:
-        print("\n🚫 Position out of bounds. Deletion unsuccessful.")
+        error(f"Position {position} is out of bounds. Valid positions are 0 to {len(linked_list) - 1}.")
         return
-    print("\n✅ Deletion successful.", end="")
+    place = f"position {position}" if where == "position" else f"the {where}"
+    success(f"Deleted {fmt(item)} from {place}.")
     show()
 
 
-def search(linked_list, info=None):
-    """Explain the search if info is given, then ask for a target and report its position."""
-    if info is not None:
-        print(info)
-    target = ask_value(msg="target element")
-    if target is None:
-        print("\n🚫 Invalid data type; nothing to search for.")
-        return
+def search(linked_list):
+    """Explain linear search, then ask for a target and report its position."""
+    render.explanation("How Linear Search Works on a Linked List", texts.LINKED_LIST_SEARCH_INFO)
+    target = ask_value(what="target")
     position = linked_list.search(target)
     if position == -1:
-        print("\n❌ Item not found.")
+        not_found(f"{fmt(target)} isn't in the list.")
     else:
-        print(f"\n✅ Item found at position {position}.")
+        success(f"Found {fmt(target)} at position {position}.")

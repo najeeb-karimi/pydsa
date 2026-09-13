@@ -4,7 +4,7 @@ from enum import Enum, auto
 from typing import Callable, NamedTuple
 
 from pydsa.ui import render
-from pydsa.ui.console import clear
+from pydsa.ui.console import ask_code, clear
 
 
 class Nav(Enum):
@@ -24,78 +24,79 @@ class Option(NamedTuple):
     code: str | None = None
 
 
-class Menu:
-    """A title followed by numbered options, read from the console.
+def back_option(label="Go Back"):
+    """Return the 0 option that leaves a menu for the previous one."""
+    return Option(label, lambda: Nav.BACK, "0")
 
-    groups is a list of option lists, separated by a blank line when shown. Options can be given as
-    Option or plain (label, action[, code]) tuples; those without a fixed code are numbered in order
-    from start. spaced adds a blank line before the >>> prompt.
+
+def exit_option():
+    """Return the 0 option that quits the program."""
+    return Option("Exit", lambda: Nav.EXIT, "0")
+
+
+class Menu:
+    """A title with numbered options, read from the console.
+
+    groups is a list of option lists, shown with a blank line between them. Options can be Option or
+    plain (label, action[, code]) tuples; those without a fixed code are numbered in order from 1. By
+    convention, the 0 option is the menu's way out and comes last.
     """
 
-    def __init__(self, title, groups, *, bullet="★", start=1, spaced=False, invalid="\n❌ Invalid code number!"):
+    def __init__(self, title, groups):
         self.title = title
-        self.bullet = bullet
-        self.spaced = spaced
-        self.invalid = invalid
         self.groups = []
         self.options = {}
-        next_code = start
+        next_code = 1
         for group in groups:
             entries = []
             for entry in group:
                 option = Option(*entry)
-                code = option.code
-                if code is None:
-                    code = str(next_code)
+                if option.code is None:
+                    option = option._replace(code=str(next_code))
                     next_code += 1
-                entries.append((code, option))
-                self.options[code] = option
+                entries.append(option)
+                self.options[option.code] = option
             self.groups.append(entries)
 
-    def prompt(self):
-        """Return the menu text, ending with the >>> prompt."""
-        body = "\n\n".join(
-            "\n".join(f"{self.bullet}{code}) {option.label}" for code, option in group)
-            for group in self.groups
-        )
-        gap = "\n\n" if self.spaced else "\n"
-        return f"{self.title}\n{body}{gap}>>> "
+    def choose(self):
+        """Show the menu, ask until a valid code is typed and return the chosen option."""
+        code = ask_code(self.title, [[(option.code, option.label) for option in group] for group in self.groups])
+        return self.options[code]
 
-    def select(self, retry=True):
-        """Ask for a code, run the chosen option's action and return its result.
+    def select(self):
+        """Run the chosen option's action once and return its result."""
+        return self.choose().action()
 
-        An invalid code prints the invalid message, then asks again, or returns None if retry is False.
+    def open(self):
+        """Run the chosen option's action and return its result.
+
+        If the action opened a sub-menu that the user left with Go Back, this menu is shown again. Only
+        this menu's own 0 option passes Nav.BACK on to the caller.
         """
         while True:
-            code = input(self.prompt())
-            if code in self.options:
-                return self.options[code].action()
-            print(self.invalid)
-            if not retry:
-                return None
+            option = self.choose()
+            result = option.action()
+            if result is Nav.BACK and option.code != "0":
+                continue
+            return result
 
     def run(self):
-        """Keep selecting options until an action returns a Nav, and return that Nav."""
+        """Keep running chosen actions until one returns a Nav, and return that Nav."""
         while True:
             result = self.select()
             if isinstance(result, Nav):
                 return result
 
 
-def operation_menu(name, definition, operations, *, new_label, new_intro=True,
-                   exit_label="Exiting the Program", invalid="\n🚫 Invalid operation code!"):
+def operation_menu(name, operations, *, definition, new_label):
     """Build the operation menu of a data structure.
 
-    The menu starts with Definition (code 0, printing definition), then lists operations as
-    (label, action) pairs, and ends with the shared navigation entries: new_label (start this data
-    structure again, showing the main intro first if new_intro is True), New Data Structure and
-    exit_label.
+    Definition comes first, followed by operations as (label, action) pairs. The last group holds the
+    shared navigation: new_label (start this data structure again), New Data Structure and 0) Exit.
     """
 
     def start_again():
         clear()
-        if new_intro:
-            render.main_intro()
         return Nav.NEW
 
     def go_home():
@@ -103,12 +104,10 @@ def operation_menu(name, definition, operations, *, new_label, new_intro=True,
         render.main_intro()
         return Nav.HOME
 
-    options = [
-        ("Definition", lambda: print(definition)),
-        *operations,
-        (new_label, start_again),
-        ("New Data Structure", go_home),
-        (exit_label, lambda: Nav.EXIT),
-    ]
-    return Menu(f"\n⚔️ Which operation do you want to perform with the {name}?", [options],
-                start=0, spaced=True, invalid=invalid)
+    return Menu(
+        f"⚔️ What do you want to do with the {name}?",
+        [
+            [("Definition", definition), *operations],
+            [(new_label, start_again), ("New Data Structure", go_home), exit_option()],
+        ],
+    )

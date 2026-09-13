@@ -1,7 +1,7 @@
 """PyDSA entry point: shows the intro and runs the data structure category menus."""
 
 from pydsa.ui import render
-from pydsa.ui.menu import Menu, Nav
+from pydsa.ui.menu import Menu, Nav, back_option, exit_option
 from pydsa.ui.screens import array, graph, hash_table, linked_list, queue, stack, tree
 
 LINEAR = [("Array", array), ("Stack", stack), ("Queue", queue), ("Linked List", linked_list)]
@@ -17,23 +17,21 @@ def open_screen(screen):
 
 
 def pick_structure(title, screens):
-    """Let the user open a data structure from one category; return Nav.EXIT if they quit the program."""
-    menu = Menu(
-        title,
-        [[(name, lambda screen=screen: open_screen(screen)) for name, screen in screens],
-         [("Go Back", lambda: Nav.BACK, "0")]],
-        spaced=True,
-    )
-    # Going back and New Data Structure both return to the category menu
-    return Nav.EXIT if menu.select() is Nav.EXIT else None
+    """Let the user open data structures from one category; return Nav.EXIT if they quit the program."""
+    menu = Menu(title, [
+        [(name, lambda screen=screen: open_screen(screen)) for name, screen in screens],
+        [back_option()],
+    ])
+    # Going back from a data structure shows this category again; Go Back and New Data Structure return home
+    return Nav.EXIT if menu.open() is Nav.EXIT else None
 
 
 def run():
     """Show the intro, then keep offering the data structure categories until the user exits."""
     render.main_intro()
-    Menu(
-        "\n📂 Which type of data structure do you want to learn?",
-        [[("Linear data structures", lambda: pick_structure("\n🏁 Which Linear Data Structure do you want to learn?", LINEAR)),
-          ("Non-linear data structures", lambda: pick_structure("\n🧭 Which Non-linear Data Structure do you want to learn?", NON_LINEAR))]],
-        spaced=True,
-    ).run()
+    Menu("📂 Which type of data structure do you want to learn?", [
+        [("Linear data structures", lambda: pick_structure("🏁 Which linear data structure do you want to learn?", LINEAR)),
+         ("Non-linear data structures", lambda: pick_structure("🧭 Which non-linear data structure do you want to learn?", NON_LINEAR))],
+        [exit_option()],
+    ]).run()
+    render.goodbye()
