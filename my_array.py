@@ -246,32 +246,58 @@ def array_main():
     """Create an array and run the array operation menu."""
     array_intro("full")
 
-    # Array type validation loop
+    # Creation loop: build an array from scratch or load the preloaded example
     while True:
-        array_type = input("\n🤔 Please specify the type of array. Write either str or int.\n>>> ")
-        if array_type not in ("str", "int"):
-            print("\n❌️ Either str or int!")
-            continue
-        break
+        example = input("""\n🛠️ Do you want to create an array yourself or use the preloaded example?
+●1) Create an array
+●2) Use the example
+>>> """)
+        match example:
 
-    # Array size validation loop
-    while True:
-        try:
-            array_size = int(input("\n↔️ Please specify the size of the array.\n>>> "))
-        except ValueError:
-            print("\n❌ Invalid, the size can only be an integer!️")
-            continue
-        else:
-            break
+            # Create an array
+            case "1":
+                # Array type validation loop
+                while True:
+                    array_type = input("\n🤔 Please specify the type of array. Write either str or int.\n>>> ")
+                    if array_type not in ("str", "int"):
+                        print("\n❌️ Either str or int!")
+                        continue
+                    break
 
-    # Initialize the array
-    if array_type == "str":
-        array = Array(array_size, str)
-    else:
-        array = Array(array_size, int, 0)
+                # Array size validation loop
+                while True:
+                    try:
+                        array_size = int(input("\n↔️ Please specify the size of the array.\n>>> "))
+                    except ValueError:
+                        print("\n❌ Invalid, the size can only be an integer!️")
+                        continue
+                    else:
+                        break
 
-    print(f"\n✅️ Here's your {array_type} array.", end="")
-    array.display()
+                # Initialize the array
+                if array_type == "str":
+                    array = Array(array_size, str)
+                else:
+                    array = Array(array_size, int, 0)
+
+                print(f"\n✅️ Here's your {array_type} array.", end="")
+                array.display()
+                break
+
+            # Use the example
+            case "2":
+                array_type = "int"
+                array_size = 5
+                array = Array(5, int, 0)
+                array.array = [10, 1987, 672, 8, 2004]
+                print(f"\n✅️ Here's an example int array with size 5.", end="")
+                array.display()
+                break
+
+            # Invalid
+            case _:
+                print("\n❌ Invalid code number!")
+                continue
 
     # Operation selection loop
     while True:

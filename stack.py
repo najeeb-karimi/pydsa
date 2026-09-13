@@ -66,20 +66,45 @@ def stack_main():
     """Create a stack and run the stack operation menu."""
     stack_intro("full")
 
-    # Stack size validation loop
+    # Creation loop: build a stack from scratch or load the preloaded example
     while True:
-        try:
-            stack_size = int(input("\n↔️ Please specify the size of the stack.\n>>> "))
-        except ValueError:
-            print("\n🚫 Invalid, the size can only be an integer!️")
-            continue
-        else:
-            break
+        example = input("""\n🛠️ Do you want to create a stack yourself or use the preloaded example?
+●1) Create a stack
+●2) Use the example
+>>> """)
+        match example:
 
-    # Initialize and display the stack
-    stack = Stack(stack_size)
-    print("\n✅ Here's your stack:", end="")
-    stack.display()
+            # Create a stack
+            case "1":
+                # Stack size validation loop
+                while True:
+                    try:
+                        stack_size = int(input("\n↔️ Please specify the size of the stack.\n>>> "))
+                    except ValueError:
+                        print("\n🚫 Invalid, the size can only be an integer!️")
+                        continue
+                    else:
+                        break
+
+                # Initialize and display the stack
+                stack = Stack(stack_size)
+                print("\n✅ Here's your stack:", end="")
+                stack.display()
+                break
+
+            # Use the example
+            case "2":
+                stack = Stack(5)
+                print("\n✅ Here's an example stack with size 5:", end="")
+                stack.push(10)
+                stack.push("Messi")
+                stack.display()
+                break
+
+            # Invalid
+            case _:
+                print("\n❌ Invalid code number!")
+                continue
 
     # Operation selection loop
     while True:

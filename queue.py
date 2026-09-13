@@ -86,20 +86,43 @@ def queue_main():
     """Create a queue and run the queue operation menu."""
     queue_intro("full")
 
-    # Queue size validation loop
+    # Creation loop: build a queue from scratch or load the preloaded example
     while True:
-        try:
-            queue_size = int(input("\n↔️ Please specify the size of the queue.\n>>> "))
-        except ValueError:
-            print("\n❌ Invalid, the size can only be an integer!️")
-            continue
-        else:
-            break
+        example = input("""\n🛠️ Do you want to create a queue yourself or use the preloaded example?
+●1) Create a queue
+●2) Use the example
+>>> """)
+        match example:
 
-    # Initialize and display the queue
-    queue = Queue(queue_size)
-    print("\n✅ Here's your queue:", end="")
-    queue.display()
+            # Create a queue
+            case "1":
+                # Queue size validation loop
+                while True:
+                    try:
+                        queue_size = int(input("\n↔️ Please specify the size of the queue.\n>>> "))
+                    except ValueError:
+                        print("\n❌ Invalid, the size can only be an integer!️")
+                        continue
+                    else:
+                        break
+
+                # Initialize and display the queue
+                queue = Queue(queue_size)
+                print("\n✅ Here's your queue:", end="")
+                queue.display()
+                break
+
+            # Use the example
+            case "2":
+                queue = Queue(5)
+                print("\n✅ Here's an example queue with size 5:", end="")
+                queue.display()
+                break
+
+            # Invalid
+            case _:
+                print("\n❌ Invalid code number!")
+                continue
 
     # Operation selection loop
     while True:
