@@ -7,7 +7,7 @@ import utility
 # BST (Binary Search Tree)
 # ---------------------------------------------------------------------------
 
-class Node:
+class BSTNode:
     """Node of a binary search tree."""
 
     def __init__(self, key):
@@ -19,14 +19,14 @@ class Node:
 class BinarySearchTree:
     """Binary search tree that holds either numbers or strings."""
 
-    def __init__(self, type):
+    def __init__(self, data_type):
         self.root = None  # The tree starts empty
-        self.data_type = type  # "num" or "str", so the tree only holds one kind of data
+        self.data_type = data_type  # "num" or "str", so the tree only holds one kind of data
 
     def insert(self, key):
         """Insert a new key into the BST."""
         if self.root is None:
-            self.root = Node(key)  # An empty tree gets the key as its root
+            self.root = BSTNode(key)  # An empty tree gets the key as its root
         else:
             self._insert(self.root, key)
 
@@ -34,12 +34,12 @@ class BinarySearchTree:
         """Recursively find the right spot for a new key and insert it."""
         if key < node.key:
             if node.left is None:
-                node.left = Node(key)
+                node.left = BSTNode(key)
             else:
                 self._insert(node.left, key)
         else:
             if node.right is None:
-                node.right = Node(key)
+                node.right = BSTNode(key)
             else:
                 self._insert(node.right, key)
 
@@ -143,11 +143,11 @@ def bst_main():
             case "1":
                 # Type selection loop; the tree holds either numbers or strings
                 while True:
-                    type = input("""\n🤔 Which type of data do you want store in the BST?
+                    choice = input("""\n🤔 Which type of data do you want to store in the BST?
 ★1) Numbers (int or float)
 ★2) Strings
 >>> """)
-                    match type:
+                    match choice:
                         case "1":
                             bst = BinarySearchTree("num")
                             break
@@ -155,7 +155,7 @@ def bst_main():
                             bst = BinarySearchTree("str")
                             break
                         case _:
-                            print("Invalid code number!")
+                            print("\n❌ Invalid code number!")
                             continue
                 break
 
@@ -205,7 +205,7 @@ def bst_main():
                 elif data_type == "num":
                     item = utility.input_verify("num")
 
-                if item != None:
+                if item is not None:
                     bst.insert(item)
                     print("\n✅ Successfully inserted.", end="")
                     print(f"\n👉🏻 {bst.inorder()}\nℹ️ Inorder Traversal")
@@ -220,7 +220,7 @@ def bst_main():
                 elif data_type == "num":
                     item = utility.input_verify("num")
 
-                if item != None:
+                if item is not None:
                     # Look the item up in the in-order traversal first, so a missing node can be reported
                     nodes = bst.inorder()
                     if item not in nodes:
@@ -240,16 +240,16 @@ def bst_main():
                 elif data_type == "num":
                     item = utility.input_verify("num")
 
-                    if item != None:
-                        result = bst.search(item)
-                        if result != None:
-                            print("\n✅ Node available.", end="")
-                            print(f"\n👉🏻 {bst.inorder()}\nℹ️ Inorder Traversal")
-                        else:
-                            print("\n❌ Node not found.", end=" ")
-                            print(f"\n👉🏻 {bst.inorder()}\nℹ️ Inorder Traversal")
+                if item is not None:
+                    result = bst.search(item)
+                    if result is not None:
+                        print("\n✅ Node available.", end="")
+                        print(f"\n👉🏻 {bst.inorder()}\nℹ️ Inorder Traversal")
                     else:
-                        print("\n🚫 Invalid data type. Deletion unsuccessful.")
+                        print("\n❌ Node not found.", end=" ")
+                        print(f"\n👉🏻 {bst.inorder()}\nℹ️ Inorder Traversal")
+                else:
+                    print("\n🚫 Invalid data type. Searching unsuccessful.")
 
             # Traversals
             case "4":
@@ -286,7 +286,6 @@ def bst_main():
             # New tree
             case "5":
                 utility.clear()
-                tree_intro("full")
                 tree_main()
                 break
 
@@ -309,7 +308,7 @@ def bst_main():
 # AVL Tree
 # ---------------------------------------------------------------------------
 
-class Node:
+class AVLNode:
     """Node of an AVL tree, which also tracks its height."""
 
     def __init__(self, key):
@@ -322,9 +321,9 @@ class Node:
 class AVLTree:
     """Self-balancing binary search tree that holds either numbers or strings."""
 
-    def __init__(self, type):
+    def __init__(self, data_type):
         self.root = None  # The tree starts empty
-        self.data_type = type  # "num" or "str", so the tree only holds one kind of data
+        self.data_type = data_type  # "num" or "str", so the tree only holds one kind of data
 
     def insert(self, key):
         """Insert a new key into the AVL tree."""
@@ -333,7 +332,7 @@ class AVLTree:
     def _insert(self, node, key):
         """Recursively insert a key, rebalance on the way back up and return the new subtree root."""
         if not node:
-            return Node(key)
+            return AVLNode(key)
 
         if key < node.key:
             node.left = self._insert(node.left, key)
@@ -347,9 +346,9 @@ class AVLTree:
         # Rotate to restore the balance
         if balance > 1 and key < node.left.key:
             return self._right_rotate(node)  # Left Left case
-        if balance < -1 and key > node.right.key:
+        if balance < -1 and key >= node.right.key:
             return self._left_rotate(node)  # Right Right case
-        if balance > 1 and key > node.left.key:
+        if balance > 1 and key >= node.left.key:
             node.left = self._left_rotate(node.left)  # Left Right case
             return self._right_rotate(node)
         if balance < -1 and key < node.right.key:
@@ -514,19 +513,19 @@ def avl_main():
             case "1":
                 # Type selection loop; the tree holds either numbers or strings
                 while True:
-                    type = input("""\n🤔 Which type of data do you want store in the AVL?
+                    choice = input("""\n🤔 Which type of data do you want to store in the AVL?
 ★1) Numbers (int or float)
 ★2) Strings
 >>> """)
-                    match type:
+                    match choice:
                         case "1":
                             avl = AVLTree("num")
                             break
                         case "2":
-                            bst = AVLTree("str")
+                            avl = AVLTree("str")
                             break
                         case _:
-                            print("Invalid code number!")
+                            print("\n❌ Invalid code number!")
                             continue
                 break
 
@@ -576,7 +575,7 @@ def avl_main():
                 elif data_type == "num":
                     item = utility.input_verify("num")
 
-                if item != None:
+                if item is not None:
                     avl.insert(item)
                     print("\n✅ Successfully inserted.", end="")
                     print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
@@ -591,7 +590,7 @@ def avl_main():
                 elif data_type == "num":
                     item = utility.input_verify("num")
 
-                if item != None:
+                if item is not None:
                     # Look the item up in the in-order traversal first, so a missing node can be reported
                     nodes = avl.inorder()
                     if item not in nodes:
@@ -611,16 +610,16 @@ def avl_main():
                 elif data_type == "num":
                     item = utility.input_verify("num")
 
-                    if item != None:
-                        result = avl.search(item)
-                        if result != None:
-                            print("\n✅ Node available.", end="")
-                            print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
-                        else:
-                            print("\n❌ Node not found.", end=" ")
-                            print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
+                if item is not None:
+                    result = avl.search(item)
+                    if result is not None:
+                        print("\n✅ Node available.", end="")
+                        print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
                     else:
-                        print("\n🚫 Invalid data type. Deletion unsuccessful.")
+                        print("\n❌ Node not found.", end=" ")
+                        print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
+                else:
+                    print("\n🚫 Invalid data type. Searching unsuccessful.")
 
             # Traversals
             case "4":
@@ -657,7 +656,6 @@ def avl_main():
             # New tree
             case "5":
                 utility.clear()
-                tree_intro("full")
                 tree_main()
                 break
 
@@ -712,7 +710,8 @@ def tree_main():
 
 def tree_intro(condition):
     """Print the ASCII art and definition ("full") or only the definition ("def")."""
-    tree_ascii = """\n
+    tree_ascii = r"""
+
 ,---------. .-------.        .-''-.      .-''-.   
 \          \|  _ _   \     .'_ _   \   .'_ _   \  
  `--.  ,---'| ( ' )  |    / ( ` )   ' / ( ` )   ' 
@@ -721,7 +720,8 @@ def tree_intro(condition):
     (_I_)   |  |\ \  |  |'  \   .---.'  \   .---. 
    (_(=)_)  |  | \ `'   / \  `-'    / \  `-'    / 
     (_I_)   |  |  \    /   \       /   \       /  
-    '---'   ''-'   `'-'     `'-..-'     `'-..-'\n"""
+    '---'   ''-'   `'-'     `'-..-'     `'-..-'
+"""
 
     tree_def = """\n🎯 A specialized type of graph, the tree is a hierarchical, non-linear data structure consisting of nodes connected by edges. It starts with a single node called the root, from which all other nodes branch out. Each node can have zero or more child nodes, and nodes with no children are called leaf nodes. Trees are used to represent hierarchical relationships and are fundamental in various applications such as file systems, databases, and network routing. They facilitate efficient data retrieval and manipulation through various traversal methods like in-order, pre-order, and post-order traversal.
 🎯 Trees have many different types the most important of which is the Binary Tree which in which each node has at most 2 children. The binary tree can also be classified further down the line with the most popular ones being the BST & the AVL trees. PyDSA implements these two types of binary trees. 

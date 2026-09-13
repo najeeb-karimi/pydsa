@@ -2,8 +2,6 @@
 
 import utility
 
-# TODO: removing an edge doesn't report when there is no edge between the two vertices
-
 
 # ---------------------------------------------------------------------------
 # Adjacency Matrix Directed Weighted Graph
@@ -29,6 +27,9 @@ class MatrixDirectedWeightedGraph:
     def remove_edge(self, u, v):
         """Remove the directed edge from u to v by setting its weight to 0."""
         if 0 <= u < self.num_vertices and 0 <= v < self.num_vertices:
+            if self.adj_matrix[u][v] == 0:
+                print(f"\n❌ Edge removal unsuccessful. No edge found from vertex {u} to {v}.")
+                return
             self.adj_matrix[u][v] = 0
             print(f"\n✅ Edge removal successful. Edge removed from vertex {u} to {v}.")
         else:
@@ -95,7 +96,7 @@ class MatrixDirectedWeightedGraph:
                         visited[i] = True
             print("\nℹ️ BFS Traversal")  # Ends the traversal line and labels it
         else:
-            print(f"\n🚫 DFS traversal unsuccessful. Invalid vertex: {start_vertex}.\nValid vertices are in the range 0 to {self.num_vertices - 1}.")
+            print(f"\n🚫 BFS traversal unsuccessful. Invalid vertex: {start_vertex}.\nValid vertices are in the range 0 to {self.num_vertices - 1}.")
 
     def search_edge(self, u, v):
         """Print whether there is an edge from u to v, and its weight if there is."""
@@ -107,7 +108,7 @@ class MatrixDirectedWeightedGraph:
             else:
                 print(f"\n❌ Edge searching successful. No edge found from vertex {u} to {v}.")
         else:
-            print(f"\n🚫 Edge searching unsuccesful. Invalid vertices: {u}, {v}.\nValid vertices are in the range 0 to {self.num_vertices - 1}.")
+            print(f"\n🚫 Edge searching unsuccessful. Invalid vertices: {u}, {v}.\nValid vertices are in the range 0 to {self.num_vertices - 1}.")
 
     def display(self):
         """Print the adjacency matrix, one row per vertex."""
@@ -135,14 +136,14 @@ def adj_matrix_main():
                 # Vertex count validation loop
                 while True:
                     num_vertices = utility.input_verify("int", "total number of vertices you want in the Adjacency Matrix")
-                    if num_vertices != None:
+                    if num_vertices is not None and num_vertices >= 1:
                         adj_matrix = MatrixDirectedWeightedGraph(num_vertices)
                         print(f"\n👇🏻 Here's your Adjacency Matrix with {num_vertices} vertices:")
                         adj_matrix.display()
                         print(f"\n⚠️ Keep in mind that the vertices are identified with integers in the range zero to number of vertices minus 1, which means 0 to {num_vertices - 1} as of now.")
                         break
                     else:
-                        print("\n🚫 The number of vertices can only be an INT.")
+                        print("\n🚫 The number of vertices must be an INT of at least 1.")
                         continue
                 break
 
@@ -154,7 +155,7 @@ def adj_matrix_main():
                 adj_matrix.adj_matrix = [[10, 0, 30, 19], [17, 22, 37, 0], [0, 672, 8, 45], [0, 0, 0, 0]]
                 print("\n👇🏻 Here's an example Adjacency Matrix with 4 vertices:")
                 adj_matrix.display()
-                print(f"\n⚠️ Keep in mind that the vertices are identified with integers in the range zero to number of vertices minus 1, which means 0 to 3 as of now.")
+                print("\n⚠️ Keep in mind that the vertices are identified with integers in the range zero to number of vertices minus 1, which means 0 to 3 as of now.")
                 break
 
             # Invalid
@@ -255,7 +256,6 @@ def adj_matrix_main():
             # New graph
             case "8":
                 utility.clear()
-                graph_intro("full")
                 graph_main()
                 break
 
@@ -295,7 +295,7 @@ class ListDirectedWeightedGraph:
             self.adj_list[vertex] = []
             print(f"\n✅ Vertex addition successful. Vertex {vertex} added.")
         else:
-            print(f"\n🚫 Vertex addition unsuccessful Vertex {vertex} already exists.")
+            print(f"\n🚫 Vertex addition unsuccessful. Vertex {vertex} already exists.")
 
     def remove_vertex(self, vertex):
         """Remove a vertex along with every edge to and from it."""
@@ -325,6 +325,9 @@ class ListDirectedWeightedGraph:
     def remove_edge(self, u, v):
         """Remove the directed edge from u to v."""
         if u in self.adj_list and v in self.adj_list:
+            if not any(edge[0] == v for edge in self.adj_list[u]):
+                print(f"\n❌ Edge removal unsuccessful. No edge found from {u} to {v}.")
+                return
             self.adj_list[u] = [edge for edge in self.adj_list[u] if edge[0] != v]
             print(f"\n✅ Edge removal successful. Edge removed from {u} to {v}.")
         else:
@@ -340,12 +343,18 @@ class ListDirectedWeightedGraph:
 
     def dfs(self, start_vertex):
         """Print a depth-first traversal starting from start_vertex."""
+        if start_vertex not in self.adj_list:
+            print(f"\n🚫 DFS traversal unsuccessful. Vertex {start_vertex} does not exist.")
+            return
         visited = set()
         self.dfs_util(start_vertex, visited)
         print("\nℹ️ DFS Traversal")  # Ends the traversal line and labels it
 
     def bfs(self, start_vertex):
         """Print a breadth-first traversal starting from start_vertex."""
+        if start_vertex not in self.adj_list:
+            print(f"\n🚫 BFS traversal unsuccessful. Vertex {start_vertex} does not exist.")
+            return
         visited = set()
         queue = [start_vertex]
         visited.add(start_vertex)
@@ -502,7 +511,6 @@ def adj_list_main():
             # New graph
             case "8":
                 utility.clear()
-                graph_intro("full")
                 graph_main()
                 break
 
@@ -557,7 +565,8 @@ def graph_main():
 
 def graph_intro(condition):
     """Print the ASCII art and definition ("full") or only the definition ("def")."""
-    graph_ascii = """\n
+    graph_ascii = r"""
+
   .-_'''-.   .-------.       ____    .-------. .---.  .---.  
  '_( )_   \  |  _ _   \    .'  __ `. \  _(`)_ \|   |  |_ _|  
 |(_ o _)|  ' | ( ' )  |   /   '  \  \| (_ o._)||   |  ( ' )  
@@ -566,7 +575,8 @@ def graph_intro(condition):
 '  \  '-   .'|  |\ \  |  |.'   _    ||   |     | _ _--.   |  
  \  `-'`   | |  | \ `'   /|  _( )_  ||   |     |( ' ) |   |  
   \        / |  |  \    / \ (_ o _) //   )     (_{;}_)|   |  
-   `'-...-'  ''-'   `'-'   '.(_,_).' `---'     '(_,_) '---'\n"""
+   `'-...-'  ''-'   `'-'   '.(_,_).' `---'     '(_,_) '---'
+"""
 
     graph_def = """\n🎯 A graph is a non-linear data structure consisting of vertices (nodes) and edges that connect pairs of vertices. Graphs are used to model relationships between entities, making them essential in various fields such as computer science, biology, social networks, and transportation. Graphs can be directed or undirected, weighted or unweighted, and can contain cycles or be acyclic. The versatility of graphs allows them to represent complex structures and relationships, enabling efficient problem-solving and analysis. Graphs can be represented using either an Adjacency Matrix or an Adjacency List.
 
@@ -590,7 +600,7 @@ def get_u(msg="first vertex"):
     while True:
         u = utility.input_verify("int", msg)
         if u is None:
-            print(f"\n🚫 Vertices are identified by integers in accordance with the matrix.")
+            print("\n🚫 Vertices are identified by integers.")
             continue
         else:
             return u
@@ -601,7 +611,7 @@ def get_v():
     while True:
         v = utility.input_verify("int", "second vertex")
         if v is None:
-            print(f"\n🚫 Vertices are identified by integers in accordance with the matrix.")
+            print("\n🚫 Vertices are identified by integers.")
             continue
         else:
             return v
@@ -612,7 +622,7 @@ def get_weight():
     while True:
         weight = utility.input_verify("int", "weight")
         if weight is None:
-            print(f"\n🚫 Weight can only be an INT.")
+            print("\n🚫 Weight can only be an INT.")
             continue
         else:
             return weight

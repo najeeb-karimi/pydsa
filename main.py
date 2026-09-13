@@ -61,7 +61,6 @@ def main():
 
                         # Go back
                         case "0":
-                            main()
                             break
 
                         # Invalid
@@ -72,7 +71,7 @@ def main():
             # Non-linear data structures
             case "2":
                 while True:
-                    choice_2 = input("""\n Which Non-linear Data Structure do you want to learn?
+                    choice_2 = input("""\n🧭 Which Non-linear Data Structure do you want to learn?
 ★1) Tree
 ★2) Graph
 ★3) Hash Table
@@ -99,7 +98,6 @@ def main():
 
                         # Go back
                         case "0":
-                            main()
                             break
 
                         # Invalid

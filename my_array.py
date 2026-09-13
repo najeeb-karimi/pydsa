@@ -208,7 +208,10 @@ class Array:
 
     def binary_search(self, target):
         """Search the array using Binary Search and print the original index of the target."""
-        index_mapping = {value: index for index, value in enumerate(self.array)}
+        # Map each value to its first index, so duplicates report the same index as Linear Search
+        index_mapping = {}
+        for index, value in enumerate(self.array):
+            index_mapping.setdefault(value, index)
         # Sort a copy so the original array keeps its order
         sorted_array = self.array[:]
         sorted_array.sort()
@@ -272,11 +275,14 @@ def array_main():
                         print("\n❌ Invalid, the size can only be an integer!️")
                         continue
                     else:
+                        if array_size < 1:
+                            print("\n❌ Invalid, the size must be at least 1!")
+                            continue
                         break
 
                 # Initialize the array
                 if array_type == "str":
-                    array = Array(array_size, str)
+                    array = Array(array_size, str, "")
                 else:
                     array = Array(array_size, int, 0)
 
@@ -290,7 +296,7 @@ def array_main():
                 array_size = 5
                 array = Array(5, int, 0)
                 array.array = [10, 1987, 672, 8, 2004]
-                print(f"\n✅️ Here's an example int array with size 5.", end="")
+                print("\n✅️ Here's an example int array with size 5.", end="")
                 array.display()
                 break
 
@@ -333,7 +339,7 @@ def array_main():
             # Add a single item
             if choice == "1":
                 item = input("\n✍️ Please write the item.\n>>> ")
-                index = int(input("\n✍️ Please provide the index.\n>>> "))
+                index = get_index("\n✍️ Please provide the index.\n>>> ")
 
                 try:
                     if array_type == "int":
@@ -359,13 +365,13 @@ def array_main():
 
         # Deletion
         elif opr == "2":
-            index = int(input("\n✍️ Please provide the index of the item you want to remove.\n>>> "))
+            index = get_index("\n✍️ Please provide the index of the item you want to remove.\n>>> ")
             array.remove(index)
             array.display()
 
         # Indexing
         elif opr == "3":
-            index = int(input("\n✍️ Please provide the index of the item you want to get.\n>>> "))
+            index = get_index("\n✍️ Please provide the index of the item you want to get.\n>>> ")
             array.get(index)
 
         # Sorting
@@ -539,12 +545,26 @@ def array_main():
 
 
 # ---------------------------------------------------------------------------
+# Array input helper
+# ---------------------------------------------------------------------------
+
+def get_index(prompt):
+    """Ask for an array index with the given prompt until a whole number is entered."""
+    while True:
+        try:
+            return int(input(prompt))
+        except ValueError:
+            print("\n🚫 Invalid, the index can only be an integer!")
+
+
+# ---------------------------------------------------------------------------
 # Array intro
 # ---------------------------------------------------------------------------
 
 def array_intro(condition):
     """Print the ASCII art and definition ("full") or only the definition ("def")."""
-    array_ascii = """\n
+    array_ascii = r"""
+
    ____    .-------.    .-------.       ____       ____     __  
  .'  __ `. |  _ _   \   |  _ _   \    .'  __ `.    \   \   /  / 
 /   '  \  \| ( ' )  |   | ( ' )  |   /   '  \  \    \  _. /  '  
@@ -553,7 +573,8 @@ def array_intro(condition):
 .'   _    ||  |\ \  |  ||  |\ \  |  |.'   _    ||   |(_,_)'     
 |  _( )_  ||  | \ `'   /|  | \ `'   /|  _( )_  ||   `-'  /      
 \ (_ o _) /|  |  \    / |  |  \    / \ (_ o _) / \      /       
- '.(_,_).' ''-'   `'-'  ''-'   `'-'   '.(_,_).'   `-..-'\n"""
+ '.(_,_).' ''-'   `'-'  ''-'   `'-'   '.(_,_).'   `-..-'
+"""
 
     array_def = "\n🎯 An array is a fundamental linear data structure in computer science, consisting of a collection of elements, each identified by at least one array index or key. These elements are of the same data type and are stored in contiguous memory locations, allowing for efficient access and manipulation of data. Arrays are characterized by their fixed size, which is defined at the time of creation, and the ability to directly access any element in constant time using its index. This makes arrays particularly useful for implementing algorithms that require quick retrieval and update operations, as well as for storing data that can be easily sorted and searched."
 

@@ -104,6 +104,9 @@ def queue_main():
                         print("\n❌ Invalid, the size can only be an integer!️")
                         continue
                     else:
+                        if queue_size < 1:
+                            print("\n❌ Invalid, the size must be at least 1!")
+                            continue
                         break
 
                 # Initialize and display the queue
@@ -158,8 +161,8 @@ def queue_main():
                 except ValueError:
                     pass
                 else:
-                    type = input("\n🤔 Do you want to add the item as an int or str? Type 1 for int or anything else for str.\n>>> ")
-                    if type == "1":
+                    choice = input("\n🤔 Do you want to add the item as an int or str? Type 1 for int or anything else for str.\n>>> ")
+                    if choice == "1":
                         pass
                     else:
                         item = str(item)
@@ -225,7 +228,8 @@ def queue_main():
 
 def queue_intro(condition):
     """Print the ASCII art and definition ("full") or only the definition ("def")."""
-    queue_ascii = """\n
+    queue_ascii = r"""
+
     ,-----.      ___    _     .-''-.    ___    _     .-''-.   
   .'  .-,  '.  .'   |  | |  .'_ _   \ .'   |  | |  .'_ _   \  
  / ,-.|  \ _ \ |   .'  | | / ( ` )   '|   .'  | | / ( ` )   ' 
@@ -234,7 +238,8 @@ def queue_intro(condition):
 : (  '\_/ \   ;' (`. _` /|'  \   .---.' (`. _` /|'  \   .---. 
  \ `"/  \  )  \| (_ (_) _) \  `-'    /| (_ (_) _) \  `-'    / 
   '. \_/``"/)  )\ /  . \ /  \       /  \ /  . \ /  \       /  
-    '-----' `-'  ``-'`-''    `'-..-'    ``-'`-''    `'-..-'\n"""
+    '-----' `-'  ``-'`-''    `'-..-'    ``-'`-''    `'-..-'
+"""
 
     queue_def = "\n🎯 A queue is a linear data structure that adheres to the First In, First Out (FIFO) principle, much like customers waiting in line where the first person in line is the first to be served. It supports two primary operations: enqueue, which adds an element to the end of the queue, and dequeue, which removes the element from the front. This structure is essential in various computing scenarios, such as task scheduling, data processing, and resource management, due to its ability to maintain order in processing tasks or data. Queues are implemented in software using arrays or linked lists and are integral in algorithms that require sequential data processing, ensuring that elements are handled in the exact order they were added. This program implements a dynamic-typed, fixed-size queue."
 

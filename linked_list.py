@@ -7,7 +7,7 @@ import utility
 # Singly Linked List
 # ---------------------------------------------------------------------------
 
-class Node:
+class SLLNode:
     """Node of a singly linked list."""
 
     def __init__(self, data):
@@ -23,7 +23,7 @@ class SinglyLinkedList:
 
     def insert_at_beginning(self, data):
         """Insert a new node before the head."""
-        new_node = Node(data)
+        new_node = SLLNode(data)
         new_node.next = self.head
         self.head = new_node
         print("\n✅ Insertion successful.", end="")
@@ -31,7 +31,7 @@ class SinglyLinkedList:
 
     def insert_at_end(self, data):
         """Insert a new node after the last node."""
-        new_node = Node(data)
+        new_node = SLLNode(data)
         if self.head is None:
             self.head = new_node
             print("\n✅ Insertion successful.", end="")
@@ -50,7 +50,7 @@ class SinglyLinkedList:
         if position == 0:
             self.insert_at_beginning(data)
             return
-        new_node = Node(data)
+        new_node = SLLNode(data)
         current = self.head
         # Walk to the node before the position, stopping if the list ends two or more positions early
         for _ in range(position - 1):
@@ -166,7 +166,7 @@ def sll_main():
 ★4) Deletion from the Beginning
 ★5) Deletion from a Specific Point
 ★6) Deletion from the End
-★7) Traversing/Displaing
+★7) Traversing/Displaying
 ★8) Searching
 ★9) New Linked List
 ★10) New Data Structure
@@ -183,7 +183,7 @@ def sll_main():
             # Insertion at the beginning
             case "1":
                 item = utility.input_verify()
-                if item != None:
+                if item is not None:
                     sll.insert_at_beginning(item)
                 else:
                     print("\n🚫 Invalid data type; item not inserted.")
@@ -202,7 +202,7 @@ def sll_main():
                         break
 
                 item = utility.input_verify()
-                if item != None:
+                if item is not None:
                     sll.insert_at_position(index, item)
                 else:
                     print("\n🚫 Invalid data type; item not inserted.")
@@ -210,7 +210,7 @@ def sll_main():
             # Insertion at the end
             case "3":
                 item = utility.input_verify()
-                if item != None:
+                if item is not None:
                     sll.insert_at_end(item)
                 else:
                     print("\n🚫 Invalid data type; item not inserted.")
@@ -245,8 +245,11 @@ def sll_main():
             # Searching
             case "8":
                 print("\nℹ️ Linear Search in the context of a linked list involves traversing the list node by node, starting from the head, and comparing each node’s data with the target value until the desired element is found or the end of the list is reached. Since linked lists do not provide direct access to their elements, each node must be accessed sequentially, making the search process inherently linear. The time complexity of linear search in a linked list is O(n), where n is the number of nodes in the list, because in the worst case, every node must be checked. The space complexity is O(1) as it requires no additional memory beyond the input list. Linear search is simple to implement and works well for small or unsorted linked lists, but it is inefficient for large lists compared to more advanced search algorithms.")
-                target = input("\n🤔 Please provide the target element.\n>>> ")
-                sll.search(target)
+                target = utility.input_verify(msg="target element")
+                if target is not None:
+                    sll.search(target)
+                else:
+                    print("\n🚫 Invalid data type; nothing to search for.")
 
             # New linked list
             case "9":
@@ -274,7 +277,7 @@ def sll_main():
 # Doubly Linked List
 # ---------------------------------------------------------------------------
 
-class Node:
+class DLLNode:
     """Node of a doubly linked list."""
 
     def __init__(self, data):
@@ -291,7 +294,7 @@ class DoublyLinkedList:
 
     def insert_at_beginning(self, data):
         """Insert a new node before the head."""
-        new_node = Node(data)
+        new_node = DLLNode(data)
         new_node.next = self.head
         if self.head is not None:
             self.head.prev = new_node
@@ -301,7 +304,7 @@ class DoublyLinkedList:
 
     def insert_at_end(self, data):
         """Insert a new node after the last node."""
-        new_node = Node(data)
+        new_node = DLLNode(data)
         if self.head is None:
             self.head = new_node
             print("\n✅ Insertion successful.", end="")
@@ -320,7 +323,7 @@ class DoublyLinkedList:
         if position == 0:
             self.insert_at_beginning(data)
             return
-        new_node = Node(data)
+        new_node = DLLNode(data)
         current = self.head
         # Walk to the node currently at the position, stopping if the list ends too early
         for _ in range(position):
@@ -461,7 +464,7 @@ def dll_main():
             # Insertion at the beginning
             case "1":
                 item = utility.input_verify()
-                if item != None:
+                if item is not None:
                     dll.insert_at_beginning(item)
                 else:
                     print("\n🚫 Invalid data type; item not inserted.")
@@ -480,7 +483,7 @@ def dll_main():
                         break
 
                 item = utility.input_verify()
-                if item != None:
+                if item is not None:
                     dll.insert_at_position(index, item)
                 else:
                     print("\n🚫 Invalid data type; item not inserted.")
@@ -488,7 +491,7 @@ def dll_main():
             # Insertion at the end
             case "3":
                 item = utility.input_verify()
-                if item != None:
+                if item is not None:
                     dll.insert_at_end(item)
                 else:
                     print("\n🚫 Invalid data type; item not inserted.")
@@ -526,8 +529,11 @@ def dll_main():
 
             # Searching
             case "9":
-                target = input("\n🤔 Please provide the target element.\n>>> ")
-                dll.search(target)
+                target = utility.input_verify(msg="target element")
+                if target is not None:
+                    dll.search(target)
+                else:
+                    print("\n🚫 Invalid data type; nothing to search for.")
 
             # New linked list
             case "10":
@@ -588,16 +594,18 @@ def linked_list_main():
 
 def ll_intro(condition):
     """Print the ASCII art and definition ("full") or only the definition ("def")."""
-    ll_ascii = """\n
+    ll_ascii = r"""
+
   .---.    .-./`) ,---.   .--..--.   .--.      .-''-.   ______               .---.    .-./`)    .-'''-. ,---------.  
-  | ,_|    \ .-.')|    \  |  ||  | _/  /     .'_ _   \ |    _ `''.           | ,_|    \ .-.')  / _     \\          \ 
+  | ,_|    \ .-.')|    \  |  ||  | _/  /     .'_ _   \ |    _ `''.           | ,_|    \ .-.')  / _     \          \ 
 ,-./  )    / `-' \|  ,  \ |  || (`' ) /     / ( ` )   '| _ | ) _  \        ,-./  )    / `-' \ (`' )/`--' `--.  ,---' 
 \  '_ '`)   `-'`"`|  |\_ \|  ||(_ ()_)     . (_ o _)  ||( ''_'  ) |        \  '_ '`)   `-'`"`(_ o _).       |   \    
  > (_)  )   .---. |  _( )_\  || (_,_)   __ |  (_,_)___|| . (_) `. |         > (_)  )   .---.  (_,_). '.     :_ _:    
 (  .  .-'   |   | | (_ o _)  ||  |\ \  |  |'  \   .---.|(_    ._) '        (  .  .-'   |   | .---.  \  :    (_I_)    
  `-'`-'|___ |   | |  (_,_)\  ||  | \ `'   / \  `-'    /|  (_.\.' /          `-'`-'|___ |   | \    `-'  |   (_(=)_)   
   |        \|   | |  |    |  ||  |  \    /   \       / |       .'            |        \|   |  \       /     (_I_)    
-  `--------`'---' '--'    '--'`--'   `'-'     `'-..-'  '-----'`              `--------`'---'   `-...-'      '---'\n"""
+  `--------`'---' '--'    '--'`--'   `'-'     `'-..-'  '-----'`              `--------`'---'   `-...-'      '---'
+"""
 
     ll_def = """\n🎯 A linked list is a dynamic data structure used to store a collection of elements, called nodes, in a sequential manner. Each node in a linked list contains data and a reference (or link) to the next node, forming a chain. Unlike arrays, linked lists do not require contiguous memory allocation, which allows for efficient insertion and deletion of nodes as there is no need to shift elements. This flexibility makes linked lists suitable for applications where the data size varies dynamically and frequent modifications are required.
 

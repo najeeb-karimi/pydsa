@@ -84,6 +84,9 @@ def stack_main():
                         print("\n🚫 Invalid, the size can only be an integer!️")
                         continue
                     else:
+                        if stack_size < 1:
+                            print("\n🚫 Invalid, the size must be at least 1!")
+                            continue
                         break
 
                 # Initialize and display the stack
@@ -139,8 +142,8 @@ def stack_main():
                 except ValueError:
                     pass
                 else:
-                    type = input("\n🤔 Do you want to add the item as an int or str? Type 1 for int or anything else for str.\n>>> ")
-                    if type == "1":
+                    choice = input("\n🤔 Do you want to add the item as an int or str? Type 1 for int or anything else for str.\n>>> ")
+                    if choice == "1":
                         pass
                     else:
                         item = str(item)
@@ -202,16 +205,18 @@ def stack_main():
 
 def stack_intro(condition):
     """Print the ASCII art and definition ("full") or only the definition ("def")."""
-    stack_ascii = """\n
+    stack_ascii = r"""
+
    .-'''-. ,---------.    ____        _______   .--.   .--.   
-  / _     \\          \ .'  __ `.    /   __  \  |  | _/  /    
+  / _     \          \ .'  __ `.    /   __  \  |  | _/  /    
  (`' )/`--' `--.  ,---'/   '  \  \  | ,_/  \__) | (`' ) /     
 (_ o _).       |   \   |___|  /  |,-./  )       |(_ ()_)      
  (_,_). '.     :_ _:      _.-`   |\  '_ '`)     | (_,_)   __  
 .---.  \  :    (_I_)   .'   _    | > (_)  )  __ |  |\ \  |  | 
 \    `-'  |   (_(=)_)  |  _( )_  |(  .  .-'_/  )|  | \ `'   / 
  \       /     (_I_)   \ (_ o _) / `-'`-'     / |  |  \    /  
-  `-...-'      '---'    '.(_,_).'    `._____.'  `--'   `'-'\n"""
+  `-...-'      '---'    '.(_,_).'    `._____.'  `--'   `'-'
+"""
 
     stack_def = "\n🎯 A stack is a linear data structure that operates on the Last In, First Out (LIFO) principle, akin to a stack of plates where the last plate placed on top is the first one to be removed. It supports two primary operations: push, which adds an element to the top of the stack, and pop, which removes the most recently added element from the top. Additionally, stacks often provide a peek operation to view the top element without removing it, and utility functions to check if the stack is empty or full. This structure is widely used in computer science for tasks such as managing function calls, undo mechanisms in applications, and algorithmic problems like parsing expressions. This program implements a dynamic-typed, fixed-size stack."
 

@@ -131,7 +131,8 @@ def order_verify():
 
 def main_intro():
     """Print the PyDSA banner, welcome message, version, changelog and data structure overview."""
-    print("""\n
+    print(r"""
+
 .-------.  ____     __  ______        .-'''-.    ____     
 \  _(`)_ \ \   \   /  /|    _ `''.   / _     \ .'  __ `.  
 | (_ o._)|  \  _. /  ' | _ | ) _  \ (`' )/`--'/   '  \  \ 
@@ -140,7 +141,9 @@ def main_intro():
 |   |   |   |(_,_)'    |(_    ._) '.---.  \  :.'   _    | 
 |   |   |   `-'  /     |  (_.\.' / \    `-'  ||  _( )_  | 
 /   )    \      /      |       .'   \       / \ (_ o _) / 
-`---'     `-..-'       '-----'`      `-...-'   '.(_,_).'\n\n
+`---'     `-..-'       '-----'`      `-...-'   '.(_,_).'
+
+
 """)
 
     print("💻 Welcome to PyDSA, a console-based Python app that strives to assist you in learning data structures! The app is designed to give you a good tour of the all 7 major DSes, giving you an opportunity to wrap your head around their distinctions while on the go! All interaction with the app is based on typing the related number & letter codes in the terminal.\n")
@@ -150,8 +153,8 @@ def main_intro():
    ★ Including Examples
    ★ Showing Array Sorting Steps
    ★ Bug Fixes, Refactorings & Refinements""")
-    print("""🌐 All the source code & future updates are available in this GitHub repo under MIT license:
-   ★ https://github.com/masi-karimi/pydsa
+    print("""🌐 All the source code & future updates are available in this GitHub repo:
+   ★ https://github.com/najeeb-karimi/pydsa
 """)
 
     print("""🏗️ A data structure is a specialized format for organizing, processing, retrieving, and storing data. It defines the relationship between data and the operations that can be performed on the data. Efficient data structures are crucial for designing efficient algorithms and software systems. They help manage large amounts of data, making it easier to perform tasks such as searching, sorting, and modifying data. Data structures can be classified into various types based on their characteristics and usage, and they play a fundamental role in computer science and programming. Generally, DSes are classified into two parts: Linear & Non-linear.

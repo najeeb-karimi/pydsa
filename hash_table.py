@@ -78,12 +78,12 @@ def chaining_main():
                 # Table size validation loop; the size is the only input needed to create the table
                 while True:
                     size = utility.input_verify("int", "the total number of buckets you want; in other words, the size of the hash table")
-                    if size is not None:
+                    if size is not None and size >= 1:
                         chaining_ht = ChainingHashTable(size)
                         chaining_ht.display()
                         break
                     else:
-                        print("\n🚫 Invalid data type. Hash table size must be an INT.")
+                        print("\n🚫 Invalid data type. Hash table size must be an INT of at least 1.")
                         continue
                 break
 
@@ -140,7 +140,7 @@ def chaining_main():
 
             # Searching
             case "3":
-                key = get_key(text="key that you want to  search for")
+                key = get_key(text="key that you want to search for")
                 result = chaining_ht.lookup(key)
                 print(result)
 
@@ -152,7 +152,6 @@ def chaining_main():
             # New hash table
             case "5":
                 utility.clear()
-                hash_table_intro("full")
                 hash_table_main()
                 break
 
@@ -210,33 +209,37 @@ class LinearProbingHashTable:
         original_index = index
         while self.table[index] is not None:
             if self.table[index][0] == key:
-                return f"\n✅ Key ({key}) found at index {index} with value ({self.table[index][1]})."
+                return f"\n✅ Searching successful. Key ({key}) found at index {index} with value ({self.table[index][1]})."
             index = (index + 1) % self.size
             if index == original_index:
                 break
-        return f"\n❌ Key ({key}) not found."
+        return f"\n❌ Searching successful. Key ({key}) not found."
 
     def delete(self, key):
-        """Delete a key-value pair, print the result and rehash the rest of its cluster."""
+        """Delete a key-value pair, rehash the rest of its cluster and return a status message."""
         index = self.hash_function(key)
         original_index = index
         while self.table[index] is not None:
             if self.table[index][0] == key:
                 self.table[index] = None
-                print(f"\n✅ Deletion successful. Deleted key ({key}) from index {index}.")
-                # Re-insert every following pair in the same cluster, so later lookups don't stop at the new gap
+                # Take out every pair that follows in the same cluster and insert it again,
+                # so later lookups don't stop at the gap left by the deleted pair
+                cluster = []
                 next_index = (index + 1) % self.size
                 while self.table[next_index] is not None:
-                    rehash_key, rehash_value = self.table[next_index]
+                    cluster.append(self.table[next_index])
                     self.table[next_index] = None
-                    print("\n♻️ Rehashing...")
-                    self.insert(rehash_key, rehash_value)
                     next_index = (next_index + 1) % self.size
-                return
+                for rehash_key, rehash_value in cluster:
+                    self.insert(rehash_key, rehash_value)
+                message = f"\n✅ Deletion successful. Deleted key ({key}) from index {index}."
+                if cluster:
+                    message += f"\n♻️ Rehashed {len(cluster)} key(s) from the same cluster."
+                return message
             index = (index + 1) % self.size
             if index == original_index:
                 break
-        print(f"\n❌ Key ({key}) not found, nothing to delete.")
+        return f"\n🚫 Deletion unsuccessful. Key ({key}) not found, nothing to delete."
 
     def display(self):
         """Print the hash table, one slot per line."""
@@ -263,12 +266,12 @@ def linear_probing_main():
                 # Table size validation loop; the size is the only input needed to create the table
                 while True:
                     size = utility.input_verify("int", "the total number of slots you want; in other words, the size of the hash table")
-                    if size is not None:
+                    if size is not None and size >= 1:
                         linear_probing_ht = LinearProbingHashTable(size)
                         linear_probing_ht.display()
                         break
                     else:
-                        print("\n🚫 Invalid data type. Hash table size must be an INT.")
+                        print("\n🚫 Invalid data type. Hash table size must be an INT of at least 1.")
                         continue
                 break
 
@@ -280,6 +283,7 @@ def linear_probing_main():
                 linear_probing_ht.insert("Messi", "10")
                 linear_probing_ht.insert("Apple", 1976)
                 linear_probing_ht.insert(2024, -273.15)
+                print("👇🏻 Here's an example Linear Probing Hash Table:")
                 linear_probing_ht.display()
                 break
 
@@ -317,11 +321,12 @@ def linear_probing_main():
             # Deletion
             case "2":
                 key = get_key(text="key that you want to delete")
-                linear_probing_ht.delete(key)
+                result = linear_probing_ht.delete(key)
+                print(result)
 
             # Searching
             case "3":
-                key = get_key(text="key that you want to  search for")
+                key = get_key(text="key that you want to search for")
                 result = linear_probing_ht.lookup(key)
                 print(result)
 
@@ -333,7 +338,6 @@ def linear_probing_main():
             # New hash table
             case "5":
                 utility.clear()
-                hash_table_intro("full")
                 hash_table_main()
                 break
 
@@ -383,12 +387,13 @@ def hash_table_main():
 
             # Invalid
             case _:
-                print("\n🚫 Invalid representation type code!")
+                print("\n🚫 Invalid collision resolution type code!")
 
 
 def hash_table_intro(condition):
     """Print the ASCII art and definition ("full") or only the definition ("def")."""
-    hash_table_ascii = """\n
+    hash_table_ascii = r"""
+
 .---.  .---.    ____       .-'''-. .---.  .---.         ,---------.    ____     _______     .---.       .-''-.   
 |   |  |_ _|  .'  __ `.   / _     \|   |  |_ _|         \          \ .'  __ `. \  ____  \   | ,_|     .'_ _   \  
 |   |  ( ' ) /   '  \  \ (`' )/`--'|   |  ( ' )          `--.  ,---'/   '  \  \| |    \ | ,-./  )    / ( ` )   ' 
@@ -396,14 +401,15 @@ def hash_table_intro(condition):
 |      (_,_)    _.-`   | (_,_). '. |      (_,_)             :_ _:      _.-`   ||   _ _ '.  > (_)  ) |  (_,_)___| 
 | _ _--.   | .'   _    |.---.  \  :| _ _--.   |             (_I_)   .'   _    ||  ( ' )  \(  .  .-' '  \   .---. 
 |( ' ) |   | |  _( )_  |\    `-'  ||( ' ) |   |            (_(=)_)  |  _( )_  || (_{;}_) | `-'`-'|___\  `-'    / 
-(_{;}_)|   | \ (_ o _) / \       / (_{;}_)|   |             (_I_)   \ (_ o _) /|  (_,_)  /  |        \\       /  
-'(_,_) '---'  '.(_,_).'   `-...-'  '(_,_) '---'             '---'    '.(_,_).' /_______.'   `--------` `'-..-'\n"""
+(_{;}_)|   | \ (_ o _) / \       / (_{;}_)|   |             (_I_)   \ (_ o _) /|  (_,_)  /  |        \       /  
+'(_,_) '---'  '.(_,_).'   `-...-'  '(_,_) '---'             '---'    '.(_,_).' /_______.'   `--------` `'-..-'
+"""
 
-    hash_table_def = """\n🎯 A graph is a non-linear data structure consisting of vertices (nodes) and edges that connect pairs of vertices. Graphs are used to model relationships between entities, making them essential in various fields such as computer science, biology, social networks, and transportation. Graphs can be directed or undirected, weighted or unweighted, and can contain cycles or be acyclic. The versatility of graphs allows them to represent complex structures and relationships, enabling efficient problem-solving and analysis. Graphs can be represented using either an Adjacency Matrix or an Adjacency List.
+    hash_table_def = """\n🎯 A hash table is a non-linear data structure that stores key-value pairs and uses a hash function to turn each key into an index of an underlying array, whose positions are called buckets or slots. Because the index is computed directly from the key, inserting, searching and deleting take O(1) time on average, which makes hash tables ideal for dictionaries, caches, database indexes and symbol tables. When two different keys hash to the same index, a collision occurs, so every hash table needs a collision resolution technique. The two main families are Open Hashing (Separate Chaining) and Closed Hashing (Open Addressing).
 
-🌟 An adjacency matrix is a 2D array used to represent a graph, where the rows and columns correspond to vertices. The element at row (i) and column (j) indicates the presence and weight of an edge between vertices (i) and (j). For an undirected graph, the matrix is symmetric, while for a directed graph, it is not. The adjacency matrix allows for quick edge lookups with a time complexity of O(1), but it requires O(V^2) space, making it more suitable for dense graphs where the number of edges is close to the maximum possible.
+🌟 Separate Chaining stores every entry that hashes to the same index in a secondary structure attached to that bucket, usually a list. Colliding keys are simply added to the bucket's chain, so the table never fills up and can hold more entries than it has buckets. Inserting, searching and deleting take O(1) time on average, but degrade to O(n) in the worst case when many keys land in the same bucket. The trade-off is the extra memory used by the chains.
 
-🌟 An adjacency list represents a graph using an array of lists. Each element in the array corresponds to a vertex, and the list at each index contains the vertices adjacent to that vertex. This representation is more space-efficient for sparse graphs, as it only stores existing edges, resulting in a space complexity of O(V + E). Adjacency lists allow for efficient traversal of the graph, making them ideal for algorithms like Depth-First Search (DFS) and Breadth-First Search (BFS). However, edge lookups can be slower compared to an adjacency matrix, with a time complexity proportional to the degree of the vertex."""
+🌟 Linear Probing is an Open Addressing technique in which every entry is stored directly in one of the table's slots. When a key's home slot is taken, the table checks the next slot, then the next, wrapping around to the start, until it finds an empty one, and lookups follow the same path until they find the key or reach an empty slot. Linear probing is cache-friendly and needs no extra memory, but the table can hold at most as many entries as it has slots, and occupied slots tend to form clusters that make probing slower. Deleting also needs care, since emptying a slot would break the probe path of the keys after it, which is why this program rehashes the rest of the cluster after every deletion."""
 
     if condition == "full":
         print(hash_table_ascii)
@@ -422,7 +428,7 @@ def get_key(text="key"):
     while True:
         key = utility.input_verify(msg=text)
         if key is None:
-            print(f"\n🚫 Invalid data type for the key.")
+            print("\n🚫 Invalid data type for the key.")
             continue
         else:
             return key
@@ -434,7 +440,7 @@ def get_value(text="value"):
     while True:
         value = utility.input_verify(msg=text)
         if value is None:
-            print(f"\n🚫 Invalid data type for the value.")
+            print("\n🚫 Invalid data type for the value.")
             continue
         else:
             return value
