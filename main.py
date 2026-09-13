@@ -6,6 +6,7 @@ import stack
 import queue
 import linked_list
 import tree
+import graph
 
 
 def main():
@@ -72,6 +73,7 @@ def main():
                 while True:
                     choice_2 = input("""\n Which Non-linear Data Structure do you want to learn?
 ★1) Tree
+★2) Graph
 
 ★0) Go Back
 
@@ -81,6 +83,11 @@ def main():
                         # Tree
                         case "1":
                             tree.tree_main()
+                            break
+
+                        # Graph
+                        case "2":
+                            graph.graph_main()
                             break
 
                         # Go back
