@@ -122,18 +122,45 @@ def adj_matrix_main():
     """Create an adjacency matrix graph and run its operation menu."""
     print("\nℹ️ This program implements a Directed Weighted Graph through the Adjacency Matrix representation. If an unweighted graph is desired, the weights can be simply set to 1.")
 
-    # Vertex count validation loop
+    # Creation loop: build a graph from scratch or load the preloaded example
     while True:
-        num_vertices = utility.input_verify("int", "total number of vertices you want in the Adjacency Matrix")
-        if num_vertices != None:
-            adj_matrix = MatrixDirectedWeightedGraph(num_vertices)
-            print(f"\n👇🏻 Here's your Adjacency Matrix with {num_vertices} vertices:")
-            adj_matrix.display()
-            print(f"\n⚠️ Keep in mind that the vertices are identified with integers in the range zero to number of vertices minus 1, which means 0 to {num_vertices - 1} as of now.")
-            break
-        else:
-            print("\n🚫 The number of vertices can only be an INT.")
-            continue
+        example = input("""\n🛠️ Do you want to create an Adjacency Matrix graph yourself or use the preloaded example?
+●1) Create an Adjacency Matrix Graph
+●2) Use the example
+>>> """)
+        match example:
+
+            # Create an adjacency matrix graph
+            case "1":
+                # Vertex count validation loop
+                while True:
+                    num_vertices = utility.input_verify("int", "total number of vertices you want in the Adjacency Matrix")
+                    if num_vertices != None:
+                        adj_matrix = MatrixDirectedWeightedGraph(num_vertices)
+                        print(f"\n👇🏻 Here's your Adjacency Matrix with {num_vertices} vertices:")
+                        adj_matrix.display()
+                        print(f"\n⚠️ Keep in mind that the vertices are identified with integers in the range zero to number of vertices minus 1, which means 0 to {num_vertices - 1} as of now.")
+                        break
+                    else:
+                        print("\n🚫 The number of vertices can only be an INT.")
+                        continue
+                break
+
+            # Use the example
+            case "2":
+                adj_matrix = MatrixDirectedWeightedGraph(4)
+                # Fill the matrix directly instead of calling add_edge(), which prints a message for every edge.
+                # Vertices are identified by their index, so this is the same as adding the edges one by one.
+                adj_matrix.adj_matrix = [[10, 0, 30, 19], [17, 22, 37, 0], [0, 672, 8, 45], [0, 0, 0, 0]]
+                print("\n👇🏻 Here's an example Adjacency Matrix with 4 vertices:")
+                adj_matrix.display()
+                print(f"\n⚠️ Keep in mind that the vertices are identified with integers in the range zero to number of vertices minus 1, which means 0 to 3 as of now.")
+                break
+
+            # Invalid
+            case _:
+                print("\n❌ Invalid code number!")
+                continue
 
     # Operation selection loop
     while True:
@@ -354,9 +381,34 @@ def adj_list_main():
     """Create an adjacency list graph and run its operation menu."""
     print("\nℹ️ This program implements a Directed Weighted Graph through the Adjacency List representation. If an unweighted graph is desired, the weights can be simply set to 1.")
 
-    # The graph starts empty, so vertices have to be added before anything else
-    adj_list = ListDirectedWeightedGraph()
-    print("\n⚠️ Make sure to add vertices through operation #1 before going for other operations.")
+    # Creation loop: build a graph from scratch or load the preloaded example
+    while True:
+        example = input("""\n🛠️ Do you want to create an Adjacency List graph yourself or use the preloaded example?
+●1) Create an Adjacency List Graph
+●2) Use the example
+>>> """)
+        match example:
+
+            # Create an adjacency list graph
+            case "1":
+                # The graph starts empty, so vertices have to be added before anything else
+                adj_list = ListDirectedWeightedGraph()
+                print("\n⚠️ Make sure to add vertices through operation #1 before going for other operations.")
+                break
+
+            # Use the example
+            case "2":
+                adj_list = ListDirectedWeightedGraph()
+                # Fill the adjacency list directly instead of calling add_edge(), which prints a message for every edge
+                adj_list.adj_list = {0: [(0, 10), (2, 30), (3, 19)], 1: [(0, 17), (1, 22), (2, 37)], 2: [(1, 672), (2, 8), (3, 45)], 3: []}
+                print("\n👇🏻 Here's an example Adjacency List Graph:")
+                adj_list.display()
+                break
+
+            # Invalid
+            case _:
+                print("\n❌ Invalid code number!")
+                continue
 
     # Operation selection loop
     while True:

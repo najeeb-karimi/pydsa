@@ -131,21 +131,51 @@ def bst_main():
     """Create a binary search tree and run the BST operation menu."""
     print("\nℹ️ This program implements a BST that allows nodes of the same general data type & allows duplicates on the right subtree of the root.")
 
-    # Type selection loop; the tree holds either numbers or strings
+    # Creation loop: build a tree from scratch or load the preloaded example
     while True:
-        type = input("""\n🤔 Which type of data do you want store in the BST?
+        example = input("""\n🛠️ Do you want to create a BST yourself or use the preloaded example?
+●1) Create a BST
+●2) Use the example
+>>> """)
+        match example:
+
+            # Create a BST
+            case "1":
+                # Type selection loop; the tree holds either numbers or strings
+                while True:
+                    type = input("""\n🤔 Which type of data do you want store in the BST?
 ★1) Numbers (int or float)
 ★2) Strings
 >>> """)
-        match type:
-            case "1":
-                bst = BinarySearchTree("num")
+                    match type:
+                        case "1":
+                            bst = BinarySearchTree("num")
+                            break
+                        case "2":
+                            bst = BinarySearchTree("str")
+                            break
+                        case _:
+                            print("Invalid code number!")
+                            continue
                 break
+
+            # Use the example
             case "2":
-                bst = BinarySearchTree("str")
+                bst = BinarySearchTree("num")
+                bst.insert(50)
+                bst.insert(30)
+                bst.insert(10)
+                bst.insert(20)
+                bst.insert(70)
+                bst.insert(60)
+                bst.insert(80)
+                print("\n✅ Here's an example BST.", end="")
+                print(f"\n👉🏻 {bst.inorder()}\nℹ️ Inorder Traversal")
                 break
+
+            # Invalid
             case _:
-                print("Invalid code number!")
+                print("\n❌ Invalid code number!")
                 continue
 
     # Operation selection loop
@@ -472,21 +502,51 @@ def avl_main():
     """Create an AVL tree and run the AVL operation menu."""
     print("\nℹ️ This program implements an AVL that allows nodes of the same general data type & allows duplicates on the right subtree of the root.")
 
-    # Type selection loop; the tree holds either numbers or strings
+    # Creation loop: build a tree from scratch or load the preloaded example
     while True:
-        type = input("""\n🤔 Which type of data do you want store in the AVL?
+        example = input("""\n🛠️ Do you want to create an AVL tree yourself or use the preloaded example?
+●1) Create an AVL tree
+●2) Use the example
+>>> """)
+        match example:
+
+            # Create an AVL tree
+            case "1":
+                # Type selection loop; the tree holds either numbers or strings
+                while True:
+                    type = input("""\n🤔 Which type of data do you want store in the AVL?
 ★1) Numbers (int or float)
 ★2) Strings
 >>> """)
-        match type:
-            case "1":
-                avl = AVLTree("num")
+                    match type:
+                        case "1":
+                            avl = AVLTree("num")
+                            break
+                        case "2":
+                            bst = AVLTree("str")
+                            break
+                        case _:
+                            print("Invalid code number!")
+                            continue
                 break
+
+            # Use the example
             case "2":
-                bst = AVLTree("str")
+                avl = AVLTree("num")
+                avl.insert(50)
+                avl.insert(30)
+                avl.insert(10)
+                avl.insert(20)
+                avl.insert(70)
+                avl.insert(60)
+                avl.insert(80)
+                print("\n✅ Here's an example AVL.", end="")
+                print(f"\n👉🏻 {avl.inorder()}\nℹ️ Inorder Traversal")
                 break
+
+            # Invalid
             case _:
-                print("Invalid code number!")
+                print("\n❌ Invalid code number!")
                 continue
 
     # Operation selection loop

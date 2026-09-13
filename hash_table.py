@@ -65,16 +65,46 @@ class ChainingHashTable:
 def chaining_main():
     """Create a separate chaining hash table and run its operation menu."""
 
-    # Table size validation loop; the size is the only input needed to create the table
+    # Creation loop: build a hash table from scratch or load the preloaded example
     while True:
-        size = utility.input_verify("int", "the total number of buckets you want; in other words, the size of the hash table")
-        if size is not None:
-            chaining_ht = ChainingHashTable(size)
-            chaining_ht.display()
-            break
-        else:
-            print("\n🚫 Invalid data type. Hash table size must be an INT.")
-            continue
+        example = input("""\n🛠️ Do you want to create a hash table yourself or use the preloaded example?
+●1) Create a hash table
+●2) Use the example
+>>> """)
+        match example:
+
+            # Create a hash table
+            case "1":
+                # Table size validation loop; the size is the only input needed to create the table
+                while True:
+                    size = utility.input_verify("int", "the total number of buckets you want; in other words, the size of the hash table")
+                    if size is not None:
+                        chaining_ht = ChainingHashTable(size)
+                        chaining_ht.display()
+                        break
+                    else:
+                        print("\n🚫 Invalid data type. Hash table size must be an INT.")
+                        continue
+                break
+
+            # Use the example
+            case "2":
+                chaining_ht = ChainingHashTable(5)
+                # The table can't be filled in directly: Python's hash() for strings changes between runs,
+                # so the keys land in different buckets each time and hard-coded positions would be wrong
+                chaining_ht.insert("Messi", "10")
+                chaining_ht.insert("Apple", 1976)
+                chaining_ht.insert(2024, -273.15)
+                chaining_ht.insert("UFO", "Roswell, NM")
+                # Display the example hash table
+                print("👇🏻 Here's an example Chaining Hash Table:")
+                chaining_ht.display()
+                break
+
+            # Invalid
+            case _:
+                print("\n❌ Invalid code number!")
+                continue
 
     # Operation selection loop
     while True:
@@ -220,16 +250,43 @@ class LinearProbingHashTable:
 def linear_probing_main():
     """Create a linear probing hash table and run its operation menu."""
 
-    # Table size validation loop; the size is the only input needed to create the table
+    # Creation loop: build a hash table from scratch or load the preloaded example
     while True:
-        size = utility.input_verify("int", "the total number of slots you want; in other words, the size of the hash table")
-        if size is not None:
-            linear_probing_ht = LinearProbingHashTable(size)
-            linear_probing_ht.display()
-            break
-        else:
-            print("\n🚫 Invalid data type. Hash table size must be an INT.")
-            continue
+        example = input("""\n🛠️ Do you want to create a hash table yourself or use the preloaded example?
+●1) Create a hash table
+●2) Use the example
+>>> """)
+        match example:
+
+            # Create a hash table
+            case "1":
+                # Table size validation loop; the size is the only input needed to create the table
+                while True:
+                    size = utility.input_verify("int", "the total number of slots you want; in other words, the size of the hash table")
+                    if size is not None:
+                        linear_probing_ht = LinearProbingHashTable(size)
+                        linear_probing_ht.display()
+                        break
+                    else:
+                        print("\n🚫 Invalid data type. Hash table size must be an INT.")
+                        continue
+                break
+
+            # Use the example
+            case "2":
+                linear_probing_ht = LinearProbingHashTable(5)
+                # The table can't be filled in directly: Python's hash() for strings changes between runs,
+                # so the keys land in different slots each time and hard-coded positions would be wrong
+                linear_probing_ht.insert("Messi", "10")
+                linear_probing_ht.insert("Apple", 1976)
+                linear_probing_ht.insert(2024, -273.15)
+                linear_probing_ht.display()
+                break
+
+            # Invalid
+            case _:
+                print("\n❌ Invalid code number!")
+                continue
 
     # Operation selection loop
     while True:
