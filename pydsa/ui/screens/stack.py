@@ -4,13 +4,9 @@ from pydsa.content import complexity, texts
 from pydsa.core.errors import CapacityError, EmptyError
 from pydsa.core.stack import Stack
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, ask_item, error, plural, result, success
+from pydsa.ui.console import ask_int, ask_item, error, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
-
-
-def yes_no(value):
-    return "Yes" if value else "No"
 
 
 def run():

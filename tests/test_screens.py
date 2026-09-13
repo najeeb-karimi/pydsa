@@ -2,7 +2,7 @@
 
 import pytest
 
-from pydsa import app
+from pydsa import __version__, app
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ def play(monkeypatch, capsys):
 
 def test_home_navigation(play):
     out = play("7", "1", "0", "2", "9", "0", "0")
-    assert "⏳ Version 3.1" in out
+    assert f"⏳ Version {__version__}" in out
     assert out.count("🚫 Invalid choice.") == 2
     assert "🧭 Which non-linear data structure" in out
     assert "Goodbye!" in out
@@ -113,9 +113,36 @@ def test_queue(play):
     assert "Struck-out items" in out
 
 
+def test_deque(play):
+    out = play(
+        "1", "4", "1", "2",  # Linear > Deque > Create with room for 2 items
+        "4", "6", "8",  # Pop front, peek front and check if empty on an empty deque
+        "2", "a",  # Push 'a' onto the front
+        "3", "7", "1",  # Push 7 onto the back as an int
+        "3", "x",  # The deque is full
+        "6", "7", "9", "10", "11",
+        "5", "4",  # Pop back, then pop front
+        "12", "2",  # New Deque with the example
+        "13", "0",
+    )
+    assert "The deque is empty, so there's nothing to pop." in out
+    assert "The deque is empty, so there's nothing to peek at." in out
+    assert "Is the deque empty? Yes." in out
+    assert "Pushed 'a' onto the front." in out
+    assert "Pushed 7 onto the back." in out
+    assert "The deque is full, so 'x' wasn't pushed." in out
+    assert "The front item is 'a'." in out
+    assert "The back item is 7." in out
+    assert "Is the deque full? Yes." in out
+    assert "The deque holds 2 of 2 items." in out
+    assert "Popped 7 from the back." in out
+    assert "Popped 'a' from the front." in out
+    assert "Pushing 2.5 onto the front wrapped it around to the last slot." in out
+
+
 def test_linked_lists(play):
     out = play(
-        "1", "4", "1", "1",  # Linear > Linked List > Singly > Start empty
+        "1", "5", "1", "1",  # Linear > Linked List > Singly > Start empty
         "5", "9",  # Delete from and display an empty list
         "2", "2", "x", "10",  # Insert at beginning: an invalid int, then 10
         "4", "1", "b",  # Insert at end
@@ -141,6 +168,34 @@ def test_linked_lists(play):
     assert "Deleted 'b' from the end." in out
     assert "│ 2.5 │ → None" in out
     assert "│ 2.5 │ ⇄ │ 'Messi' │ ⇄ │ 10 │ → None" in out
+
+
+def test_circular_linked_lists(play):
+    out = play(
+        "1", "5", "3", "1",  # Linear > Linked List > Singly Circular > Start empty
+        "10",  # Walking an empty list
+        "4", "1", "a", "4", "1", "b",  # Insert 'a' and 'b' at the end
+        "2", "2", "1",  # Insert 1 at the beginning
+        "3", "3", "1", "c",  # Insert 'c' at position 3, the end
+        "7", "6", "1",  # Delete from the end, then from position 1
+        "10", "5",  # Walk 5 nodes around a 2-node loop
+        "9",
+        "11", "4", "2",  # New Linked List: the doubly circular example
+        "11", "2", "4",  # Walk 4 nodes backward
+        "10",  # Display backward
+        "13", "0",
+    )
+    assert "The list is empty, so there's nothing to walk around." in out
+    assert "Inserted 'a' at the end." in out
+    assert "Inserted 1 at the beginning." in out
+    assert "Inserted 'c' at position 3." in out
+    assert "Deleted 'c' from the end." in out
+    assert "Deleted 'a' from position 1." in out
+    assert "Visited 5 nodes starting from the head: 1 → 'b' → 1 → 'b' → 1" in out
+    assert "the walk went around the loop more than once" in out
+    assert "│ 1 │ → │ 'b' │ → back to the head" in out
+    assert "Visited 4 nodes starting from the tail: 2.5 → 'Messi' → 10 → 2.5" in out
+    assert "│ 2.5 │ ⇄ │ 'Messi' │ ⇄ │ 10 │ ⇄ back to the tail" in out
 
 
 def test_trees(play):
@@ -229,3 +284,54 @@ def test_hash_tables(play):
     assert "Rehashed 2 keys from the same cluster" in out
     assert "Key 5 isn't in the table, so nothing was deleted." in out
     assert "Separate Chaining Hash Table" in out
+
+
+def test_hash_sets(play):
+    out = play(
+        "2", "3", "3", "1", "3",  # Non-linear > Hash Table > Hash Set > Create two sets with 3 buckets
+        "2", "1", "2", "1", "2", "1", "2", "2", "2", "1", "1", "x",  # Add 1, 2 and 'x' to A
+        "2", "2", "2", "2", "2", "2", "1", "x",  # Add 2 and 'x' to B
+        "2", "1", "2", "1",  # A already has 1
+        "3", "2", "2", "9", "3", "2", "2", "2",  # Remove 9 (missing) and 2 from B
+        "4", "1", "x",
+        "5", "6", "7", "1", "7", "2", "8",
+        "9", "11", "0",
+    )
+    assert "Created two empty sets, A and B, with 3 buckets each." in out
+    assert "Added 1 to set A." in out
+    assert "1 is already in set A, so nothing changed." in out
+    assert "9 isn't in set B, so nothing was removed." in out
+    assert "Removed 2 from set B." in out
+    assert "Is 'x' in set A? Yes. Is it in set B? Yes." in out
+    assert "A ∪ B = {1, 2, 'x'}" in out
+    assert "A ∩ B = {'x'}" in out
+    assert "A − B = {1, 2}" in out
+    assert "B − A = ∅ (the empty set)" in out
+    assert "Is A a subset of B (A ⊆ B)? No." in out
+    assert "Is B a subset of A (B ⊆ A)? Yes." in out
+    assert "A = {1, 2, 'x'}" in out
+
+
+def test_disjoint_sets(play):
+    out = play(
+        "2", "4", "1", "x", "5",  # Non-linear > Disjoint Set > Create with 5 elements after an invalid size
+        "2", "0", "1", "2", "2", "3", "2", "1", "3",  # Union 0 and 1, 2 and 3, then 1 and 3
+        "3", "3",  # Find 3, which compresses its path
+        "2", "0", "3",  # Already in the same set
+        "4", "1", "4",
+        "2", "4", "9",  # Missing element
+        "5", "6",
+        "7", "2",  # New Disjoint Set with the example
+        "8", "0",
+    )
+    assert "The number of elements must be a whole number." in out
+    assert "Created a disjoint set of 5 elements, numbered 0 to 4, each in a set of its own." in out
+    assert "Merged the sets of 0 and 1. Their root is now 0." in out
+    assert "Merged the sets of 1 and 3. Their root is now 0." in out
+    assert "The root of 3 is 0." in out
+    assert "Path compression pointed 1 element straight at the root." in out
+    assert "0 and 3 are already in the same set, so nothing changed." in out
+    assert "Are 1 and 4 connected? No." in out
+    assert "Element 9 doesn't exist. Valid elements are 0 to 4." in out
+    assert "2 sets" in out and "{0, 1, 2, 3}" in out
+    assert "Loaded the example" in out

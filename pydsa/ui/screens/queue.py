@@ -4,10 +4,13 @@ from pydsa.content import complexity, texts
 from pydsa.core.errors import CapacityError, EmptyError
 from pydsa.core.queue import Queue
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, ask_item, error, plural, result, success
+from pydsa.ui.console import ask_int, ask_item, error, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
-from pydsa.ui.screens.stack import yes_no
+
+
+def show(queue):
+    render.circular_slots(queue, {"front": queue.front, "rear": queue.rear})
 
 
 def run():
@@ -28,7 +31,7 @@ def run():
         ("Check if Empty", lambda: result(f"Is the queue empty? {yes_no(queue.is_empty())}.")),
         ("Check if Full", lambda: result(f"Is the queue full? {yes_no(queue.is_full())}.")),
         ("Size", lambda: result(f"The queue holds {len(queue)} of {plural(queue.capacity, 'item')}.")),
-        ("Display", lambda: render.queue(queue)),
+        ("Display", lambda: show(queue)),
     ], definition=lambda: render.definition(texts.QUEUE_DEFINITION, complexity.QUEUE), new_label="New Queue").run()
 
 
@@ -37,7 +40,7 @@ def create():
     capacity = ask_int("↔️ How many items should the queue be able to hold?", "size", min_value=1)
     queue = Queue(capacity)
     success(f"Created an empty queue that holds up to {plural(capacity, 'item')}.")
-    render.queue(queue)
+    show(queue)
     return queue
 
 
@@ -48,7 +51,7 @@ def example():
         queue.enqueue(item)
     queue.dequeue()
     success("Loaded the example queue. Its first item, 10, was already dequeued.")
-    render.queue(queue)
+    show(queue)
     return queue
 
 
@@ -60,7 +63,7 @@ def enqueue(queue):
         error(f"The queue is full, so {fmt(item)} wasn't enqueued.")
         return
     success(f"Enqueued {fmt(item)} at the rear.")
-    render.queue(queue)
+    show(queue)
 
 
 def dequeue(queue):
@@ -70,7 +73,7 @@ def dequeue(queue):
         error("The queue is empty, so there's nothing to dequeue.")
         return
     success(f"Dequeued {fmt(item)} from the front.")
-    render.queue(queue)
+    show(queue)
 
 
 def peek(get_item, end):

@@ -1,26 +1,29 @@
-"""Linked list screen: singly and doubly linked lists."""
+"""Linked list screen: singly, doubly, singly circular and doubly circular linked lists."""
 
 from typing import NamedTuple
 
 from pydsa.content import complexity, texts
 from pydsa.core.errors import EmptyError, OutOfBoundsError
-from pydsa.core.linked_list import DoublyLinkedList, SinglyLinkedList
+from pydsa.core.linked_list import DoublyCircularLinkedList, DoublyLinkedList, SinglyCircularLinkedList, SinglyLinkedList
 from pydsa.ui import render
-from pydsa.ui.console import ask_int, ask_value, error, not_found, success
+from pydsa.ui.console import ask_int, ask_value, error, info, not_found, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
 
 
 class ListKind(NamedTuple):
-    """The class and name of one kind of linked list."""
+    """The class and shape of one kind of linked list."""
 
     list_class: type
     name: str
     doubly: bool
+    circular: bool
 
 
-SINGLY = ListKind(SinglyLinkedList, "singly linked list", False)
-DOUBLY = ListKind(DoublyLinkedList, "doubly linked list", True)
+SINGLY = ListKind(SinglyLinkedList, "singly linked list", False, False)
+DOUBLY = ListKind(DoublyLinkedList, "doubly linked list", True, False)
+SINGLY_CIRCULAR = ListKind(SinglyCircularLinkedList, "singly circular linked list", False, True)
+DOUBLY_CIRCULAR = ListKind(DoublyCircularLinkedList, "doubly circular linked list", True, True)
 
 EXAMPLE_ITEMS = [10, "Messi", 2.5]
 
@@ -33,7 +36,7 @@ def run():
     """Show the linked list intro, let the user pick a kind of list and run its menu."""
     render.intro(texts.LINKED_LIST_ASCII, texts.LINKED_LIST_DEFINITION, complexity.LINKED_LIST)
     return Menu("🧪 Which type of linked list do you want?", [
-        [("Singly Linked List", lambda: list_menu(SINGLY)), ("Doubly Linked List", lambda: list_menu(DOUBLY))],
+        [(kind.name.title(), lambda kind=kind: list_menu(kind)) for kind in (SINGLY, DOUBLY, SINGLY_CIRCULAR, DOUBLY_CIRCULAR)],
         [back_option()],
     ]).open()
 
@@ -48,17 +51,9 @@ def list_menu(kind):
         return Nav.BACK
 
     def show():
-        render.linked_list(list(linked_list), doubly=kind.doubly)
+        render.linked_list(list(linked_list), doubly=kind.doubly, circular=kind.circular)
 
-    if kind.doubly:
-        displays = [
-            ("Display Forward", show),
-            ("Display Backward", lambda: render.linked_list(linked_list.backward(), doubly=True, backward=True)),
-        ]
-    else:
-        displays = [("Display", show)]
-
-    return operation_menu(kind.name, [
+    operations = [
         ("Insert at Beginning", lambda: insert(linked_list, show, "beginning")),
         ("Insert at Position", lambda: insert(linked_list, show, "position")),
         ("Insert at End", lambda: insert(linked_list, show, "end")),
@@ -66,8 +61,19 @@ def list_menu(kind):
         ("Delete from Position", lambda: delete(linked_list, show, "position")),
         ("Delete from End", lambda: delete(linked_list, show, "end")),
         ("Search", lambda: search(linked_list)),
-        *displays,
-    ], definition=show_definition, new_label="New Linked List").run()
+    ]
+    if kind.doubly:
+        operations += [
+            ("Display Forward", show),
+            ("Display Backward", lambda: render.linked_list(linked_list.backward(), doubly=True,
+                                                            circular=kind.circular, backward=True)),
+        ]
+    else:
+        operations.append(("Display", show))
+    if kind.circular:
+        operations.append(("Walk Around the Loop", lambda: walk(linked_list, kind)))
+
+    return operation_menu(kind.name, operations, definition=show_definition, new_label="New Linked List").run()
 
 
 def create(kind):
@@ -80,7 +86,7 @@ def example(kind):
     for item in EXAMPLE_ITEMS:
         linked_list.insert_at_end(item)
     success(f"Loaded the example {kind.name}.")
-    render.linked_list(list(linked_list), doubly=kind.doubly)
+    render.linked_list(list(linked_list), doubly=kind.doubly, circular=kind.circular)
     return linked_list
 
 
@@ -137,3 +143,25 @@ def search(linked_list):
         not_found(f"{fmt(target)} isn't in the list.")
     else:
         success(f"Found {fmt(target)} at position {position}.")
+
+
+def walk(linked_list, kind):
+    """Visit a chosen number of nodes around a circular list, in either direction for a doubly circular list."""
+    if linked_list.is_empty():
+        error("The list is empty, so there's nothing to walk around.")
+        return
+    backward = False
+    if kind.doubly:
+        backward = Menu("↔️ Which way do you want to walk?", [
+            [("Forward, following the next links", lambda: False),
+             ("Backward, following the prev links", lambda: True)],
+            [back_option()],
+        ]).select()
+        if backward is Nav.BACK:
+            return
+    steps = ask_int("🔢 How many nodes do you want to visit?", "number of nodes", min_value=1)
+    items = linked_list.walk(steps, backward=backward) if kind.doubly else linked_list.walk(steps)
+    start = "tail" if backward else "head"
+    result(f"Visited {plural(steps, 'node')} starting from the {start}: {' → '.join(fmt(item) for item in items)}")
+    if steps > len(linked_list):
+        info(f"The list only has {plural(len(linked_list), 'node')}, so the walk went around the loop more than once.")

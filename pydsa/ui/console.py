@@ -36,6 +36,11 @@ def plural(count, singular, plural_form=None):
     return f"{count} {word}"
 
 
+def yes_no(value):
+    """Return "Yes" or "No" for a boolean answer."""
+    return "Yes" if value else "No"
+
+
 # ---------------------------------------------------------------------------
 # Status messages
 # ---------------------------------------------------------------------------

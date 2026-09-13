@@ -5,6 +5,7 @@ User data always goes into Text objects, so brackets in a value are never read a
 
 from rich import box
 from rich.cells import cell_len
+from rich.columns import Columns
 from rich.measure import Measurement
 from rich.panel import Panel
 from rich.table import Table
@@ -53,6 +54,12 @@ def _panel(text, title, style="info"):
 
 def _table(title=None, **options):
     return Table(title=title, title_justify="left", title_style="title", header_style="muted", **options)
+
+
+def _fits(table):
+    """Return True if table fits the terminal at the width it really needs."""
+    # Measure without the terminal's width limit, which would otherwise squeeze the table to fit
+    return Measurement.get(console, console.options.update(width=10_000), table).maximum <= console.width
 
 
 # ---------------------------------------------------------------------------
@@ -112,7 +119,7 @@ def goodbye():
 
 
 # ---------------------------------------------------------------------------
-# Arrays, stacks and queues
+# Arrays, stacks, queues and deques
 # ---------------------------------------------------------------------------
 
 def _slots(cells, markers=None):
@@ -124,9 +131,7 @@ def _slots(cells, markers=None):
     for index in range(len(cells)):
         wide.add_column(str(index), footer=markers[index] if markers else "", justify="center", no_wrap=True)
     wide.add_row(*cells)
-    # Measure without the terminal's width limit to get the width the table really needs
-    natural_width = Measurement.get(console, console.options.update(width=10_000), wide).maximum
-    if natural_width <= console.width:
+    if _fits(wide):
         return wide
 
     tall = Table(box=box.SQUARE, header_style="muted")
@@ -162,23 +167,27 @@ def stack(stack):
     show(table)
 
 
-def queue(queue):
-    """Show every slot of a circular queue with front and rear markers; dequeued leftovers are struck out."""
+def circular_slots(buffer, ends):
+    """Show every slot of a circular array (a queue or deque) with markers for its ends.
+
+    ends maps a marker name, such as "front", to the slot it marks. Items that were already removed
+    but not yet overwritten are struck out.
+    """
     cells, markers = [], []
     leftovers = False
-    for index, slot in enumerate(queue.slots):
-        if queue.is_live(index):
+    for index, slot in enumerate(buffer.slots):
+        if buffer.is_live(index):
             cells.append(Text(fmt(slot)))
         elif slot is None:
             cells.append(Text("empty", style="muted"))
         else:
             leftovers = True
             cells.append(Text(strike(fmt(slot)), style="muted"))
-        ends = [] if queue.is_empty() else [name for name, at in (("front", queue.front), ("rear", queue.rear)) if at == index]
-        markers.append("/".join(ends))
+        names = [] if buffer.is_empty() else [name for name, at in ends.items() if at == index]
+        markers.append("/".join(names))
     show(_slots(cells, markers))
     if leftovers:
-        note("Struck-out items were already dequeued; their slots are free to reuse.")
+        note("Struck-out items were already removed; their slots are free to reuse.")
 
 
 def sorting_steps(items, steps):
@@ -237,18 +246,26 @@ def _link(arrow):
     return Text(padding), Text(arrow, style="accent"), Text(padding)
 
 
-def linked_list(items, doubly=False, backward=False):
-    """Show linked list items as boxed nodes joined by arrows, wrapping onto more rows when needed."""
+def linked_list(items, doubly=False, circular=False, backward=False):
+    """Show linked list items as boxed nodes joined by arrows, wrapping onto more rows when needed.
+
+    A circular list ends with an arrow back to where the reading started; backward means the items run
+    from the tail to the head.
+    """
     if not items:
         info("The list is empty.")
         return
 
-    pieces = [_link("None ← ")] if doubly else []
+    arrow = " ⇄ " if doubly else " → "
+    pieces = [_link("None ← ")] if doubly and not circular else []
     for position, item in enumerate(items):
         if position:
-            pieces.append(_link(" ⇄ " if doubly else " → "))
+            pieces.append(_link(arrow))
         pieces.append(_node(fmt(item)))
-    pieces.append(_link(" → None"))
+    if circular:
+        pieces.append(_link(f"{arrow}back to the {'tail' if backward else 'head'}"))
+    else:
+        pieces.append(_link(" → None"))
 
     rows, width = [[]], 0
     for piece in pieces:
@@ -266,7 +283,8 @@ def linked_list(items, doubly=False, backward=False):
     if backward:
         note("Read from the tail back to the head by following the prev links.")
     else:
-        note(f"{plural(len(items), 'node')}, from the head on the left to the tail on the right.")
+        loop = ", and the tail links back to the head" if circular else ""
+        note(f"{plural(len(items), 'node')}, from the head on the left to the tail on the right{loop}.")
 
 
 # ---------------------------------------------------------------------------
@@ -329,7 +347,7 @@ def adjacency_list(adj_list):
 
 
 # ---------------------------------------------------------------------------
-# Hash tables
+# Hash tables and hash sets
 # ---------------------------------------------------------------------------
 
 def chaining_table(table):
@@ -358,3 +376,65 @@ def probing_table(table):
             grid.add_row(str(index), Text(fmt(key)), Text(fmt(value)), str(table.hash_function(key)))
     show(grid)
     note("The home slot is where a key's hash points; a key that collided sits further along.")
+
+
+def set_items(items):
+    """Return items in set notation, with numbers before strings and each group sorted."""
+    ordered = sorted(items, key=lambda item: (isinstance(item, str), item))
+    return "{" + ", ".join(fmt(item) for item in ordered) + "}" if ordered else "∅ (the empty set)"
+
+
+def hash_sets(sets):
+    """Show the buckets of each named hash set side by side, then every set in set notation."""
+    tables = []
+    for name, hash_set in sets.items():
+        grid = _table(f"Set {name}", box=box.SQUARE)
+        grid.add_column("Bucket", justify="right", style="code")
+        grid.add_column("Items")
+        for index, bucket in enumerate(hash_set.table.table):
+            chain = " → ".join(fmt(item) for item, _ in bucket)
+            grid.add_row(str(index), Text(chain) if bucket else Text("empty", style="muted"))
+        tables.append(grid)
+    show(Columns(tables, padding=(0, 4)))
+    for name, hash_set in sets.items():
+        note(f"{name} = {set_items(hash_set)}")
+
+
+# ---------------------------------------------------------------------------
+# Disjoint sets
+# ---------------------------------------------------------------------------
+
+def disjoint_set(union_find):
+    """Show the parent and rank arrays of a disjoint set, then the sets they describe."""
+    title = "Parent and Rank Arrays"
+    table = _table(title, box=box.SQUARE)
+    table.add_column("Element", justify="right", style="muted")
+    for element in range(len(union_find)):
+        table.add_column(str(element), justify="center")
+    table.add_row("Parent", *(Text(str(parent), style="code" if parent == element else "")
+                              for element, parent in enumerate(union_find.parent)))
+    table.add_row("Rank", *(str(rank) for rank in union_find.rank))
+
+    if not _fits(table):
+        table = _table(title, box=box.SQUARE)
+        for column in ("Element", "Parent", "Rank"):
+            table.add_column(column, justify="right")
+        for element, (parent, rank) in enumerate(zip(union_find.parent, union_find.rank)):
+            table.add_row(str(element), Text(str(parent), style="code" if parent == element else ""), str(rank))
+
+    show(table)
+    note("A root is its own parent, and a root's rank is an upper bound on the height of its tree.")
+    disjoint_sets(union_find)
+
+
+def disjoint_sets(union_find):
+    """Show every set of a disjoint set with its root and members."""
+    groups = union_find.groups()
+    table = _table(plural(len(groups), "set").capitalize(), box=box.SQUARE)
+    table.add_column("Root", justify="right", style="code")
+    table.add_column("Members")
+    table.add_column("Size", justify="right", style="muted")
+    for root in sorted(groups):
+        members = groups[root]
+        table.add_row(str(root), Text("{" + ", ".join(str(member) for member in members) + "}"), str(len(members)))
+    show(table)

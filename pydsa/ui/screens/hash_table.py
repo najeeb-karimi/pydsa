@@ -1,4 +1,4 @@
-"""Hash table screen: separate chaining and linear probing."""
+"""Hash table screen: separate chaining, linear probing and the hash set built on chaining."""
 
 from typing import Callable, NamedTuple
 
@@ -9,6 +9,7 @@ from pydsa.ui import render
 from pydsa.ui.console import ask_int, ask_value, error, info, not_found, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
+from pydsa.ui.screens import hash_set
 
 
 class TableKind(NamedTuple):
@@ -32,11 +33,12 @@ def show_definition():
 
 
 def run():
-    """Show the hash table intro, let the user pick a collision resolution technique and run its menu."""
+    """Show the hash table intro, let the user pick a kind of hash table and run its menu."""
     render.intro(texts.HASH_TABLE_ASCII, texts.HASH_TABLE_DEFINITION, complexity.HASH_TABLE)
-    return Menu("🧪 Which collision resolution technique do you want?", [
+    return Menu("🧪 Which kind of hash table do you want?", [
         [("Separate Chaining (Open Hashing)", lambda: table_menu(CHAINING)),
-         ("Linear Probing (Open Addressing)", lambda: table_menu(PROBING))],
+         ("Linear Probing (Open Addressing)", lambda: table_menu(PROBING)),
+         ("Hash Set (built on separate chaining)", hash_set.run)],
         [back_option()],
     ]).open()
 

@@ -22,13 +22,13 @@ BANNER = r"""
 
 """
 
-WELCOME = "Welcome to PyDSA, a console-based Python app that strives to assist you in learning data structures! The app is designed to give you a good tour of all 7 major DSes, giving you an opportunity to wrap your head around their distinctions while on the go! All interaction with the app is based on typing the related number codes in the terminal."
+WELCOME = "Welcome to PyDSA, a console-based Python app that strives to assist you in learning data structures! The app is designed to give you a good tour of the major DSes, giving you an opportunity to wrap your head around their distinctions while on the go! All interaction with the app is based on typing the related number codes in the terminal."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ Colorful Tables, Panels & Diagrams
-   ★ Complexity Tables for Every Data Structure
-   ★ Consistent Menus, Messages & Emojis
-   ★ Invalid Values Are Asked Again"""
+   ★ Deque (Double-Ended Queue)
+   ★ Singly & Doubly Circular Linked Lists
+   ★ Hash Set with Union, Intersection & Difference
+   ★ Disjoint Set (Union-Find)"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""
@@ -113,6 +113,25 @@ QUEUE_ASCII = r"""
 """
 
 QUEUE_DEFINITION = "A queue is a linear data structure that adheres to the First In, First Out (FIFO) principle, much like customers waiting in line where the first person in line is the first to be served. It supports two primary operations: enqueue, which adds an element to the end of the queue, and dequeue, which removes the element from the front. This structure is essential in various computing scenarios, such as task scheduling, data processing, and resource management, due to its ability to maintain order in processing tasks or data. Queues are implemented in software using arrays or linked lists and are integral in algorithms that require sequential data processing, ensuring that elements are handled in the exact order they were added. PyDSA implements a fixed-size circular queue that accepts items of any type."
+
+# ---------------------------------------------------------------------------
+# Deque
+# ---------------------------------------------------------------------------
+
+DEQUE_ASCII = r"""
+
+ ______         .-''-.      ,-----.      ___    _     .-''-.
+|    _ `''.   .'_ _   \   .'  .-,  '.  .'   |  | |  .'_ _   \
+| _ | ) _  \ / ( ` )   ' / ,-.|  \ _ \ |   .'  | | / ( ` )   '
+|( ''_'  ) |. (_ o _)  |;  \  '_ /  | :.'  '_  | |. (_ o _)  |
+| . (_) `. ||  (_,_)___||  _`,/ \ _/  |'   ( \.-.||  (_,_)___|
+|(_    ._) ''  \   .---.: (  '\_/ \   ;' (`. _` /|'  \   .---.
+|  (_.\.' /  \  `-'    / \ `"/  \  )  \| (_ (_) _) \  `-'    /
+|       .'    \       /   '. \_/``"/)  )\ /  . \ /  \       /
+'-----'`       `'-..-'      '-----' `-'  ``-'`-''    `'-..-'
+"""
+
+DEQUE_DEFINITION = """A deque (pronounced "deck"), short for double-ended queue, is a linear data structure that lets you add and remove elements at both ends: the front and the back. It combines the abilities of a stack and a queue, since pushing and popping at the same end gives Last In, First Out (LIFO) behavior, while pushing at one end and popping at the other gives First In, First Out (FIFO) behavior. Deques are used for undo and redo histories, sliding window algorithms, schedulers that take tasks from either end, and palindrome checks. When a deque is stored in a circular array, both ends can wrap around the array, so every push, pop and peek takes O(1) time without shifting any elements. PyDSA implements a fixed-size circular deque that accepts items of any type."""
 
 # ---------------------------------------------------------------------------
 # Linked list
@@ -222,3 +241,49 @@ HASH_TABLE_DEFINITION = """A hash table is a non-linear data structure that stor
 🌟 Linear Probing is an Open Addressing technique in which every entry is stored directly in one of the table's slots. When a key's home slot is taken, the table checks the next slot, then the next, wrapping around to the start, until it finds an empty one, and lookups follow the same path until they find the key or reach an empty slot. Linear probing is cache-friendly and needs no extra memory, but the table can hold at most as many entries as it has slots, and occupied slots tend to form clusters that make probing slower. Deleting also needs care, since emptying a slot would break the probe path of the keys after it, which is why PyDSA rehashes the rest of the cluster after every deletion."""
 
 CHAINING_INFO = "Separate chaining keeps colliding keys in lists, so the table never fills up and you don't need to worry about running out of space."
+
+# ---------------------------------------------------------------------------
+# Hash set
+# ---------------------------------------------------------------------------
+
+HASH_SET_ASCII = r"""
+
+.---.  .---.    ____       .-'''-. .---.  .---.            .-'''-.     .-''-. ,---------.
+|   |  |_ _|  .'  __ `.   / _     \|   |  |_ _|           / _     \  .'_ _   \\          \
+|   |  ( ' ) /   '  \  \ (`' )/`--'|   |  ( ' )          (`' )/`--' / ( ` )   '`--.  ,---'
+|   '-(_{;}_)|___|  /  |(_ o _).   |   '-(_{;}_)        (_ o _).   . (_ o _)  |   |   \
+|      (_,_)    _.-`   | (_,_). '. |      (_,_)          (_,_). '. |  (_,_)___|   :_ _:
+| _ _--.   | .'   _    |.---.  \  :| _ _--.   |         .---.  \  :'  \   .---.   (_I_)
+|( ' ) |   | |  _( )_  |\    `-'  ||( ' ) |   |         \    `-'  | \  `-'    /  (_(=)_)
+(_{;}_)|   | \ (_ o _) / \       / (_{;}_)|   |          \       /   \       /    (_I_)
+'(_,_) '---'  '.(_,_).'   `-...-'  '(_,_) '---'           `-...-'     `'-..-'     '---'
+"""
+
+HASH_SET_DEFINITION = """A hash set is a collection of unique items that uses a hash function to decide where each item is stored, so it can tell whether an item is in the set in O(1) time on average. Unlike a list, a set keeps no particular order and ignores duplicates: adding an item that's already there changes nothing. Hash sets are used to remove duplicates, remember which items have already been visited in a graph search, and test membership quickly, and they are how Python's built-in set type works.
+
+🌟 A hash set is essentially a hash table that stores keys without values. PyDSA builds its hash set on top of the separate chaining hash table, so items that collide share a bucket's chain.
+
+🌟 Sets also support operations from mathematics: the union (A ∪ B) holds every item that is in either set, the intersection (A ∩ B) holds the items that are in both, the difference (A − B) holds the items that are in A but not in B, and A is a subset of B (A ⊆ B) when every item of A is also in B."""
+
+# ---------------------------------------------------------------------------
+# Disjoint set
+# ---------------------------------------------------------------------------
+
+DISJOINT_SET_ASCII = r"""
+
+ ______     .-./`)    .-'''-.      .-./`)     ,-----.   .-./`) ,---.   .--.,---------.            .-'''-.     .-''-. ,---------.
+|    _ `''. \ .-.')  / _     \     \ '_ .') .'  .-,  '. \ .-.')|    \  |  |\          \          / _     \  .'_ _   \\          \
+| _ | ) _  \/ `-' \ (`' )/`--'    (_ (_) _)/ ,-.|  \ _ \/ `-' \|  ,  \ |  | `--.  ,---'         (`' )/`--' / ( ` )   '`--.  ,---'
+|( ''_'  ) | `-'`"`(_ o _).         / .  \;  \  '_ /  | :`-'`"`|  |\_ \|  |    |   \           (_ o _).   . (_ o _)  |   |   \
+| . (_) `. | .---.  (_,_). '.  ___  |-'`| |  _`,/ \ _/  |.---. |  _( )_\  |    :_ _:            (_,_). '. |  (_,_)___|   :_ _:
+|(_    ._) ' |   | .---.  \  :|   | |   ' : (  '\_/ \   ;|   | | (_ o _)  |    (_I_)           .---.  \  :'  \   .---.   (_I_)
+|  (_.\.' /  |   | \    `-'  ||   `-'  /   \ `"/  \  ) / |   | |  (_,_)\  |   (_(=)_)          \    `-'  | \  `-'    /  (_(=)_)
+|       .'   |   |  \       /  \      /     '. \_/``".'  |   | |  |    |  |    (_I_)            \       /   \       /    (_I_)
+'-----'`     '---'   `-...-'    `-..-'        '-----'    '---' '--'    '--'    '---'             `-...-'     `'-..-'     '---'
+"""
+
+DISJOINT_SET_DEFINITION = """A disjoint set, also called Union-Find, keeps track of elements split into groups that don't overlap, so every element belongs to exactly one set. It supports two main operations: find, which returns the representative (the root) of the set an element belongs to, and union, which merges the sets of two elements into one. Two elements are connected when find returns the same root for both of them. Disjoint sets are used in Kruskal's minimum spanning tree algorithm, cycle detection in undirected graphs, network connectivity checks and image segmentation.
+
+🌟 Each set is stored as a tree inside a parent array: every element points to its parent, and a root points to itself. PyDSA numbers the elements from 0, so the parent array can be a plain list.
+
+🌟 Two optimizations keep the trees flat. Union by rank attaches the root of the shorter tree under the root of the taller one, using a rank that is an upper bound on the tree's height. Path compression makes every element visited during a find point directly at the root, so later finds are faster. Together, they make both operations run in nearly constant amortized time, O(α(n)), where α is the extremely slow-growing inverse Ackermann function."""

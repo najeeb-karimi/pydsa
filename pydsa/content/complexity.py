@@ -64,20 +64,33 @@ QUEUE = ComplexityTable(
     "The circular array lets both ends wrap around, so no items are ever shifted.",
 )
 
+DEQUE = ComplexityTable(
+    "Deque operations",
+    ("Operation", "Time", "Extra space"),
+    (
+        ("Push front or back", "O(1)", "O(1)"),
+        ("Pop front or back", "O(1)", "O(1)"),
+        ("Peek front or back", "O(1)", "O(1)"),
+        ("Check if empty or full", "O(1)", "O(1)"),
+        ("Size", "O(1)", "O(1)"),
+    ),
+    "Both ends wrap around the circular array, so no items are ever shifted.",
+)
+
 LINKED_LIST = ComplexityTable(
     "Linked list operations",
-    ("Operation", "Singly", "Doubly"),
+    ("Operation", "Singly", "Doubly", "Singly circular", "Doubly circular"),
     (
-        ("Insert at beginning", "O(1)", "O(1)"),
-        ("Insert at position", "O(n)", "O(n)"),
-        ("Insert at end", "O(n)", "O(n)"),
-        ("Delete from beginning", "O(1)", "O(1)"),
-        ("Delete from position", "O(n)", "O(n)"),
-        ("Delete from end", "O(n)", "O(n)"),
-        ("Search", "O(n)", "O(n)"),
-        ("Display", "O(n)", "O(n)"),
+        ("Insert at beginning", "O(1)", "O(1)", "O(1)", "O(1)"),
+        ("Insert at position", "O(n)", "O(n)", "O(n)", "O(n)"),
+        ("Insert at end", "O(n)", "O(n)", "O(1)", "O(1)"),
+        ("Delete from beginning", "O(1)", "O(1)", "O(1)", "O(1)"),
+        ("Delete from position", "O(n)", "O(n)", "O(n)", "O(n)"),
+        ("Delete from end", "O(n)", "O(n)", "O(n)", "O(1)"),
+        ("Search or display", "O(n)", "O(n)", "O(n)", "O(n)"),
+        ("Walk k nodes around the loop", "—", "—", "O(k)", "O(k)"),
     ),
-    "n is the number of nodes, and every operation uses O(1) extra space. PyDSA only keeps a reference to the head, so reaching the end takes O(n); with a tail reference, inserting at the end would take O(1).",
+    "n is the number of nodes, and apart from the walk, every operation uses O(1) extra space. The singly and doubly linked lists only keep a reference to the head, so reaching the end takes O(n). The singly circular list also keeps a reference to the tail, and the doubly circular list reaches its tail through the head's prev link, so their ends are faster. Deleting from the end of the singly circular list still takes O(n), because the node before the tail can only be found by walking from the head.",
 )
 
 TREE = ComplexityTable(
@@ -116,4 +129,31 @@ HASH_TABLE = ComplexityTable(
         ("Space", "O(m + n)", "O(m)"),
     ),
     "n is the number of keys and m the number of buckets or slots. The averages assume the keys spread out evenly. Deleting from the probing table also rehashes the rest of the cluster, which is where its O(n²) worst case comes from.",
+)
+
+HASH_SET = ComplexityTable(
+    "Hash set operations",
+    ("Operation", "Average", "Worst"),
+    (
+        ("Add", "O(1)", "O(n)"),
+        ("Remove", "O(1)", "O(n)"),
+        ("Check membership", "O(1)", "O(n)"),
+        ("Union", "O(n + m)", "O((n + m)²)"),
+        ("Intersection", "O(n)", "O(n · m)"),
+        ("Difference", "O(n)", "O(n · m)"),
+        ("Subset check", "O(n)", "O(n · m)"),
+    ),
+    "n and m are the sizes of the two sets. Every item costs one lookup in the underlying hash table, which is O(1) on average and only slows down when many items share a bucket.",
+)
+
+DISJOINT_SET = ComplexityTable(
+    "Disjoint set operations",
+    ("Operation", "Time", "Extra space"),
+    (
+        ("Find", "O(α(n)) amortized", "O(1)"),
+        ("Union", "O(α(n)) amortized", "O(1)"),
+        ("Check if connected", "O(α(n)) amortized", "O(1)"),
+        ("List sets", "O(n log n)", "O(n)"),
+    ),
+    "α(n) is the inverse Ackermann function, which stays below 5 for any number of elements you could ever store. Listing the sets follows every element up to its root without compressing paths, and union by rank keeps every tree at most log n tall. Without union by rank and path compression, a single find could take O(n).",
 )

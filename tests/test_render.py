@@ -2,8 +2,12 @@
 
 from rich.cells import cell_len
 
+from pydsa import __version__
 from pydsa.algorithms import sorting
 from pydsa.content import complexity, texts
+from pydsa.core.deque import Deque
+from pydsa.core.disjoint_set import DisjointSet
+from pydsa.core.hash_set import HashSet
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
 from pydsa.core.queue import Queue
 from pydsa.core.stack import Stack
@@ -53,11 +57,55 @@ def test_queue_markers_and_struck_out_leftovers(capsys):
     for item in (1, 2, 3):
         queue.enqueue(item)
     queue.dequeue()
-    render.queue(queue)
+    render.circular_slots(queue, {"front": queue.front, "rear": queue.rear})
     out = capsys.readouterr().out
     assert "front" in out and "rear" in out
     assert render.strike("1") in out
     assert "Struck-out items" in out
+
+
+def test_deque_marks_both_ends(capsys):
+    deque = Deque(3)
+    deque.push_front("a")
+    render.circular_slots(deque, {"front": deque.front, "back": deque.back})
+    out = capsys.readouterr().out
+    assert "front/back" in out
+    assert out.count("empty") == 2
+
+
+def test_circular_linked_lists_loop_back(capsys):
+    render.linked_list([1, "a"], circular=True)
+    out = capsys.readouterr().out
+    assert "│ 1 │ → │ 'a' │ → back to the head" in out
+    assert "the tail links back to the head" in out
+
+    render.linked_list(["a", 1], doubly=True, circular=True, backward=True)
+    out = capsys.readouterr().out
+    assert "│ 'a' │ ⇄ │ 1 │ ⇄ back to the tail" in out
+    assert "None" not in out
+
+
+def test_hash_sets_side_by_side(capsys):
+    render.hash_sets({"A": HashSet(3, [1, "b", 2.5]), "B": HashSet(3)})
+    out = capsys.readouterr().out
+    assert "Set A" in out and "Set B" in out
+    assert "A = {1, 2.5, 'b'}" in out
+    assert "B = ∅ (the empty set)" in out
+
+
+def test_disjoint_set_arrays_and_groups(capsys):
+    union_find = DisjointSet(5)
+    union_find.union(0, 1)
+    union_find.union(3, 4)
+    render.disjoint_set(union_find)
+    out = capsys.readouterr().out
+    assert "Parent and Rank Arrays" in out
+    assert "3 sets" in out
+    assert "{0, 1}" in out and "{2}" in out and "{3, 4}" in out
+
+    console.width = 20
+    render.disjoint_set(DisjointSet(12))
+    assert "Rank" in capsys.readouterr().out
 
 
 def test_linked_lists_as_boxed_nodes(capsys):
@@ -145,5 +193,5 @@ def test_definition_with_complexity_tables(capsys):
 def test_main_intro_shows_the_version(capsys):
     render.main_intro()
     out = capsys.readouterr().out
-    assert "⏳ Version 3.1" in out
+    assert f"⏳ Version {__version__}" in out
     assert "Changelog" in out
