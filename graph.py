@@ -111,8 +111,11 @@ class MatrixDirectedWeightedGraph:
 
     def display(self):
         """Print the adjacency matrix, one row per vertex."""
+        # Row numbers are tracked separately; list.index() would repeat the same number for identical rows
+        total_rows = len(self.adj_matrix)
+        indices = [index for index in range(total_rows)]
         for row in self.adj_matrix:
-            print("🔹", self.adj_matrix.index(row), row)
+            print("🔹", indices.pop(0), row)
 
 
 def adj_matrix_main():

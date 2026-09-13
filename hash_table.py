@@ -55,8 +55,11 @@ class ChainingHashTable:
 
     def display(self):
         """Print the hash table, one bucket per line."""
+        # Bucket numbers are tracked separately; list.index() would repeat the same number for identical buckets
+        total_buckets = len(self.table)
+        indices = [index for index in range(total_buckets)]
         for bucket in self.table:
-            print("🔹", self.table.index(bucket), bucket)
+            print("🔹", indices.pop(0), bucket)
 
 
 def chaining_main():
@@ -207,8 +210,11 @@ class LinearProbingHashTable:
 
     def display(self):
         """Print the hash table, one slot per line."""
+        # Slot numbers are tracked separately; list.index() would repeat the same number for identical slots
+        total_slots = len(self.table)
+        indices = [index for index in range(total_slots)]
         for slot in self.table:
-            print("🔹", self.table.index(slot), slot)
+            print("🔹", indices.pop(0), slot)
 
 
 def linear_probing_main():
