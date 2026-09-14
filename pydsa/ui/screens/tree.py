@@ -2,11 +2,11 @@
 
 from typing import NamedTuple
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import NotFoundError
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.ui import random_data, render
-from pydsa.ui.console import ask_value, info, not_found, plural, success
+from pydsa.ui.console import ask_value, not_found, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
 
@@ -15,24 +15,20 @@ class TreeKind(NamedTuple):
     """The class and wording for one kind of tree."""
 
     tree_class: type
-    info: str
+    guide: str  # The ID of its guide and topic
     name: str  # As in "Loaded the example BST"
     with_article: str  # As in "create a BST yourself"
 
 
-BST = TreeKind(BinarySearchTree, texts.BST_INFO, "BST", "a BST")
-AVL = TreeKind(AVLTree, texts.AVL_INFO, "AVL tree", "an AVL tree")
+BST = TreeKind(BinarySearchTree, "bst", "BST", "a BST")
+AVL = TreeKind(AVLTree, "avl-tree", "AVL tree", "an AVL tree")
 
 EXAMPLE_KEYS = [50, 30, 10, 20, 70, 60, 80]
 
 
-def show_definition():
-    render.definition(texts.TREE_DEFINITION, complexity.TREE)
-
-
 def run():
     """Show the tree intro, let the user pick a BST or an AVL tree and run its menu."""
-    render.intro(texts.TREE_ASCII, texts.TREE_DEFINITION, complexity.TREE)
+    render.intro(texts.TREE_ASCII, "tree")
     return Menu("🧪 Which type of tree do you want?", [
         [("BST (Binary Search Tree)", lambda: tree_menu(BST)),
          ("AVL Tree (Adelson-Velsky and Landis)", lambda: tree_menu(AVL))],
@@ -42,13 +38,13 @@ def run():
 
 def run_kind(kind):
     """Show the tree intro and run the menu of one kind of tree, skipping the choice of kind."""
-    render.intro(texts.TREE_ASCII, texts.TREE_DEFINITION, complexity.TREE)
+    render.intro(texts.TREE_ASCII, "tree")
     return tree_menu(kind)
 
 
 def tree_menu(kind):
-    """Create a tree of the given kind and run its operation menu."""
-    info(kind.info)
+    """Show the summary of a kind of tree, then create one and run its operation menu."""
+    render.summary(kind.guide)
     tree = Menu(f"🛠️ Do you want to create {kind.with_article} yourself or use the preloaded example?", [
         [(f"Create {kind.with_article}", lambda: create(kind)), ("Use the example", lambda: example(kind)),
          ("Fill with random values", lambda: fill_random(kind))],
@@ -64,7 +60,7 @@ def tree_menu(kind):
         ("Traversals", lambda: traversals(tree)),
         ("Tree Stats", lambda: render.tree_stats(tree)),
         ("Display", lambda: show(tree)),
-    ], definition=show_definition, new_label="New Tree").run()
+    ], guides=[kind.guide, "tree"], new_label="New Tree").run()
 
 
 def show(tree):

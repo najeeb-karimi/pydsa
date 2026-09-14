@@ -2,7 +2,7 @@
 
 from typing import NamedTuple
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import EmptyError, OutOfBoundsError
 from pydsa.core.linked_list import DoublyCircularLinkedList, DoublyLinkedList, SinglyCircularLinkedList, SinglyLinkedList
 from pydsa.ui import random_data, render
@@ -18,23 +18,20 @@ class ListKind(NamedTuple):
     name: str
     doubly: bool
     circular: bool
+    guide: str  # The ID of its guide and topic
 
 
-SINGLY = ListKind(SinglyLinkedList, "singly linked list", False, False)
-DOUBLY = ListKind(DoublyLinkedList, "doubly linked list", True, False)
-SINGLY_CIRCULAR = ListKind(SinglyCircularLinkedList, "singly circular linked list", False, True)
-DOUBLY_CIRCULAR = ListKind(DoublyCircularLinkedList, "doubly circular linked list", True, True)
+SINGLY = ListKind(SinglyLinkedList, "singly linked list", False, False, "singly-linked-list")
+DOUBLY = ListKind(DoublyLinkedList, "doubly linked list", True, False, "doubly-linked-list")
+SINGLY_CIRCULAR = ListKind(SinglyCircularLinkedList, "singly circular linked list", False, True, "singly-circular-linked-list")
+DOUBLY_CIRCULAR = ListKind(DoublyCircularLinkedList, "doubly circular linked list", True, True, "doubly-circular-linked-list")
 
 EXAMPLE_ITEMS = [10, "Messi", 2.5]
 
 
-def show_definition():
-    render.definition(texts.LINKED_LIST_DEFINITION, complexity.LINKED_LIST)
-
-
 def run():
     """Show the linked list intro, let the user pick a kind of list and run its menu."""
-    render.intro(texts.LINKED_LIST_ASCII, texts.LINKED_LIST_DEFINITION, complexity.LINKED_LIST)
+    render.intro(texts.LINKED_LIST_ASCII, "linked-list")
     return Menu("🧪 Which type of linked list do you want?", [
         [(kind.name.title(), lambda kind=kind: list_menu(kind)) for kind in (SINGLY, DOUBLY, SINGLY_CIRCULAR, DOUBLY_CIRCULAR)],
         [back_option()],
@@ -43,12 +40,13 @@ def run():
 
 def run_kind(kind):
     """Show the linked list intro and run the menu of one kind of list, skipping the choice of kind."""
-    render.intro(texts.LINKED_LIST_ASCII, texts.LINKED_LIST_DEFINITION, complexity.LINKED_LIST)
+    render.intro(texts.LINKED_LIST_ASCII, "linked-list")
     return list_menu(kind)
 
 
 def list_menu(kind):
-    """Create a linked list of the given kind and run its operation menu."""
+    """Show the summary of a kind of linked list, then create one and run its operation menu."""
+    render.summary(kind.guide)
     linked_list = Menu(f"🛠️ Do you want to start with an empty {kind.name} or use the preloaded example?", [
         [("Start with an empty list", lambda: create(kind)), ("Use the example", lambda: example(kind)),
          ("Fill with random values", lambda: fill_random(kind))],
@@ -80,7 +78,7 @@ def list_menu(kind):
     if kind.circular:
         operations.append(("Walk Around the Loop", lambda: walk(linked_list, kind)))
 
-    return operation_menu(kind.name, operations, definition=show_definition, new_label="New Linked List").run()
+    return operation_menu(kind.name, operations, guides=[kind.guide, "linked-list"], new_label="New Linked List").run()
 
 
 def create(kind):
@@ -154,7 +152,7 @@ def delete(linked_list, show, where):
 
 def search(linked_list):
     """Explain linear search, then ask for a target and report its position."""
-    render.explanation("How Linear Search Works on a Linked List", texts.LINKED_LIST_SEARCH_INFO)
+    render.explanation("linear-search")
     target = ask_value(what="target")
     position = linked_list.search(target)
     if position == -1:

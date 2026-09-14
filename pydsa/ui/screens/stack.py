@@ -1,6 +1,6 @@
 """Stack screen."""
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import CapacityError, EmptyError
 from pydsa.core.stack import Stack
 from pydsa.ui import random_data, render
@@ -11,7 +11,7 @@ from pydsa.ui.render import fmt
 
 def run():
     """Create a stack and run the stack operation menu."""
-    render.intro(texts.STACK_ASCII, texts.STACK_DEFINITION, complexity.STACK)
+    render.intro(texts.STACK_ASCII, "stack")
     stack = Menu("🛠️ Do you want to create a stack yourself or use the preloaded example?", [
         [("Create a stack", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
@@ -27,7 +27,7 @@ def run():
         ("Check if Full", lambda: result(f"Is the stack full? {yes_no(stack.is_full())}.")),
         ("Size", lambda: result(f"The stack holds {len(stack)} of {plural(stack.capacity, 'item')}.")),
         ("Display", lambda: render.stack(stack)),
-    ], definition=lambda: render.definition(texts.STACK_DEFINITION, complexity.STACK), new_label="New Stack").run()
+    ], guides=["stack"], new_label="New Stack").run()
 
 
 def create():

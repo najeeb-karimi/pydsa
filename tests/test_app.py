@@ -1,4 +1,4 @@
-"""The command-line options, shortcuts, clean exits, settings screen and intro."""
+"""The command-line options, shortcuts, clean exits, settings screen, intro and learning tools."""
 
 import json
 
@@ -43,6 +43,7 @@ def test_topic_opens_directly_then_the_main_menu_follows(play):
     assert "📂 What do you want to learn?" in out
 
     out = play("2", "0", argv=["--topic", "avl-tree"])  # Skips the choice between BST and AVL
+    assert "🧪 AVL Tree" in out
     assert "Loaded the example AVL tree." in out
     assert "Which type of tree do you want?" not in out
 
@@ -117,12 +118,63 @@ def test_full_intro_shows_once_per_session(play):
 
 
 # ---------------------------------------------------------------------------
+# Guides and learning tools
+# ---------------------------------------------------------------------------
+
+def test_topics_open_with_a_summary_and_read_the_guide_shows_it_all(play):
+    out = play("1", "2", "2", "1", "0")  # Linear > Stack > Use the example > Read the Guide > Exit
+    assert "🎯 Stack" in out and "Choose Read the Guide" in out
+    assert out.count("What it is") == 1  # Only in the guide
+    assert "📖 Stack" in out
+
+
+def test_read_the_guide_lets_you_pick_a_guide(play):
+    out = play("2", "1", "1", "2", "1", "2", "0")  # Non-linear > Tree > BST > Use the example > Read the Guide > Tree
+    assert "🧪 Binary Search Tree (BST)" in out
+    assert "📖 Which guide do you want to read?" in out
+    assert "📖 Tree" in out
+
+
+def test_algorithm_explanations_follow_the_detail_setting(play):
+    out = play("3", "1", "3", "2", "1", "0")  # Algorithms > Sorting > Use the example > Bubble Sort, ascending
+    assert "ℹ️ How Bubble Sort Works" in out and "set Explanations to Detailed" in out
+
+    settings.save(Settings(detail="detailed"))  # Saved, because every session loads the settings file
+    out = play("3", "1", "3", "2", "1", "0")
+    assert "If a whole pass makes no swaps" in out and "set Explanations to Detailed" not in out
+
+
+def test_learning_tools(play):
+    out = play(
+        "4",  # Learning Tools
+        "1",  # Overview
+        "2", "3", "18", "0", "0",  # Browse the Guides > Algorithms > Dijkstra, then back twice
+        "3", "1",  # Glossary > List All Terms
+        "2", "amort", "2", "vertx", "2", "zzz", "2", " ", "2", ":b",  # Look Up a Term
+        "0",
+        "4",  # Which Data Structure Should I Use?
+        "0", "0",
+    )
+    assert "Learning Tools" in out
+    assert "  1) Overview\n" in out and "🏗️ Data Structures and Algorithms" in out
+    assert "↳ Bubble Sort" in out and "📖 Dijkstra's Algorithm" in out
+    assert "📘 Glossary" in out and "Union by rank" in out
+    assert "Found 1 term matching 'amort'." in out and "Amortized time" in out
+    assert "No term matches 'vertx'. Did you mean Vertex (plural: vertices)?" in out
+    assert "No term matches 'zzz'. Choose List All Terms to see every term." in out
+    assert "Type at least one letter to look up." in out
+    assert "Cancelled." in out
+    assert "🧭 Which Data Structure Should I Use?" in out
+    assert "Goodbye!" in out
+
+
+# ---------------------------------------------------------------------------
 # Settings screen
 # ---------------------------------------------------------------------------
 
 def test_settings_are_saved(play):
     out = play(
-        "4",  # Settings
+        "5",  # Settings
         "1", "2",  # Explanations > Detailed
         "3", "2",  # Clear the Screen > Off
         "0", "0",
@@ -135,13 +187,13 @@ def test_settings_are_saved(play):
 
 
 def test_intro_every_time(play):
-    out = play("4", "4", "2", "0", "1", "2", "2", "10", "0")
+    out = play("5", "4", "2", "0", "1", "2", "2", "10", "0")
     assert out.count("Changelog") == 2
 
 
 def test_restore_defaults(play):
     settings.save(Settings(detail="detailed", colors=False))
-    out = play("4", "5", "1", "0", "0")
+    out = play("5", "5", "1", "0", "0")
     assert "Explanations: Brief" in out
     assert json.loads(settings.path().read_text(encoding="utf-8"))["colors"] is True
 
@@ -150,6 +202,6 @@ def test_settings_that_cannot_be_saved_last_for_the_session(play, monkeypatch, t
     blocker = tmp_path / "not-a-folder"
     blocker.write_text("", encoding="utf-8")
     monkeypatch.setenv("PYDSA_HOME", str(blocker))
-    out = play("4", "1", "2", "0", "0")
+    out = play("5", "1", "2", "0", "0")
     assert "Couldn't save the settings" in out
     assert settings.current.detail == "detailed"

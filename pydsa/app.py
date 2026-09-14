@@ -9,6 +9,7 @@ from pydsa.ui import render
 from pydsa.ui.console import BackRequested, QuitRequested, clear, console, force_colors_off, info, success
 from pydsa.ui.menu import Menu, Nav, back_option, exit_option
 from pydsa.ui.screens import settings as settings_screen
+from pydsa.ui.screens import tools
 
 QUESTIONS = {
     "linear": "🏁 Which linear data structure do you want to learn?",
@@ -58,7 +59,7 @@ def pick_topic(category):
 def main_menu():
     return Menu("📂 What do you want to learn?", [
         [(title, lambda category=category: pick_topic(category)) for category, title in topics.CATEGORIES.items()],
-        [("Settings", settings_screen.run)],
+        [("Learning Tools", tools.run), ("Settings", settings_screen.run)],
         [exit_option()],
     ], can_go_back=False)
 

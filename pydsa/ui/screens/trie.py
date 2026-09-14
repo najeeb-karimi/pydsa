@@ -1,6 +1,6 @@
 """Trie (prefix tree) screen."""
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import DuplicateError, NotFoundError
 from pydsa.core.trie import Trie
 from pydsa.ui import random_data, render
@@ -11,13 +11,9 @@ from pydsa.ui.render import fmt
 EXAMPLE_WORDS = ["car", "card", "care", "cat", "do", "dog"]
 
 
-def show_definition():
-    render.definition(texts.TRIE_DEFINITION, complexity.TRIE)
-
-
 def run():
     """Create a trie and run the trie operation menu."""
-    render.intro(texts.TRIE_ASCII, texts.TRIE_DEFINITION, complexity.TRIE)
+    render.intro(texts.TRIE_ASCII, "trie")
     trie = Menu("🛠️ Do you want to start with an empty trie or use the preloaded example?", [
         [("Start with an empty trie", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
@@ -33,7 +29,7 @@ def run():
         ("Autocomplete", lambda: autocomplete(trie)),
         ("Word Count", lambda: word_count(trie)),
         ("Display", lambda: render.trie(trie)),
-    ], definition=show_definition, new_label="New Trie").run()
+    ], guides=["trie"], new_label="New Trie").run()
 
 
 def create():

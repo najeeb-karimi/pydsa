@@ -1,6 +1,6 @@
 """Hash set screen, opened from the hash table screen. It works with two sets, A and B."""
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import NotFoundError
 from pydsa.core.hash_set import HashSet
 from pydsa.ui import random_data, render
@@ -9,13 +9,9 @@ from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt, set_items
 
 
-def show_definition():
-    render.definition(texts.HASH_SET_DEFINITION, complexity.HASH_SET)
-
-
 def run():
     """Create two sets and run the hash set operation menu."""
-    render.intro(texts.HASH_SET_ASCII, texts.HASH_SET_DEFINITION, complexity.HASH_SET)
+    render.intro(texts.HASH_SET_ASCII, "hash-set")
     sets = Menu("🛠️ Do you want to create two sets yourself or use the preloaded example?", [
         [("Create two empty sets", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
@@ -32,7 +28,7 @@ def run():
         ("Difference", lambda: difference(sets)),
         ("Subset Check", lambda: subsets(sets)),
         ("Display", lambda: render.hash_sets(sets)),
-    ], definition=show_definition, new_label="New Hash Set").run()
+    ], guides=["hash-set", "hash-table"], new_label="New Hash Set").run()
 
 
 def create():

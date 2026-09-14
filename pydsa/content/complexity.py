@@ -233,3 +233,32 @@ DISJOINT_SET = ComplexityTable(
     ),
     "α(n) is the inverse Ackermann function, which stays below 5 for any number of elements you could ever store. Listing the sets follows every element up to its root without compressing paths, and union by rank keeps every tree at most log n tall. Without union by rank and path compression, a single find could take O(n).",
 )
+
+
+def _shared(table, *topic_ids):
+    return dict.fromkeys(topic_ids, (table,))
+
+
+# The tables shown with each topic's summary and guide, by topic ID
+TOPIC_TABLES = {
+    "array": (ARRAY, SORTING),
+    "stack": (STACK,),
+    "queue": (QUEUE,),
+    "deque": (DEQUE,),
+    **_shared(LINKED_LIST, "linked-list", "singly-linked-list", "doubly-linked-list", "singly-circular-linked-list",
+              "doubly-circular-linked-list"),
+    **_shared(TREE, "tree", "bst", "avl-tree"),
+    "heap": (HEAP, PRIORITY_QUEUE),
+    **_shared(HEAP, "min-heap", "max-heap"),
+    "priority-queue": (PRIORITY_QUEUE,),
+    "trie": (TRIE,),
+    **_shared(GRAPH, "graph", "adjacency-matrix-graph", "adjacency-list-graph"),
+    **_shared(HASH_TABLE, "hash-table", "chaining-hash-table", "linear-probing-hash-table"),
+    "hash-set": (HASH_SET,),
+    "disjoint-set": (DISJOINT_SET,),
+    **_shared(SORTING, "sorting", "bubble-sort", "selection-sort", "insertion-sort", "quick-sort", "heap-sort",
+              "shell-sort", "merge-sort", "counting-sort", "radix-sort"),
+    **_shared(SEARCHING, "searching", "linear-search", "binary-search", "jump-search", "interpolation-search",
+              "exponential-search"),
+    **_shared(GRAPH_ALGORITHMS, "graph-algorithms", "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"),
+}

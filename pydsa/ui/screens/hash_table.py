@@ -2,7 +2,7 @@
 
 from typing import Callable, NamedTuple
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import CapacityError, NotFoundError
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
 from pydsa.ui import random_data, render
@@ -20,21 +20,19 @@ class TableKind(NamedTuple):
     unit: str  # What a position in the table is called: bucket or slot
     show: Callable
     example_pairs: int  # How many of EXAMPLE_PAIRS the example holds
+    guide: str  # The ID of its guide and topic
 
 
-CHAINING = TableKind(ChainingHashTable, "chaining hash table", "bucket", render.chaining_table, 4)
-PROBING = TableKind(LinearProbingHashTable, "linear probing hash table", "slot", render.probing_table, 3)
+CHAINING = TableKind(ChainingHashTable, "chaining hash table", "bucket", render.chaining_table, 4, "chaining-hash-table")
+PROBING = TableKind(LinearProbingHashTable, "linear probing hash table", "slot", render.probing_table, 3,
+                    "linear-probing-hash-table")
 
 EXAMPLE_PAIRS = [("Messi", "10"), ("Apple", 1976), (2024, -273.15), ("UFO", "Roswell, NM")]
 
 
-def show_definition():
-    render.definition(texts.HASH_TABLE_DEFINITION, complexity.HASH_TABLE)
-
-
 def run():
     """Show the hash table intro, let the user pick a kind of hash table and run its menu."""
-    render.intro(texts.HASH_TABLE_ASCII, texts.HASH_TABLE_DEFINITION, complexity.HASH_TABLE)
+    render.intro(texts.HASH_TABLE_ASCII, "hash-table")
     return Menu("🧪 Which kind of hash table do you want?", [
         [("Separate Chaining (Open Hashing)", lambda: table_menu(CHAINING)),
          ("Linear Probing (Open Addressing)", lambda: table_menu(PROBING)),
@@ -45,12 +43,13 @@ def run():
 
 def run_kind(kind):
     """Show the hash table intro and run the menu of one kind of hash table, skipping the choice."""
-    render.intro(texts.HASH_TABLE_ASCII, texts.HASH_TABLE_DEFINITION, complexity.HASH_TABLE)
+    render.intro(texts.HASH_TABLE_ASCII, "hash-table")
     return table_menu(kind)
 
 
 def table_menu(kind):
-    """Create a hash table of the given kind and run its operation menu."""
+    """Show the summary of a kind of hash table, then create one and run its operation menu."""
+    render.summary(kind.guide)
     table = Menu(f"🛠️ Do you want to create a {kind.name} yourself or use the preloaded example?", [
         [("Create a hash table", lambda: create(kind)), ("Use the example", lambda: example(kind)),
          ("Fill with random values", lambda: fill_random(kind))],
@@ -64,7 +63,7 @@ def table_menu(kind):
         ("Delete", lambda: delete(kind, table)),
         ("Search", lambda: search(kind, table)),
         ("Display", lambda: kind.show(table)),
-    ], definition=show_definition, new_label="New Hash Table").run()
+    ], guides=[kind.guide, "hash-table"], new_label="New Hash Table").run()
 
 
 def create(kind):
@@ -73,7 +72,7 @@ def create(kind):
     table = kind.table_class(size)
     success(f"Created an empty hash table with {plural(size, kind.unit)}.")
     if kind is CHAINING:
-        info(texts.CHAINING_INFO)
+        info("Separate chaining keeps colliding keys in lists, so this table never fills up.")
     kind.show(table)
     return table
 

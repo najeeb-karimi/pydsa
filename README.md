@@ -1,5 +1,5 @@
 # 🐍 PyDSA
-PyDSA is a Python app that runs in your terminal and helps you learn data structures and algorithms. For each topic, you get a short explanation, a table of how fast its operations are, a ready-made example to play with, and a list of things you can do with it. Every change is drawn right away as a colorful table or diagram, so you can see what happened. You choose what to do by typing a number.
+PyDSA is a Python app that runs in your terminal and helps you learn data structures and algorithms. Every topic opens with a short summary and a table of how fast its operations are, and a full guide explains it in plain words: what it is, how it works, a real-life analogy, and when to use it or avoid it. You then get a ready-made example to play with and a list of things you can do with it. Every change is drawn right away as a colorful table or diagram, so you can see what happened. You choose what to do by typing a number.
 
 It's made for students and self-learners who want to *see* how data structures and algorithms behave, not just read about them. You don't need to write any code to use it.
 
@@ -34,6 +34,12 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 - **Searching:** five ways to find an item: Linear, Binary, Jump, Interpolation and Exponential Search. Each search shows which positions it checked.
 - **Graph Algorithms:** find the shortest routes (Dijkstra), put tasks in an order that respects what depends on what (Topological Sort), spot loops (Cycle Detection), and connect every point as cheaply as possible (Prim and Kruskal).
 
+**Learning Tools** (on the main menu):
+- **Overview:** a friendly introduction to data structures, algorithms and how their speed is measured.
+- **Browse the Guides:** read the guide of any topic or algorithm without opening it first.
+- **Glossary:** short explanations of every term the guides use, which you can list from A to Z or look up by typing part of a word.
+- **Which Data Structure Should I Use?:** common needs, like an undo history or autocomplete, matched with the topic that fits them.
+
 ## 👀 A Quick Look
 Here's a short session, trimmed to fit: the user opens the stack, loads the example and pops the top item. The numbers after `>>>` are what the user typed.
 ```text
@@ -41,6 +47,10 @@ Here's a short session, trimmed to fit: the user opens the stack, loads the exam
   1) Linear data structures
   2) Non-linear data structures
   3) Algorithms
+
+  4) Learning Tools
+  5) Settings
+
   0) Exit
 >>> 1
 
@@ -50,11 +60,13 @@ Here's a short session, trimmed to fit: the user opens the stack, loads the exam
   ...
 >>> 2
 
-(The stack's title, definition and complexity table appear here.)
+(The stack's title, summary and complexity table appear here.)
 
 🛠️ Do you want to create a stack yourself or use the preloaded example?
   1) Create a stack
   2) Use the example
+  3) Fill with random values
+
   0) Go Back
 >>> 2
 
@@ -70,7 +82,7 @@ Here's a short session, trimmed to fit: the user opens the stack, loads the exam
 └───────┴───────────┴───────┘
 
 ⚔️ What do you want to do with the stack?
-   1) Definition
+   1) Read the Guide
    2) Push
    3) Pop
    ...
@@ -117,10 +129,11 @@ If the terminal says the command isn't found, make sure your virtual environment
 - Type the number next to an option and press Enter.
 - In menus where you pick a topic or a type, `0) Go Back` returns to the previous menu.
 - Once you're working with a data structure or an algorithm, its menu offers:
-  - **Definition:** shows the explanation and complexity table again.
+  - **Read the Guide:** shows the topic's whole guide and its complexity table. Where a menu has more than one guide, such as a kind of tree and trees in general, you pick which one to read.
   - **New ...** (such as **New Stack**): starts that topic over with fresh data.
   - **Main Menu:** goes back to the first menu.
   - **`0) Exit`:** closes the app.
+- A guide that's longer than your terminal pauses after each screenful: press Enter to keep reading, `a` to show the rest or `s` to stop.
 - If you type something that isn't allowed, PyDSA tells you what went wrong and asks again, so you can't break anything.
 
 ### ⌨️ Shortcuts
@@ -139,9 +152,12 @@ While typing a value, the shortcuts start with `:`, so you can still enter a rea
 - **Data types:** when you add an item, PyDSA may ask whether it's a `str` (text), an `int` (whole number) or a `float` (decimal number). Text is shown in quotes, so `'7'` is the text 7 and `7` is the number.
 - **Lists:** when PyDSA asks for several values at once, such as a list to sort, separate them with commas: `5, 3, 8, 1`.
 
+### 📚 Learning Tools
+Choose **Learning Tools** on the main menu to read the overview, browse every guide, look up a term in the glossary, or find the data structure that fits what you need. Words shown in bold in a guide are explained in the glossary.
+
 ### ⚙️ Settings
 Choose **Settings** on the main menu to change how PyDSA behaves. Your choices are saved in a `.pydsa` folder in your home folder, so they last between sessions:
-- **Explanations:** Brief shows the first sentences of an algorithm's explanation, and Detailed shows all of it.
+- **Explanations:** before an algorithm runs, Brief shows a short summary of it, and Detailed shows how it works, step by step.
 - **Colors:** turn colors off if your terminal shows strange symbols.
 - **Clear the Screen:** turn it off to keep everything on screen and scroll back through it.
 - **Welcome Intro:** show the long intro once per session, or every time you return to the main menu.
@@ -179,6 +195,6 @@ All the code is inside the `pydsa` folder:
 - `core/`: the data structures themselves.
 - `algorithms/`: the sorting, searching and graph algorithms.
 - `ui/`: everything you see and type in the terminal, such as menus, prompts and output.
-- `content/`: the longer texts, like explanations and ASCII art titles, plus the complexity tables.
+- `content/`: the guides and the glossary (Markdown files in `content/guides`), the ASCII art titles and the complexity tables.
 
 The tests are in the `tests` folder.

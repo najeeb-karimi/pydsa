@@ -1,13 +1,13 @@
-"""Rich renderers for the intro, definitions, explanations and every data structure.
+"""Rich renderers for the intro, guides, explanations and every data structure.
 
 User data always goes into Text objects, so brackets in a value are never read as rich markup.
 """
 
-import re
-
 from rich import box
 from rich.cells import cell_len
 from rich.columns import Columns
+from rich.console import Group
+from rich.markdown import Markdown
 from rich.measure import Measurement
 from rich.panel import Panel
 from rich.table import Table
@@ -15,8 +15,8 @@ from rich.text import Text
 from rich.tree import Tree
 
 from pydsa import __version__, settings
-from pydsa.content import texts
-from pydsa.ui.console import console, info, plural, result
+from pydsa.content import complexity, registry, texts
+from pydsa.ui.console import console, info, page, plural, result
 
 STRIKE = chr(0x0336)  # Combining long stroke overlay
 
@@ -50,10 +50,6 @@ def note(text):
     console.print(Text(text, style="muted"))
 
 
-def _panel(text, title, style="info"):
-    return Panel(Text(text), title=title, title_align="left", border_style=style, padding=(0, 1))
-
-
 def _table(title=None, **options):
     return Table(title=title, title_justify="left", title_style="title", header_style="muted", **options)
 
@@ -65,8 +61,18 @@ def _fits(table):
 
 
 # ---------------------------------------------------------------------------
-# Intro, definitions and explanations
+# Intro, guides and explanations
 # ---------------------------------------------------------------------------
+
+# Shown before each section of a topic guide, so the headings stand out even without colors
+SECTION_ICONS = {
+    "What it is": "🎯",
+    "How it works": "⚙️",
+    "Real-life analogy": "🌍",
+    "When to use it": "✅",
+    "When to avoid it": "⚠️",
+    "In PyDSA": "🐍",
+}
 
 def ascii_art(art):
     """Print an ASCII title exactly as drawn, without wrapping it to the terminal width."""
@@ -74,7 +80,7 @@ def ascii_art(art):
 
 
 def main_intro():
-    """Show the PyDSA banner, the welcome panel with version and changelog, and the overview."""
+    """Show the PyDSA banner and the welcome panel with the version and changelog."""
     ascii_art(texts.BANNER)
     about = Text(texts.WELCOME)
     about.append(f"\n\n⏳ Version {__version__}\n", style="title")
@@ -82,7 +88,7 @@ def main_intro():
     about.append("\n\n")
     about.append(texts.SOURCE_CODE)
     show(Panel(about, title="💻 PyDSA", title_align="left", border_style="accent", padding=(0, 1)))
-    show(_panel(texts.OVERVIEW, "🏗️ Data Structures and Algorithms"))
+    note("New to data structures and algorithms? Start with the Overview in Learning Tools, on the main menu.")
 
 
 _intro_shown = False  # Whether this session already showed the full intro
@@ -123,42 +129,82 @@ def topic_list(topics, categories):
     note("Open a topic directly with: pydsa --topic ID")
 
 
-def intro(art, definition_text, *tables):
-    """Show a data structure's ASCII title, definition and complexity tables."""
+def _markdown_panel(text, title):
+    """Return Markdown text from a guide in a panel, with its glossary links in bold."""
+    return Panel(Markdown(registry.markdown(text), hyperlinks=False), title=title, title_align="left",
+                 border_style="info", padding=(0, 1))
+
+
+def _sections(parsed, icons):
+    """Return a guide's summary and sections as one Markdown text, with an icon before each heading."""
+    parts = [f"> {parsed.summary}"]
+    parts += [f"## {icons.get(heading, '🔹')} {heading}\n\n{body}" for heading, body in parsed.sections]
+    return "\n\n".join(parts)
+
+
+def _complexity(topic_id):
+    """Return a topic's complexity tables and their notes as renderables, each table after a blank line."""
+    parts = []
+    for table in complexity.TOPIC_TABLES[topic_id]:
+        grid = _table(f"⏱️ {table.title}", box=box.SIMPLE_HEAVY)
+        for position, column in enumerate(table.columns):
+            grid.add_column(column, style="code" if position else None)
+        for row in table.rows:
+            grid.add_row(*row)
+        parts += [Text(), grid]
+        if table.note:
+            parts.append(Text(table.note, style="muted"))
+    return parts
+
+
+def intro(art, topic_id):
+    """Show a topic's ASCII title, the summary from its guide and its complexity tables."""
     ascii_art(art)
-    definition(definition_text, *tables)
+    parsed = registry.guide(topic_id)
+    show(_markdown_panel(parsed.summary, f"🎯 {parsed.title}"))
+    note("Choose Read the Guide in the topic's menu for the whole guide.")
+    console.print(Group(*_complexity(topic_id)))
 
 
-def definition(text, *tables):
-    """Show a definition in a panel, followed by its complexity tables."""
-    show(_panel(text, "🎯 Definition"))
-    for table in tables:
-        complexity(table)
+def summary(topic_id):
+    """Show the summary from a topic's guide, such as the kind of tree the user just picked."""
+    parsed = registry.guide(topic_id)
+    show(_markdown_panel(parsed.summary, f"🧪 {parsed.title}"))
 
 
-def explanation(title, text):
-    """Show an algorithm explanation in a panel, cut to its first sentences when the Explanations setting is brief."""
-    body = first_sentences(text) if settings.current.detail == "brief" else text
-    show(_panel(body, f"ℹ️ {title}"))
-    if body != text:
-        note("Set Explanations to Detailed in Settings, on the main menu, to read the whole explanation.")
+def guide(topic_id):
+    """Show a topic's whole guide and its complexity tables, a screenful at a time if they're taller than the terminal."""
+    parsed = registry.guide(topic_id)
+    parts = [_markdown_panel(_sections(parsed, SECTION_ICONS), f"📖 {parsed.title}"), *_complexity(topic_id)]
+    if registry.glossary_links(parsed.body()):
+        parts.append(Text("📘 Words in bold are explained in the Glossary, under Learning Tools on the main menu.", style="muted"))
+    page(Group(*parts))
 
 
-def first_sentences(text, count=2):
-    """Return the first count sentences of text."""
-    return " ".join(re.split(r"(?<=[.!?])\s+(?=[A-Z])", text)[:count])
+def explanation(topic_id):
+    """Show how an algorithm works before it runs, following the Explanations setting.
+
+    Brief shows the summary from the algorithm's guide, and Detailed its How it works section.
+    """
+    parsed = registry.guide(topic_id)
+    title = f"ℹ️ How {parsed.title} Works"
+    if settings.current.detail == "brief":
+        show(_markdown_panel(parsed.summary, title))
+        note("To see how it works before it runs, set Explanations to Detailed in Settings. The whole guide is in Learning Tools.")
+    else:
+        show(_markdown_panel(parsed.section("How it works"), title))
 
 
-def complexity(table):
-    """Show a ComplexityTable and its note."""
-    grid = _table(f"⏱️ {table.title}", box=box.SIMPLE_HEAVY)
-    for position, column in enumerate(table.columns):
-        grid.add_column(column, style="code" if position else None)
-    for row in table.rows:
-        grid.add_row(*row)
-    show(grid)
-    if table.note:
-        note(table.note)
+def document(name, icon):
+    """Show one of the Learning Tools documents, such as the overview, a screenful at a time."""
+    parsed = registry.document(name)
+    page(_markdown_panel(_sections(parsed, {}), f"{icon} {parsed.title}"))
+
+
+def glossary(terms):
+    """Show glossary terms and their definitions, a screenful at a time."""
+    text = "\n\n".join(f"## 🔹 {term.name}\n\n{term.definition}" for term in terms)
+    page(_markdown_panel(text, "📘 Glossary"))
 
 
 def goodbye():
@@ -708,7 +754,9 @@ def sort_comparison(results):
         else:
             table.add_row(name, str(stats.comparisons), str(stats.writes), str(steps))
     show(table)
-    note("A swap counts as two writes.")
+    note("Comparisons count how often two values were compared, and writes how often a value was stored in the list "
+         "(a swap is two writes). Steps are the rows each algorithm shows when it runs on its own.")
+    note("Try a sorted list, a reversed one and one full of duplicates to see how differently the algorithms react.")
     if rejected:
         note("— marks an algorithm that can't sort this list.")
 

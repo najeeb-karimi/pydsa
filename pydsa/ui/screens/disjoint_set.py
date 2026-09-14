@@ -1,6 +1,6 @@
 """Disjoint set (Union-Find) screen."""
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.errors import OutOfBoundsError
 from pydsa.ui import random_data, render
@@ -12,7 +12,7 @@ EXAMPLE_UNIONS = [(0, 1), (2, 3), (1, 3), (4, 5), (6, 7)]
 
 def run():
     """Create a disjoint set and run the disjoint set operation menu."""
-    render.intro(texts.DISJOINT_SET_ASCII, texts.DISJOINT_SET_DEFINITION, complexity.DISJOINT_SET)
+    render.intro(texts.DISJOINT_SET_ASCII, "disjoint-set")
     union_find = Menu("🛠️ Do you want to create a disjoint set yourself or use the preloaded example?", [
         [("Create a disjoint set", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
@@ -26,8 +26,7 @@ def run():
         ("Check if Connected", lambda: connected(union_find)),
         ("List Sets", lambda: render.disjoint_sets(union_find)),
         ("Display", lambda: render.disjoint_set(union_find)),
-    ], definition=lambda: render.definition(texts.DISJOINT_SET_DEFINITION, complexity.DISJOINT_SET),
-       new_label="New Disjoint Set").run()
+    ], guides=["disjoint-set"], new_label="New Disjoint Set").run()
 
 
 def create():

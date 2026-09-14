@@ -1,4 +1,4 @@
-"""Every topic PyDSA teaches: the ID used by --topic, its title, its category and how to open it."""
+"""Every topic PyDSA teaches: its ID (used by --topic and by its guide), its title, its category and how to open it."""
 
 from typing import Callable, NamedTuple
 
@@ -24,17 +24,13 @@ class Topic(NamedTuple):
     parent: str | None = None  # The ID of the topic whose menu leads here; None for topics on a category menu
 
 
-def _slug(name):
-    return name.lower().replace(" ", "-")
-
-
 TOPICS = (
     Topic("array", "Array", "linear", array.run),
     Topic("stack", "Stack", "linear", stack.run),
     Topic("queue", "Queue", "linear", queue.run),
     Topic("deque", "Deque", "linear", deque.run),
     Topic("linked-list", "Linked List", "linear", linked_list.run),
-    *(Topic(_slug(kind.name), kind.name.title(), "linear", lambda kind=kind: linked_list.run_kind(kind), "linked-list")
+    *(Topic(kind.guide, kind.name.title(), "linear", lambda kind=kind: linked_list.run_kind(kind), "linked-list")
       for kind in (linked_list.SINGLY, linked_list.DOUBLY, linked_list.SINGLY_CIRCULAR, linked_list.DOUBLY_CIRCULAR)),
 
     Topic("tree", "Tree", "non-linear", tree.run),
@@ -58,9 +54,9 @@ TOPICS = (
 
     # Each algorithm opens the screen that runs it
     Topic("sorting", "Sorting", "algorithms", sorting_algorithms.run),
-    *(Topic(_slug(sort.name), sort.name, "algorithms", sorting_algorithms.run, "sorting") for sort in sorting_algorithms.SORTS),
+    *(Topic(sort.guide, sort.name, "algorithms", sorting_algorithms.run, "sorting") for sort in sorting_algorithms.SORTS),
     Topic("searching", "Searching", "algorithms", searching_algorithms.run),
-    *(Topic(_slug(search.name), search.name, "algorithms", searching_algorithms.run, "searching")
+    *(Topic(search.guide, search.name, "algorithms", searching_algorithms.run, "searching")
       for search in searching_algorithms.SEARCHES),
     Topic("graph-algorithms", "Graph Algorithms", "algorithms", graph_algorithms.run),
     *(Topic(topic_id, title, "algorithms", graph_algorithms.run, "graph-algorithms") for topic_id, title in (

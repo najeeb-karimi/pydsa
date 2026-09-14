@@ -22,5 +22,8 @@ version = { attr = "pydsa.__version__" }
 [tool.setuptools.packages.find]
 include = ["pydsa*"]
 
+[tool.setuptools.package-data]
+"pydsa.content" = ["guides/*.md", "guides/algorithms/*.md"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

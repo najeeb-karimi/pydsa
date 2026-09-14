@@ -1,7 +1,7 @@
 """Graph screen: adjacency matrix and adjacency list representations, and the graph algorithms that run on them."""
 
 from pydsa.algorithms import graph_algorithms
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import CycleError, DuplicateError, NegativeWeightError, NotFoundError, OutOfBoundsError
 from pydsa.core.graph import ListGraph, MatrixGraph
 from pydsa.ui import random_data, render
@@ -19,13 +19,9 @@ EXAMPLE_EDGES = {
 }
 
 
-def show_definition():
-    render.definition(texts.GRAPH_DEFINITION, complexity.GRAPH)
-
-
 def run():
     """Show the graph intro, let the user pick a representation and run its menu."""
-    render.intro(texts.GRAPH_ASCII, texts.GRAPH_DEFINITION, complexity.GRAPH)
+    render.intro(texts.GRAPH_ASCII, "graph")
     return Menu("🧪 Which graph representation do you want?", [
         [("Adjacency Matrix", matrix_menu), ("Adjacency List", list_menu)],
         [back_option()],
@@ -34,13 +30,13 @@ def run():
 
 def run_matrix():
     """Show the graph intro and run the adjacency matrix menu, skipping the choice of representation."""
-    render.intro(texts.GRAPH_ASCII, texts.GRAPH_DEFINITION, complexity.GRAPH)
+    render.intro(texts.GRAPH_ASCII, "graph")
     return matrix_menu()
 
 
 def run_list():
     """Show the graph intro and run the adjacency list menu, skipping the choice of representation."""
-    render.intro(texts.GRAPH_ASCII, texts.GRAPH_DEFINITION, complexity.GRAPH)
+    render.intro(texts.GRAPH_ASCII, "graph")
     return list_menu()
 
 
@@ -130,7 +126,7 @@ def graph_menu(graph, add_vertex, remove_vertex):
         ("Traversals", lambda: traversals(graph)),
         ("Graph Algorithms", lambda: pick_algorithm(graph)),
         ("Display", lambda: show(graph)),
-    ], definition=show_definition, new_label="New Graph").run()
+    ], guides=[f"adjacency-{representation}-graph", "graph", "graph-algorithms"], new_label="New Graph").run()
 
 
 def add_edge(graph):
@@ -223,7 +219,7 @@ def pick_algorithm(graph):
 
 
 def shortest_paths(graph):
-    render.explanation("How Dijkstra's Algorithm Works", texts.DIJKSTRA_INFO)
+    render.explanation("dijkstra")
     source = ask_vertex("🔢 Which vertex should the paths start from?")
     try:
         paths = graph_algorithms.dijkstra(graph, source)
@@ -241,7 +237,7 @@ def shortest_paths(graph):
 
 
 def topological_sort(graph):
-    render.explanation("How Topological Sort Works", texts.TOPOLOGICAL_SORT_INFO)
+    render.explanation("topological-sort")
     try:
         order = graph_algorithms.topological_sort(graph)
     except CycleError as problem:
@@ -255,8 +251,7 @@ def topological_sort(graph):
 
 
 def cycle_detection(graph):
-    info_text = texts.DIRECTED_CYCLE_INFO if graph.directed else texts.UNDIRECTED_CYCLE_INFO
-    render.explanation("How Cycle Detection Works", info_text)
+    render.explanation("cycle-detection")
     cycle = graph_algorithms.find_cycle(graph)
     if cycle is None:
         result("The graph has no cycles.")
@@ -267,7 +262,7 @@ def cycle_detection(graph):
 
 def spanning_tree(graph, name):
     """Build a minimum spanning tree (or forest) with Prim's or Kruskal's algorithm (name)."""
-    render.explanation(f"How {name}'s Algorithm Works", texts.PRIM_INFO if name == "Prim" else texts.KRUSKAL_INFO)
+    render.explanation(name.lower())
     if not graph.vertices():
         info("The graph has no vertices yet.")
         return
@@ -285,8 +280,8 @@ def spanning_tree(graph, name):
 # ---------------------------------------------------------------------------
 
 def matrix_menu():
-    """Create an adjacency matrix graph and run its operation menu."""
-    info(texts.MATRIX_GRAPH_INFO)
+    """Show the summary of the adjacency matrix graph, then create one and run its operation menu."""
+    render.summary("adjacency-matrix-graph")
     graph = Menu("🛠️ Do you want to create an adjacency matrix graph yourself or use the preloaded example?", [
         [("Create a graph", create_matrix), ("Use the example", example_matrix),
          ("Fill with random values", lambda: fill_random(MatrixGraph))],
@@ -344,8 +339,8 @@ def example_matrix():
 # ---------------------------------------------------------------------------
 
 def list_menu():
-    """Create an adjacency list graph and run its operation menu."""
-    info(texts.LIST_GRAPH_INFO)
+    """Show the summary of the adjacency list graph, then create one and run its operation menu."""
+    render.summary("adjacency-list-graph")
     graph = Menu("🛠️ Do you want to create an adjacency list graph yourself or use the preloaded example?", [
         [("Create a graph", create_list), ("Use the example", example_list),
          ("Fill with random values", lambda: fill_random(new_list_graph))],

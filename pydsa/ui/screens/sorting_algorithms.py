@@ -6,45 +6,41 @@ The array screen sorts with the same algorithm list and runner.
 from typing import Callable, NamedTuple
 
 from pydsa.algorithms import sorting
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_list, ask_order, error, info, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 
 
 class Algorithm(NamedTuple):
-    """A sorting or searching algorithm, its explanation and what to say when it can't handle the data."""
+    """A sorting or searching algorithm, its guide and what to say when it can't handle the data."""
 
     name: str
     function: Callable
-    info: str
+    guide: str  # The ID of its guide and topic
     limit: str = ""
 
 
 SORTS = [
-    Algorithm("Bubble Sort", sorting.bubble_sort, texts.BUBBLE_SORT_INFO),
-    Algorithm("Selection Sort", sorting.selection_sort, texts.SELECTION_SORT_INFO),
-    Algorithm("Insertion Sort", sorting.insertion_sort, texts.INSERTION_SORT_INFO),
-    Algorithm("Quick Sort", sorting.quick_sort, texts.QUICK_SORT_INFO),
-    Algorithm("Heap Sort", sorting.heap_sort, texts.HEAP_SORT_INFO),
-    Algorithm("Shell Sort", sorting.shell_sort, texts.SHELL_SORT_INFO),
-    Algorithm("Merge Sort", sorting.merge_sort, texts.MERGE_SORT_INFO),
-    Algorithm("Counting Sort", sorting.counting_sort, texts.COUNTING_SORT_INFO,
+    Algorithm("Bubble Sort", sorting.bubble_sort, "bubble-sort"),
+    Algorithm("Selection Sort", sorting.selection_sort, "selection-sort"),
+    Algorithm("Insertion Sort", sorting.insertion_sort, "insertion-sort"),
+    Algorithm("Quick Sort", sorting.quick_sort, "quick-sort"),
+    Algorithm("Heap Sort", sorting.heap_sort, "heap-sort"),
+    Algorithm("Shell Sort", sorting.shell_sort, "shell-sort"),
+    Algorithm("Merge Sort", sorting.merge_sort, "merge-sort"),
+    Algorithm("Counting Sort", sorting.counting_sort, "counting-sort",
               f"Counting Sort only sorts whole numbers (int) less than {sorting.COUNTING_RANGE_LIMIT:,} apart."),
-    Algorithm("Radix Sort", sorting.radix_sort, texts.RADIX_SORT_INFO,
+    Algorithm("Radix Sort", sorting.radix_sort, "radix-sort",
               "Radix Sort only sorts whole numbers (int) that aren't negative."),
 ]
 
 EXAMPLE = [170, 45, 75, 90, 802, 24, 2, 66]
 
 
-def show_definition():
-    render.definition(texts.SORTING_DEFINITION, complexity.SORTING)
-
-
 def run():
     """Get a list to sort and run the sorting menu."""
-    render.intro(texts.SORTING_ASCII, texts.SORTING_DEFINITION, complexity.SORTING)
+    render.intro(texts.SORTING_ASCII, "sorting")
     items = Menu("🛠️ Do you want to type a list yourself or use the preloaded example?", [
         [("Type a list of numbers", lambda: create("num")),
          ("Type a list of words", lambda: create("str")),
@@ -59,7 +55,7 @@ def run():
         *[(sort.name, lambda sort=sort: sort_copy(items, sort)) for sort in SORTS],
         ("Compare All Algorithms", lambda: compare(items)),
         ("Display", lambda: render.array(items)),
-    ], definition=show_definition, new_label="New List").run()
+    ], guides=["sorting", *(sort.guide for sort in SORTS)], new_label="New List").run()
 
 
 def create(kind):
@@ -82,7 +78,7 @@ def run_sort(items, sort, noun):
 
     noun names the data in messages, as in "the array".
     """
-    render.explanation(f"How {sort.name} Works", sort.info)
+    render.explanation(sort.guide)
     if not sorting.accepts(sort.function, items):
         error(sort.limit)
         return False
@@ -105,7 +101,6 @@ def sort_copy(items, sort):
 
 def compare(items):
     """Run every algorithm on its own copy of items and show how much work each one did."""
-    render.explanation("How the Comparison Works", texts.SORT_COMPARISON_INFO)
     order = ask_order()
     results = []
     for sort in SORTS:

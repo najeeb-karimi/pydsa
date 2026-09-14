@@ -1,10 +1,11 @@
 """Rich renderers, checked through their plain-text output (tests don't run in a terminal, so there are no colors)."""
 
+import pytest
 from rich.cells import cell_len
 
 from pydsa import __version__, settings
 from pydsa.algorithms import graph_algorithms, sorting
-from pydsa.content import complexity, texts
+from pydsa.content import registry, texts
 from pydsa.core.deque import Deque
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.graph import ListGraph
@@ -18,7 +19,7 @@ from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.core.trie import Trie
 from pydsa.settings import Settings
 from pydsa.ui import render
-from pydsa.ui.console import console
+from pydsa.ui.console import QuitRequested, console
 
 
 def test_array_cells_under_their_indexes(capsys):
@@ -309,25 +310,74 @@ def test_sorting_steps_mark_moved_values(capsys):
     assert items == [1, 2, 3]
 
 
-def test_definition_with_complexity_tables(capsys):
-    render.definition(texts.ARRAY_DEFINITION, complexity.ARRAY, complexity.SORTING)
+def test_intro_shows_the_summary_and_complexity_tables(capsys):
+    render.intro(texts.ARRAY_ASCII, "array")
     out = capsys.readouterr().out
-    assert "🎯 Definition" in out
-    assert "Array operations" in out and "Sorting algorithms" in out
-    assert "O(n log n)" in out
+    assert "🎯 Array" in out and "numbered boxes" in out
+    assert "Choose Read the Guide" in out
+    assert "Array operations" in out and "Sorting algorithms" in out and "O(n log n)" in out
+    assert "What it is" not in out
+
+
+def test_guides_show_every_section_and_their_tables(capsys):
+    render.guide("stack")
+    out = capsys.readouterr().out
+    assert "📖 Stack" in out
+    assert all(heading in out for heading in registry.SECTIONS)
+    assert "⏱️ Stack operations" in out
+    assert "(glossary:" not in out
+    assert "Words in bold are explained in the Glossary" in out
 
 
 def test_explanations_follow_the_detail_setting(capsys):
-    render.explanation("How Bubble Sort Works", texts.BUBBLE_SORT_INFO)
+    render.explanation("bubble-sort")
     out = capsys.readouterr().out
-    assert "educational" not in out  # Only the first two sentences
-    assert "Set Explanations to Detailed in Settings" in out
+    assert "ℹ️ How Bubble Sort Works" in out
+    assert "bubbled" in out  # The summary
+    assert "early" not in out  # Not the How it works section
+    assert "set Explanations to Detailed" in out
 
     settings.current = Settings(detail="detailed")
-    render.explanation("How Bubble Sort Works", texts.BUBBLE_SORT_INFO)
+    render.explanation("bubble-sort")
     out = capsys.readouterr().out
-    assert "educational" in out
-    assert "Set Explanations to Detailed" not in out
+    assert "early" in out and "bubbled" not in out
+    assert "set Explanations to Detailed" not in out
+
+
+def test_documents_and_glossary_terms(capsys):
+    render.document("choosing", "🧭")
+    out = capsys.readouterr().out
+    assert "🧭 Which Data Structure Should I Use?" in out and "🔹 Model connections" in out
+
+    render.glossary(registry.find_terms("heap"))
+    out = capsys.readouterr().out
+    assert "📘 Glossary" in out and "🔹 Heap property" in out and "🔹 Heapify" in out
+
+
+def test_long_output_pauses_between_screenfuls(monkeypatch, capsys):
+    monkeypatch.setattr("pydsa.ui.console.page_height", lambda: 10)
+
+    answers = iter(["", "s"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(answers))
+    render.guide("stack")
+    out = capsys.readouterr().out
+    assert out.count("Enter: more · a: all · s: stop") == 2
+    assert "In PyDSA" not in out  # Stopped before the end
+
+    answers = iter(["a"])
+    render.guide("stack")
+    out = capsys.readouterr().out
+    assert out.count("Enter: more") == 1 and "In PyDSA" in out
+
+    answers = iter([":q"])
+    with pytest.raises(QuitRequested):
+        render.guide("stack")
+    capsys.readouterr()
+
+    # Output that fits never pauses
+    monkeypatch.setattr("pydsa.ui.console.page_height", lambda: 1000)
+    render.guide("stack")
+    assert "Enter: more" not in capsys.readouterr().out
 
 
 def test_home_shows_the_full_intro_once_per_session(capsys):

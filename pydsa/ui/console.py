@@ -1,8 +1,11 @@
 """Console input and output built on rich: prompts, shortcuts, help, status messages and screen clearing."""
 
+import sys
+
 from rich.columns import Columns
 from rich.console import Console, Group
 from rich.panel import Panel
+from rich.segment import SegmentLines
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
@@ -26,6 +29,7 @@ console = Console(
         "warning": "yellow",
         "info": "cyan",
         "changed": "bold reverse",
+        "markdown.code": "bold cyan",
     }),
     highlight=False,
 )
@@ -125,8 +129,8 @@ def show_help(location):
         shortcuts,
         Text(),
         Text.assemble(("You're at: ", "muted"), location),
-        Text("Choose Definition in a topic's menu to read its explanation again, and Settings on the main "
-             "menu to change how PyDSA behaves.", style="muted"),
+        Text("Choose Read the Guide in a topic's menu to read its guide. On the main menu, Learning Tools has "
+             "an overview and a glossary, and Settings changes how PyDSA behaves.", style="muted"),
     )
     console.print()
     console.print(Panel(body, title="❓ Help", title_align="left", border_style="info", padding=(0, 1)))
@@ -281,3 +285,47 @@ def ask_order():
     """Ask for a sorting order and return "asc" or "desc"."""
     code = ask_code("↕️ Which order do you want?", [[("1", "Ascending"), ("2", "Descending")]])
     return "asc" if code == "1" else "desc"
+
+
+# ---------------------------------------------------------------------------
+# Paging
+# ---------------------------------------------------------------------------
+
+def page_height():
+    """Return the terminal's height when long output should pause between screenfuls, or None when it shouldn't.
+
+    Output that isn't a terminal and input that isn't typed live, such as a piped script, never pause.
+    """
+    if console.is_terminal and sys.stdin.isatty():
+        return console.size.height
+    return None
+
+
+def page(renderable):
+    """Print a blank line and renderable, pausing after every screenful when it's taller than the terminal.
+
+    At a pause, Enter shows the next screenful, a shows the rest and s stops; :q quits PyDSA.
+    """
+    console.print()
+    height = page_height()
+    lines = console.render_lines(renderable, console.options, pad=False) if height else []
+    if height is None or len(lines) < height:
+        console.print(renderable)
+        return
+
+    size = max(height - 3, 5)  # Leave room for the hint, which can wrap, and the prompt
+    shown = 0
+    while True:
+        chunk = lines[shown:shown + size]
+        console.print(SegmentLines(chunk, new_lines=True), end="")
+        shown += len(chunk)
+        if shown >= len(lines):
+            return
+        console.print(Text(f"{shown} of {len(lines)} lines · Enter: more · a: all · s: stop", style="muted"))
+        answer = input(PROMPT).strip().lower()
+        if answer == ":q":
+            raise QuitRequested
+        if answer in ("s", "q", "b", ":b"):
+            return
+        if answer == "a":
+            size = len(lines)

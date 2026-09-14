@@ -2,7 +2,7 @@
 
 from typing import NamedTuple
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import EmptyError, NotFoundError
 from pydsa.core.heap import MaxHeap, MinHeap
 from pydsa.core.priority_queue import PriorityQueue
@@ -19,22 +19,19 @@ class HeapKind(NamedTuple):
     name: str
     root: str  # Which key sits at the root, as in "the smallest key"
     short: str  # As in "Extract Min"
+    guide: str  # The ID of its guide and topic
 
 
-MIN = HeapKind(MinHeap, "min heap", "smallest", "Min")
-MAX = HeapKind(MaxHeap, "max heap", "largest", "Max")
+MIN = HeapKind(MinHeap, "min heap", "smallest", "Min", "min-heap")
+MAX = HeapKind(MaxHeap, "max heap", "largest", "Max", "max-heap")
 
 EXAMPLE_KEYS = [50, 30, 10, 20, 70, 60, 80]
 EXAMPLE_QUEUE = [("Fix bug", 1), ("Write docs", 3), ("Reply", 2), ("Deploy", 1)]
 
 
-def show_definition():
-    render.definition(texts.HEAP_DEFINITION, complexity.HEAP, complexity.PRIORITY_QUEUE)
-
-
 def run():
     """Show the heap intro, let the user pick a heap or the priority queue and run its menu."""
-    render.intro(texts.HEAP_ASCII, texts.HEAP_DEFINITION, complexity.HEAP, complexity.PRIORITY_QUEUE)
+    render.intro(texts.HEAP_ASCII, "heap")
     return Menu("🧪 Which one do you want?", [
         [("Min Heap", lambda: heap_menu(MIN)),
          ("Max Heap", lambda: heap_menu(MAX)),
@@ -45,13 +42,13 @@ def run():
 
 def run_kind(kind):
     """Show the heap intro and run the menu of one kind of heap, skipping the choice."""
-    render.intro(texts.HEAP_ASCII, texts.HEAP_DEFINITION, complexity.HEAP, complexity.PRIORITY_QUEUE)
+    render.intro(texts.HEAP_ASCII, "heap")
     return heap_menu(kind)
 
 
 def run_queue():
     """Show the heap intro and run the priority queue menu, skipping the choice."""
-    render.intro(texts.HEAP_ASCII, texts.HEAP_DEFINITION, complexity.HEAP, complexity.PRIORITY_QUEUE)
+    render.intro(texts.HEAP_ASCII, "heap")
     return queue_menu()
 
 
@@ -60,8 +57,8 @@ def run_queue():
 # ---------------------------------------------------------------------------
 
 def heap_menu(kind):
-    """Create a heap of the given kind and run its operation menu."""
-    info(texts.HEAP_INFO)
+    """Show the summary of a kind of heap, then create one and run its operation menu."""
+    render.summary(kind.guide)
     heap = Menu(f"🛠️ Do you want to create a {kind.name} yourself or use the preloaded example?", [
         [(f"Create a {kind.name}", lambda: create(kind)), ("Use the example", lambda: example(kind)),
          ("Fill with random values", lambda: fill_random(kind))],
@@ -78,7 +75,7 @@ def heap_menu(kind):
         ("Level Order", lambda: level_order(heap)),
         ("Tree Stats", lambda: render.tree_stats(heap, "heap")),
         ("Display", lambda: render.heap(heap)),
-    ], definition=show_definition, new_label="New Heap").run()
+    ], guides=[kind.guide, "heap"], new_label="New Heap").run()
 
 
 def ask_data_type(kind):
@@ -167,8 +164,8 @@ def level_order(heap):
 # ---------------------------------------------------------------------------
 
 def queue_menu():
-    """Create a priority queue and run its operation menu."""
-    info(texts.PRIORITY_QUEUE_INFO)
+    """Show the summary of the priority queue, then create one and run its operation menu."""
+    render.summary("priority-queue")
     queue = Menu("🛠️ Do you want to start with an empty priority queue or use the preloaded example?", [
         [("Start with an empty priority queue", create_queue), ("Use the example", example_queue),
          ("Fill with random values", fill_random_queue)],
@@ -184,7 +181,7 @@ def queue_menu():
         ("Change Priority", lambda: change_priority(queue)),
         ("Size", lambda: result(f"The priority queue holds {plural(len(queue), 'item')}.")),
         ("Display", lambda: render.priority_queue(queue)),
-    ], definition=show_definition, new_label="New Priority Queue").run()
+    ], guides=["priority-queue", "heap"], new_label="New Priority Queue").run()
 
 
 def create_queue():

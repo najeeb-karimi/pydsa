@@ -3,6 +3,7 @@
 from enum import Enum, auto
 from typing import Callable, NamedTuple
 
+from pydsa.content import registry
 from pydsa.ui import render
 from pydsa.ui.console import BackRequested, ask_code, clear, info
 
@@ -123,11 +124,23 @@ class Menu:
                 return result
 
 
-def operation_menu(name, operations, *, definition, new_label):
+def read_guide(guides):
+    """Show one of guides (topic IDs); when there's more than one, let the user pick which."""
+    if len(guides) == 1:
+        render.guide(guides[0])
+        return
+    Menu("📖 Which guide do you want to read?", [
+        [(registry.guide(guide).title, lambda guide=guide: render.guide(guide)) for guide in guides],
+        [back_option()],
+    ]).select()
+
+
+def operation_menu(name, operations, *, guides, new_label):
     """Build the operation menu of a data structure or an algorithm screen.
 
-    Definition comes first, followed by operations as (label, action) pairs. The last group holds the
-    shared navigation: new_label (start this screen again), Main Menu and 0) Exit.
+    Read the Guide comes first, showing one of guides (topic IDs, the most specific first), followed by
+    operations as (label, action) pairs. The last group holds the shared navigation: new_label (start this
+    screen again), Main Menu and 0) Exit.
     """
 
     def start_again():
@@ -142,7 +155,7 @@ def operation_menu(name, operations, *, definition, new_label):
     return Menu(
         f"⚔️ What do you want to do with the {name}?",
         [
-            [("Definition", definition), *operations],
+            [("Read the Guide", lambda: read_guide(guides)), *operations],
             [(new_label, start_again), ("Main Menu", go_home), exit_option()],
         ],
         compact_repeat=True,

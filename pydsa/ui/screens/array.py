@@ -1,6 +1,6 @@
 """Array screen."""
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.array import Array
 from pydsa.core.errors import OutOfBoundsError
 from pydsa.ui import random_data, render
@@ -11,13 +11,9 @@ from pydsa.ui.screens.searching_algorithms import SEARCHES, run_search
 from pydsa.ui.screens.sorting_algorithms import SORTS, run_sort
 
 
-def show_definition():
-    render.definition(texts.ARRAY_DEFINITION, complexity.ARRAY, complexity.SORTING)
-
-
 def run():
     """Create an array and run the array operation menu."""
-    render.intro(texts.ARRAY_ASCII, texts.ARRAY_DEFINITION, complexity.ARRAY, complexity.SORTING)
+    render.intro(texts.ARRAY_ASCII, "array")
     array = Menu("🛠️ Do you want to create an array yourself or use the preloaded example?", [
         [("Create an array", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
@@ -34,7 +30,7 @@ def run():
         ("Size", lambda: result(f"The array has {plural(array.size, 'element')}.")),
         ("Data Type", lambda: result(f"The array holds {array.data_type.__name__} values.")),
         ("Display", lambda: render.array(array.items)),
-    ], definition=show_definition, new_label="New Array").run()
+    ], guides=["array"], new_label="New Array").run()
 
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 """Queue screen."""
 
-from pydsa.content import complexity, texts
+from pydsa.content import texts
 from pydsa.core.errors import CapacityError, EmptyError
 from pydsa.core.queue import Queue
 from pydsa.ui import random_data, render
@@ -15,7 +15,7 @@ def show(queue):
 
 def run():
     """Create a queue and run the queue operation menu."""
-    render.intro(texts.QUEUE_ASCII, texts.QUEUE_DEFINITION, complexity.QUEUE)
+    render.intro(texts.QUEUE_ASCII, "queue")
     queue = Menu("🛠️ Do you want to create a queue yourself or use the preloaded example?", [
         [("Create a queue", create), ("Use the example", example), ("Fill with random values", fill_random)],
         [back_option()],
@@ -32,7 +32,7 @@ def run():
         ("Check if Full", lambda: result(f"Is the queue full? {yes_no(queue.is_full())}.")),
         ("Size", lambda: result(f"The queue holds {len(queue)} of {plural(queue.capacity, 'item')}.")),
         ("Display", lambda: show(queue)),
-    ], definition=lambda: render.definition(texts.QUEUE_DEFINITION, complexity.QUEUE), new_label="New Queue").run()
+    ], guides=["queue"], new_label="New Queue").run()
 
 
 def create():
