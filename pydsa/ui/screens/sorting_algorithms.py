@@ -51,11 +51,17 @@ def run():
     if items is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("list", [
+    return operation_menu("list", "sorting", operations(items), guides=[sort.guide for sort in SORTS],
+                          new_label="New List").run()
+
+
+def operations(items):
+    """Return the sorting operations on items as (label, action) pairs."""
+    return [
         *[(sort.name, lambda sort=sort: sort_copy(items, sort)) for sort in SORTS],
         ("Compare All Algorithms", lambda: compare(items)),
         ("Display", lambda: render.array(items)),
-    ], guides=["sorting", *(sort.guide for sort in SORTS)], new_label="New List").run()
+    ]
 
 
 def create(kind):

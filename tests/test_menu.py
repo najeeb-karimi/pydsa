@@ -60,25 +60,33 @@ def test_run_stops_at_the_first_nav(monkeypatch):
 
 
 def test_operation_menu_layout_and_navigation(monkeypatch, capsys):
-    menu = operation_menu("thing", [("Poke", lambda: print("poked"))], guides=["stack"], new_label="New Thing")
+    menu = operation_menu("thing", "stack", [("Push", lambda: print("pushed"))], new_label="New Thing")
 
-    feed(monkeypatch, "1", "2", "0")
+    feed(monkeypatch, "1", "2", "3", "1", "0")  # Read the Guide, Push, Show the Code > Push, Exit
     assert menu.run() is Nav.EXIT
     out = capsys.readouterr().out
-    assert "⚔️ What do you want to do with the thing?\n  1) Read the Guide\n  2) Poke\n\n  3) New Thing\n  4) Main Menu\n  0) Exit\n" in out
-    assert "📖 Stack" in out and "poked\n" in out
+    assert ("⚔️ What do you want to do with the thing?\n  1) Read the Guide\n  2) Push\n  3) Show the Code\n\n"
+            "  4) New Thing\n  5) Main Menu\n  0) Exit\n") in out
+    assert "📖 Stack" in out
+    assert "💡 Push: Puts an item on top of the stack. · Cost: Time O(1) · Extra space O(1)\npushed\n" in out
+    assert "📝 Pseudocode: Push" in out and "def push(self, item):" in out
     # After the first time, the options are shown in compact columns without the title
     assert out.count("What do you want to do with the thing?") == 1
-    assert out.count("h help · b back · q quit") == 3
+    assert out.count("h help · b back · q quit") == 5  # Four times for this menu, once to pick the code
 
-    feed(monkeypatch, "3")
-    assert menu.run() is Nav.NEW
     feed(monkeypatch, "4")
+    assert menu.run() is Nav.NEW
+    feed(monkeypatch, "5")
     assert menu.run() is Nav.HOME
 
 
+def test_every_operation_needs_a_note():
+    with pytest.raises(KeyError, match="no note for 'Poke'"):
+        operation_menu("thing", "stack", [("Poke", lambda: None)], new_label="New Thing")
+
+
 def test_read_the_guide_offers_a_choice_of_guides(monkeypatch, capsys):
-    menu = operation_menu("thing", [], guides=["bst", "tree"], new_label="New Thing")
+    menu = operation_menu("thing", "bst", [], guides=["tree"], new_label="New Thing")
     feed(monkeypatch, "1", "2", "1", "0", "0")  # Read the Guide > Tree, then Read the Guide > Go Back, then Exit
     assert menu.run() is Nav.EXIT
     out = capsys.readouterr().out

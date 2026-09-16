@@ -5,7 +5,7 @@ from pydsa.core.array import Array
 from pydsa.core.errors import OutOfBoundsError
 from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_value, error, plural, result, success
-from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.menu import Menu, Nav, back_option, noted, operation_menu
 from pydsa.ui.render import fmt
 from pydsa.ui.screens.searching_algorithms import SEARCHES, run_search
 from pydsa.ui.screens.sorting_algorithms import SORTS, run_sort
@@ -21,7 +21,12 @@ def run():
     if array is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("array", [
+    return operation_menu("array", "array", operations(array), new_label="New Array").run()
+
+
+def operations(array):
+    """Return the array's operations as (label, action) pairs."""
+    return [
         ("Insert", lambda: insert(array)),
         ("Delete", lambda: delete(array)),
         ("Get by Index", lambda: get(array)),
@@ -30,7 +35,7 @@ def run():
         ("Size", lambda: result(f"The array has {plural(array.size, 'element')}.")),
         ("Data Type", lambda: result(f"The array holds {array.data_type.__name__} values.")),
         ("Display", lambda: render.array(array.items)),
-    ], guides=["array"], new_label="New Array").run()
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -148,7 +153,7 @@ def get(array):
 def sort(array):
     """Let the user pick a sorting algorithm and sort the array with it, showing every step."""
     Menu("🗂️ Which sorting algorithm do you want to use?", [
-        [(sort.name, lambda sort=sort: sort_array(array, sort)) for sort in SORTS],
+        noted("sorting", [(sort.name, lambda sort=sort: sort_array(array, sort)) for sort in SORTS]),
         [back_option()],
     ]).select()
 
@@ -160,8 +165,9 @@ def sort_array(array, sort):
 
 def search(array):
     """Let the user pick a searching algorithm and search the array with it."""
+    kind = array.data_type.__name__
     Menu("🔍 Which searching algorithm do you want to use?", [
-        [(search.name, lambda search=search: run_search(array.items, search, array.data_type.__name__, "the array"))
-         for search in SEARCHES],
+        noted("searching", [(search.name, lambda search=search: run_search(array.items, search, kind, "the array"))
+                            for search in SEARCHES]),
         [back_option()],
     ]).select()

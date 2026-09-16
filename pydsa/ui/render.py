@@ -1,7 +1,11 @@
-"""Rich renderers for the intro, guides, explanations and every data structure.
+"""Rich renderers for the intro, guides, explanations, operation notes, code and every data structure.
 
 User data always goes into Text objects, so brackets in a value are never read as rich markup.
 """
+
+import inspect
+import re
+import textwrap
 
 from rich import box
 from rich.cells import cell_len
@@ -9,13 +13,15 @@ from rich.columns import Columns
 from rich.console import Group
 from rich.markdown import Markdown
 from rich.measure import Measurement
+from rich.padding import Padding
 from rich.panel import Panel
+from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
 from pydsa import __version__, settings
-from pydsa.content import complexity, registry, texts
+from pydsa.content import complexity, notes, registry, texts
 from pydsa.ui.console import console, info, page, plural, result
 
 STRIKE = chr(0x0336)  # Combining long stroke overlay
@@ -193,6 +199,71 @@ def explanation(topic_id):
         note("To see how it works before it runs, set Explanations to Detailed in Settings. The whole guide is in Learning Tools.")
     else:
         show(_markdown_panel(parsed.section("How it works"), title))
+
+
+def _cost(note):
+    """Return what an operation costs, read from its topic's complexity tables, or an empty string."""
+    parts = []
+    for row in note.complexity_rows:
+        values = complexity.cost(note.topic, row)
+        text = values[0][1] if len(values) == 1 else " · ".join(f"{column} {value}" for column, value in values)
+        parts.append(text if len(note.complexity_rows) == 1 else f"{row}: {text}")
+    return "; ".join(parts)
+
+
+def operation_note(note):
+    """Show an operation's note before it runs, following the Explanations setting.
+
+    Brief shows one line with the summary and the cost, and Detailed adds the numbered steps. An operation that
+    shows its own explanation from a guide, like a sorting algorithm, only gets its cost.
+    """
+    cost = _cost(note)
+    cost_text = Text.assemble(("Cost: ", "title"), (cost, "code")) if cost else None
+    if note.explained:
+        if cost_text:
+            show(Text.assemble("⏱️ ", cost_text))
+        return
+    headline = Text.assemble((f"💡 {note.operation}: ", "title"), note.summary)
+    if settings.current.detail == "brief" or not note.steps:
+        if cost_text:
+            headline.append(" · ")
+            headline.append_text(cost_text)
+        show(headline)
+        return
+    # A grid keeps each wrapped step indented under its own text
+    steps = Table.grid(padding=(0, 1))
+    steps.add_column(style="muted", justify="right", no_wrap=True)
+    steps.add_column()
+    for number, step in enumerate(note.steps, start=1):
+        steps.add_row(f"{number}.", step)
+    lines = [headline, Padding(steps, (0, 0, 0, 2), expand=False)]
+    if cost_text:
+        lines.append(Text.assemble("  ", cost_text))
+    show(Group(*lines))
+
+
+def code(note):
+    """Show an operation's pseudocode and the real Python source behind it, a screenful at a time."""
+    parts = [Panel(Text("\n".join(note.pseudocode)), title=f"📝 Pseudocode: {note.operation}", title_align="left",
+                   border_style="info", padding=(0, 1))]
+    raised = []
+    for reference in note.sources:
+        function = notes.resolve(reference)
+        lines, start = inspect.getsourcelines(function)
+        source = textwrap.dedent("".join(lines)).rstrip()
+        raised += [name for name in re.findall(r"raise (\w+)", source) if name not in raised]
+        syntax = Syntax(source, "python", theme="ansi_dark", line_numbers=True, start_line=start, word_wrap=True,
+                        background_color="default")
+        path = inspect.getmodule(function).__name__.replace(".", "/") + ".py"
+        parts += [Text(), Panel(syntax, title=f"🐍 {function.__qualname__}", title_align="left", subtitle=path,
+                                subtitle_align="right", border_style="muted", padding=(0, 1))]
+    if raised:
+        extra = (f"Besides the idea in the pseudocode, the real code checks for problems and raises {' or '.join(raised)}, "
+                 "which the screen turns into a friendly message.")
+    else:
+        extra = "The real code follows the pseudocode closely, and its comments explain the less obvious lines."
+    parts += [Text(), Text(extra, style="muted")]
+    page(Group(*parts))
 
 
 def document(name, icon):

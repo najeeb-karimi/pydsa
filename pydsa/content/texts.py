@@ -26,10 +26,9 @@ BANNER = r"""
 WELCOME = "Welcome to PyDSA, where you learn data structures and algorithms by using them. Pick a topic, read its short summary, then build your own data and watch every change as a table or diagram. You move around by typing the number next to an option."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ A plain-language guide for every data structure and algorithm: what it is, how it works, a real-life analogy, and when to use or avoid it
-   ★ Topics open with a short summary, and Read the Guide shows the whole guide
-   ★ Learning Tools on the main menu: an overview, every guide, a glossary and help choosing a data structure
-   ★ The explanation before an algorithm runs is a summary, or how it works if you set Explanations to Detailed"""
+   ★ A short note before every operation: what it does and what it costs, with numbered steps when Explanations is set to Detailed
+   ★ Show the Code in every topic's menu: an operation's pseudocode next to the real Python code that runs it
+   ★ Sorting, searching and graph algorithms show their cost before they run"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""

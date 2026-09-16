@@ -129,8 +129,9 @@ def show_help(location):
         shortcuts,
         Text(),
         Text.assemble(("You're at: ", "muted"), location),
-        Text("Choose Read the Guide in a topic's menu to read its guide. On the main menu, Learning Tools has "
-             "an overview and a glossary, and Settings changes how PyDSA behaves.", style="muted"),
+        Text("Choose Read the Guide in a topic's menu to read its guide, and Show the Code to see how an operation "
+             "is written. On the main menu, Learning Tools has an overview and a glossary, and Settings changes how "
+             "PyDSA behaves.", style="muted"),
     )
     console.print()
     console.print(Panel(body, title="❓ Help", title_align="left", border_style="info", padding=(0, 1)))

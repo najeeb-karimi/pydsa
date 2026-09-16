@@ -21,7 +21,12 @@ def run():
     if trie is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("trie", [
+    return operation_menu("trie", "trie", operations(trie), new_label="New Trie").run()
+
+
+def operations(trie):
+    """Return the trie's operations as (label, action) pairs."""
+    return [
         ("Insert a Word", lambda: insert(trie)),
         ("Delete a Word", lambda: delete(trie)),
         ("Search a Word", lambda: search(trie)),
@@ -29,7 +34,7 @@ def run():
         ("Autocomplete", lambda: autocomplete(trie)),
         ("Word Count", lambda: word_count(trie)),
         ("Display", lambda: render.trie(trie)),
-    ], guides=["trie"], new_label="New Trie").run()
+    ]
 
 
 def create():

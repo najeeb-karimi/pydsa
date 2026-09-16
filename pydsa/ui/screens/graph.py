@@ -6,7 +6,7 @@ from pydsa.core.errors import CycleError, DuplicateError, NegativeWeightError, N
 from pydsa.core.graph import ListGraph, MatrixGraph
 from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, error, info, not_found, plural, result, success
-from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.menu import Menu, Nav, back_option, noted, operation_menu
 
 # The matrix graph raises OutOfBoundsError for a missing vertex, the list graph NotFoundError
 MISSING_VERTEX = (OutOfBoundsError, NotFoundError)
@@ -114,19 +114,26 @@ def load_example(graph):
     show(graph)
 
 
-def graph_menu(graph, add_vertex, remove_vertex):
+def graph_menu(graph):
     """Run the operation menu shared by both representations."""
     representation = "matrix" if isinstance(graph, MatrixGraph) else "list"
-    return operation_menu(f"{describe(graph)} adjacency {representation} graph", [
-        ("Add Vertex", add_vertex),
-        ("Remove Vertex", remove_vertex),
+    return operation_menu(f"{describe(graph)} adjacency {representation} graph", f"adjacency-{representation}-graph",
+                          operations(graph), guides=["graph", "graph-algorithms"], new_label="New Graph").run()
+
+
+def operations(graph):
+    """Return the operations of an adjacency matrix or adjacency list graph as (label, action) pairs."""
+    matrix = isinstance(graph, MatrixGraph)
+    return [
+        ("Add Vertex", lambda: (add_matrix_vertex if matrix else add_list_vertex)(graph)),
+        ("Remove Vertex", lambda: (remove_matrix_vertex if matrix else remove_list_vertex)(graph)),
         ("Add Edge", lambda: add_edge(graph)),
         ("Remove Edge", lambda: remove_edge(graph)),
         ("Search Edge", lambda: search_edge(graph)),
         ("Traversals", lambda: traversals(graph)),
         ("Graph Algorithms", lambda: pick_algorithm(graph)),
         ("Display", lambda: show(graph)),
-    ], guides=[f"adjacency-{representation}-graph", "graph", "graph-algorithms"], new_label="New Graph").run()
+    ]
 
 
 def add_edge(graph):
@@ -215,7 +222,8 @@ def pick_algorithm(graph):
         info("Minimum spanning trees need an undirected graph, so they aren't offered for this one.")
     else:
         info("A topological sort needs a directed graph, so it isn't offered for this one.")
-    Menu("🧮 Which graph algorithm do you want to run?", [algorithm_options(graph), [back_option()]]).select()
+    Menu("🧮 Which graph algorithm do you want to run?", [noted("graph-algorithms", algorithm_options(graph)),
+                                                        [back_option()]]).select()
 
 
 def shortest_paths(graph):
@@ -290,26 +298,28 @@ def matrix_menu():
     if graph is Nav.BACK:
         return Nav.BACK
 
-    def add_vertex():
-        vertex = graph.add_vertex()
-        success(f"Added vertex {vertex}.")
-        show(graph)
+    return graph_menu(graph)
 
-    def remove_vertex():
-        vertex = ask_vertex("🔢 Which vertex do you want to remove?")
-        last = graph.num_vertices - 1
-        try:
-            graph.remove_vertex(vertex)
-        except OutOfBoundsError:
-            missing_vertex(graph, vertex)
-            return
-        message = f"Removed vertex {vertex} and all of its edges."
-        if vertex < last:
-            message += " The vertices after it moved down by one number."
-        success(message)
-        show(graph)
 
-    return graph_menu(graph, add_vertex, remove_vertex)
+def add_matrix_vertex(graph):
+    vertex = graph.add_vertex()
+    success(f"Added vertex {vertex}.")
+    show(graph)
+
+
+def remove_matrix_vertex(graph):
+    vertex = ask_vertex("🔢 Which vertex do you want to remove?")
+    last = graph.num_vertices - 1
+    try:
+        graph.remove_vertex(vertex)
+    except OutOfBoundsError:
+        missing_vertex(graph, vertex)
+        return
+    message = f"Removed vertex {vertex} and all of its edges."
+    if vertex < last:
+        message += " The vertices after it moved down by one number."
+    success(message)
+    show(graph)
 
 
 def create_matrix():
@@ -349,27 +359,29 @@ def list_menu():
     if graph is Nav.BACK:
         return Nav.BACK
 
-    def add_vertex():
-        vertex = ask_vertex("🔢 Which vertex do you want to add?")
-        try:
-            graph.add_vertex(vertex)
-        except DuplicateError:
-            error(f"Vertex {vertex} already exists.")
-            return
-        success(f"Added vertex {vertex}.")
-        show(graph)
+    return graph_menu(graph)
 
-    def remove_vertex():
-        vertex = ask_vertex("🔢 Which vertex do you want to remove?")
-        try:
-            graph.remove_vertex(vertex)
-        except NotFoundError:
-            missing_vertex(graph, vertex)
-            return
-        success(f"Removed vertex {vertex} and all of its edges.")
-        show(graph)
 
-    return graph_menu(graph, add_vertex, remove_vertex)
+def add_list_vertex(graph):
+    vertex = ask_vertex("🔢 Which vertex do you want to add?")
+    try:
+        graph.add_vertex(vertex)
+    except DuplicateError:
+        error(f"Vertex {vertex} already exists.")
+        return
+    success(f"Added vertex {vertex}.")
+    show(graph)
+
+
+def remove_list_vertex(graph):
+    vertex = ask_vertex("🔢 Which vertex do you want to remove?")
+    try:
+        graph.remove_vertex(vertex)
+    except NotFoundError:
+        missing_vertex(graph, vertex)
+        return
+    success(f"Removed vertex {vertex} and all of its edges.")
+    show(graph)
 
 
 def create_list():

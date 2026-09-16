@@ -67,7 +67,12 @@ def heap_menu(kind):
     if heap is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu(kind.name, [
+    return operation_menu(kind.name, kind.guide, operations(heap, kind), guides=["heap"], new_label="New Heap").run()
+
+
+def operations(heap, kind):
+    """Return the operations of a min or max heap as (label, action) pairs."""
+    return [
         ("Insert", lambda: insert(heap)),
         (f"Extract {kind.short}", lambda: extract(heap, kind)),
         (f"Peek {kind.short}", lambda: peek(heap, kind)),
@@ -75,7 +80,7 @@ def heap_menu(kind):
         ("Level Order", lambda: level_order(heap)),
         ("Tree Stats", lambda: render.tree_stats(heap, "heap")),
         ("Display", lambda: render.heap(heap)),
-    ], guides=[kind.guide, "heap"], new_label="New Heap").run()
+    ]
 
 
 def ask_data_type(kind):
@@ -174,14 +179,20 @@ def queue_menu():
     if queue is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("priority queue", [
+    return operation_menu("priority queue", "priority-queue", queue_operations(queue), guides=["heap"],
+                          new_label="New Priority Queue").run()
+
+
+def queue_operations(queue):
+    """Return the priority queue's operations as (label, action) pairs."""
+    return [
         ("Enqueue", lambda: enqueue(queue)),
         ("Dequeue", lambda: dequeue(queue)),
         ("Peek", lambda: peek_queue(queue)),
         ("Change Priority", lambda: change_priority(queue)),
         ("Size", lambda: result(f"The priority queue holds {plural(len(queue), 'item')}.")),
         ("Display", lambda: render.priority_queue(queue)),
-    ], guides=["priority-queue", "heap"], new_label="New Priority Queue").run()
+    ]
 
 
 def create_queue():

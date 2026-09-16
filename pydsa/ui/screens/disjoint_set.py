@@ -20,13 +20,18 @@ def run():
     if union_find is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("disjoint set", [
+    return operation_menu("disjoint set", "disjoint-set", operations(union_find), new_label="New Disjoint Set").run()
+
+
+def operations(union_find):
+    """Return the disjoint set's operations as (label, action) pairs."""
+    return [
         ("Union", lambda: union(union_find)),
         ("Find", lambda: find(union_find)),
         ("Check if Connected", lambda: connected(union_find)),
         ("List Sets", lambda: render.disjoint_sets(union_find)),
         ("Display", lambda: render.disjoint_set(union_find)),
-    ], guides=["disjoint-set"], new_label="New Disjoint Set").run()
+    ]
 
 
 def create():

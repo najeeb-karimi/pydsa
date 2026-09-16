@@ -5,7 +5,7 @@ from rich.cells import cell_len
 
 from pydsa import __version__, settings
 from pydsa.algorithms import graph_algorithms, sorting
-from pydsa.content import registry, texts
+from pydsa.content import notes, registry, texts
 from pydsa.core.deque import Deque
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.graph import ListGraph
@@ -387,6 +387,44 @@ def test_home_shows_the_full_intro_once_per_session(capsys):
     out = capsys.readouterr().out
     assert out.count("Changelog") == 1
     assert f"PyDSA {__version__}  ·  type h in any menu for help" in out
+
+
+def test_operation_notes_follow_the_detail_setting(capsys):
+    push = notes.find("stack", "Push")
+    render.operation_note(push)
+    out = capsys.readouterr().out
+    assert "💡 Push: Puts an item on top of the stack. · Cost: Time O(1) · Extra space O(1)" in out
+    assert "1." not in out
+
+    settings.current = Settings(detail="detailed")
+    render.operation_note(push)
+    out = capsys.readouterr().out
+    assert "  1. If the stack is full, refuse the item." in out
+    assert "  Cost: Time O(1) · Extra space O(1)" in out
+
+    render.operation_note(notes.find("singly-linked-list", "Delete from End"))
+    assert "Cost: O(n)" in capsys.readouterr().out  # Only the singly linked list's column
+
+    render.operation_note(notes.find("sorting", "Bubble Sort"))
+    out = capsys.readouterr().out
+    assert "⏱️ Cost: Best O(n) · Average O(n²) · Worst O(n²) · Extra space O(1)" in out
+    assert "💡" not in out  # The algorithm explains itself
+
+    render.operation_note(notes.find("stack", "Display"))
+    assert "💡 Display: Draws the stack from the top down, marking the top item.\n" in capsys.readouterr().out
+
+
+def test_code_shows_the_pseudocode_and_the_real_source(capsys):
+    render.code(notes.find("stack", "Pop"))
+    out = capsys.readouterr().out
+    assert "📝 Pseudocode: Pop" in out and "remove the top item and return it" in out
+    assert "🐍 Stack.pop" in out and "pydsa/core/stack.py" in out
+    assert "def pop(self):" in out
+    assert "raises EmptyError" in out
+
+    render.code(notes.find("sorting", "Bubble Sort"))
+    out = capsys.readouterr().out
+    assert "def bubble_sort(" in out and "follows the pseudocode closely" in out
 
 
 def test_main_intro_shows_the_version(capsys):

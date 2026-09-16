@@ -23,7 +23,12 @@ def run():
     if queue is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("queue", [
+    return operation_menu("queue", "queue", operations(queue), new_label="New Queue").run()
+
+
+def operations(queue):
+    """Return the queue's operations as (label, action) pairs."""
+    return [
         ("Enqueue", lambda: enqueue(queue)),
         ("Dequeue", lambda: dequeue(queue)),
         ("Peek Front", lambda: peek(queue.get_front, "front")),
@@ -32,7 +37,7 @@ def run():
         ("Check if Full", lambda: result(f"Is the queue full? {yes_no(queue.is_full())}.")),
         ("Size", lambda: result(f"The queue holds {len(queue)} of {plural(queue.capacity, 'item')}.")),
         ("Display", lambda: show(queue)),
-    ], guides=["queue"], new_label="New Queue").run()
+    ]
 
 
 def create():

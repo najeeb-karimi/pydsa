@@ -88,6 +88,8 @@ Here's a short session, trimmed to fit: the user opens the stack, loads the exam
    ...
 >>> 3
 
+💡 Pop: Takes the top item off the stack and gives it to you. · Cost: Time O(1) · Extra space O(1)
+
 ✅ Popped 'Messi' from the top.
 ```
 
@@ -130,9 +132,11 @@ If the terminal says the command isn't found, make sure your virtual environment
 - In menus where you pick a topic or a type, `0) Go Back` returns to the previous menu.
 - Once you're working with a data structure or an algorithm, its menu offers:
   - **Read the Guide:** shows the topic's whole guide and its complexity table. Where a menu has more than one guide, such as a kind of tree and trees in general, you pick which one to read.
+  - **Show the Code:** pick an operation to see its pseudocode next to the real Python code that runs it.
   - **New ...** (such as **New Stack**): starts that topic over with fresh data.
   - **Main Menu:** goes back to the first menu.
   - **`0) Exit`:** closes the app.
+- Before an operation runs, a short note tells you what it does and what it costs.
 - A guide that's longer than your terminal pauses after each screenful: press Enter to keep reading, `a` to show the rest or `s` to stop.
 - If you type something that isn't allowed, PyDSA tells you what went wrong and asks again, so you can't break anything.
 
@@ -157,7 +161,7 @@ Choose **Learning Tools** on the main menu to read the overview, browse every gu
 
 ### ⚙️ Settings
 Choose **Settings** on the main menu to change how PyDSA behaves. Your choices are saved in a `.pydsa` folder in your home folder, so they last between sessions:
-- **Explanations:** before an algorithm runs, Brief shows a short summary of it, and Detailed shows how it works, step by step.
+- **Explanations:** before an operation or algorithm runs, Brief shows a one-line note or a short summary, and Detailed also shows how it works, step by step.
 - **Colors:** turn colors off if your terminal shows strange symbols.
 - **Clear the Screen:** turn it off to keep everything on screen and scroll back through it.
 - **Welcome Intro:** show the long intro once per session, or every time you return to the main menu.
@@ -195,6 +199,6 @@ All the code is inside the `pydsa` folder:
 - `core/`: the data structures themselves.
 - `algorithms/`: the sorting, searching and graph algorithms.
 - `ui/`: everything you see and type in the terminal, such as menus, prompts and output.
-- `content/`: the guides and the glossary (Markdown files in `content/guides`), the ASCII art titles and the complexity tables.
+- `content/`: the guides and the glossary (Markdown files in `content/guides`), the notes shown before every operation, the ASCII art titles and the complexity tables.
 
 The tests are in the `tests` folder.

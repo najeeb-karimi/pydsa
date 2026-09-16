@@ -10,7 +10,7 @@ from pydsa.ui.console import info
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.screens import graph as graph_screen
 
-GUIDES = ["graph-algorithms", "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"]
+GUIDES = ["dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"]
 
 
 def run():
@@ -27,10 +27,16 @@ def run():
     if graph is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu(f"{graph_screen.describe(graph)} graph", [
+    return operation_menu(f"{graph_screen.describe(graph)} graph", "graph-algorithms", operations(graph),
+                          guides=GUIDES, new_label="New Graph").run()
+
+
+def operations(graph):
+    """Return the algorithms that fit the graph, and Display, as (label, action) pairs."""
+    return [
         *graph_screen.algorithm_options(graph),
         ("Display", lambda: graph_screen.show(graph)),
-    ], guides=GUIDES, new_label="New Graph").run()
+    ]
 
 
 def example(directed):

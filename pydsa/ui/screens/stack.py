@@ -19,7 +19,12 @@ def run():
     if stack is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("stack", [
+    return operation_menu("stack", "stack", operations(stack), new_label="New Stack").run()
+
+
+def operations(stack):
+    """Return the stack's operations as (label, action) pairs."""
+    return [
         ("Push", lambda: push(stack)),
         ("Pop", lambda: pop(stack)),
         ("Peek", lambda: peek(stack)),
@@ -27,7 +32,7 @@ def run():
         ("Check if Full", lambda: result(f"Is the stack full? {yes_no(stack.is_full())}.")),
         ("Size", lambda: result(f"The stack holds {len(stack)} of {plural(stack.capacity, 'item')}.")),
         ("Display", lambda: render.stack(stack)),
-    ], guides=["stack"], new_label="New Stack").run()
+    ]
 
 
 def create():

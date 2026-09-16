@@ -55,9 +55,9 @@ def pick(field, explanation, question, choices):
 
 def change_detail():
     pick("detail",
-         "An explanation appears before an algorithm runs. Brief shows a short summary so you can get going "
-         "quickly, and Detailed shows how the algorithm works, step by step. Either way, Read the Guide in a "
-         "topic's menu shows the whole guide.",
+         "A short note appears before every operation and algorithm runs. Brief keeps it to one line, or to a "
+         "summary for an algorithm, so you can get going quickly, and Detailed adds how it works, step by step. "
+         "Either way, Read the Guide and Show the Code in a topic's menu show everything.",
          "📖 How much of each explanation do you want to see?",
          [("brief", "Brief"), ("detailed", "Detailed")])
 

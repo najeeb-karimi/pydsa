@@ -55,10 +55,17 @@ def list_menu(kind):
     if linked_list is Nav.BACK:
         return Nav.BACK
 
+    return operation_menu(kind.name, kind.guide, operations(linked_list, kind), guides=["linked-list"],
+                          new_label="New Linked List").run()
+
+
+def operations(linked_list, kind):
+    """Return the operations of a linked list of the given kind as (label, action) pairs."""
+
     def show():
         render.linked_list(list(linked_list), doubly=kind.doubly, circular=kind.circular)
 
-    operations = [
+    options = [
         ("Insert at Beginning", lambda: insert(linked_list, show, "beginning")),
         ("Insert at Position", lambda: insert(linked_list, show, "position")),
         ("Insert at End", lambda: insert(linked_list, show, "end")),
@@ -68,17 +75,16 @@ def list_menu(kind):
         ("Search", lambda: search(linked_list)),
     ]
     if kind.doubly:
-        operations += [
+        options += [
             ("Display Forward", show),
             ("Display Backward", lambda: render.linked_list(linked_list.backward(), doubly=True,
                                                             circular=kind.circular, backward=True)),
         ]
     else:
-        operations.append(("Display", show))
+        options.append(("Display", show))
     if kind.circular:
-        operations.append(("Walk Around the Loop", lambda: walk(linked_list, kind)))
-
-    return operation_menu(kind.name, operations, guides=[kind.guide, "linked-list"], new_label="New Linked List").run()
+        options.append(("Walk Around the Loop", lambda: walk(linked_list, kind)))
+    return options
 
 
 def create(kind):

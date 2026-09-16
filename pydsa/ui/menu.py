@@ -3,7 +3,7 @@
 from enum import Enum, auto
 from typing import Callable, NamedTuple
 
-from pydsa.content import registry
+from pydsa.content import notes, registry
 from pydsa.ui import render
 from pydsa.ui.console import BackRequested, ask_code, clear, info
 
@@ -135,12 +135,36 @@ def read_guide(guides):
     ]).select()
 
 
-def operation_menu(name, operations, *, guides, new_label):
+def noted(topic, operations):
+    """Return operations, as (label, action) pairs, with every action showing its note before it runs.
+
+    Raises KeyError if an operation has no note in content/notes.py for the topic.
+    """
+    return [(label, lambda note=notes.find(topic, label), action=action: _run_noted(note, action))
+            for label, action in operations]
+
+
+def _run_noted(note, action):
+    render.operation_note(note)
+    return action()
+
+
+def show_the_code(topic, operations):
+    """Let the user pick one of operations that has code, then show its pseudocode and real source."""
+    coded = [note for note in (notes.find(topic, label) for label, _ in operations) if note.sources]
+    Menu("💻 Which operation's code do you want to see?", [
+        [(note.operation, lambda note=note: render.code(note)) for note in coded],
+        [back_option()],
+    ]).select()
+
+
+def operation_menu(name, topic, operations, *, guides=(), new_label):
     """Build the operation menu of a data structure or an algorithm screen.
 
-    Read the Guide comes first, showing one of guides (topic IDs, the most specific first), followed by
-    operations as (label, action) pairs. The last group holds the shared navigation: new_label (start this
-    screen again), Main Menu and 0) Exit.
+    topic is the ID of the topic the menu belongs to. Read the Guide comes first, showing the topic's guide or
+    one of guides (more topic IDs). Then come operations, as (label, action) pairs that show their note before
+    they run, and Show the Code. The last group holds the shared navigation: new_label (start this screen
+    again), Main Menu and 0) Exit.
     """
 
     def start_again():
@@ -155,7 +179,8 @@ def operation_menu(name, operations, *, guides, new_label):
     return Menu(
         f"⚔️ What do you want to do with the {name}?",
         [
-            [("Read the Guide", lambda: read_guide(guides)), *operations],
+            [("Read the Guide", lambda: read_guide([topic, *guides])), *noted(topic, operations),
+             ("Show the Code", lambda: show_the_code(topic, operations))],
             [(new_label, start_again), ("Main Menu", go_home), exit_option()],
         ],
         compact_repeat=True,

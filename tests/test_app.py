@@ -37,7 +37,7 @@ def test_unknown_topics_are_rejected_with_a_suggestion(capsys):
 
 
 def test_topic_opens_directly_then_the_main_menu_follows(play):
-    out = play("2", "10", "0", argv=["--topic", "Stack"])  # Use the example, Main Menu, Exit
+    out = play("2", "11", "0", argv=["--topic", "Stack"])  # Use the example, Main Menu, Exit
     assert "Loaded the example stack." in out
     assert "Changelog" not in out
     assert "📂 What do you want to learn?" in out
@@ -112,7 +112,7 @@ def test_operation_menus_show_their_title_once(play):
 
 
 def test_full_intro_shows_once_per_session(play):
-    out = play("1", "2", "2", "10", "0")  # Linear > Stack > Use the example > Main Menu > Exit
+    out = play("1", "2", "2", "11", "0")  # Linear > Stack > Use the example > Main Menu > Exit
     assert out.count("Changelog") == 1
     assert "type h in any menu for help" in out
 
@@ -142,6 +142,18 @@ def test_algorithm_explanations_follow_the_detail_setting(play):
     settings.save(Settings(detail="detailed"))  # Saved, because every session loads the settings file
     out = play("3", "1", "3", "2", "1", "0")
     assert "If a whole pass makes no swaps" in out and "set Explanations to Detailed" not in out
+
+
+def test_operations_show_their_note_and_their_code(play):
+    out = play("1", "2", "2", "2", "hi", "9", "3", "0")  # Stack example > Push 'hi' > Show the Code > Peek > Exit
+    assert "💡 Push: Puts an item on top of the stack." in out and "Pushed 'hi' onto the stack." in out
+    assert "💻 Which operation's code do you want to see?" in out and "Display" not in out.split("💻")[1].split("📝")[0]
+    assert "📝 Pseudocode: Peek" in out and "def peek(self):" in out
+
+    settings.save(Settings(detail="detailed"))
+    out = play("2", "4", "2", "2", "2", "7", "1", "0", "0")  # Adjacency list > example > undirected > BFS from 0
+    assert "  3. Finding a vertex's neighbors is just its list." in out
+    assert "Cost: O(V + E)" in out
 
 
 def test_learning_tools(play):
@@ -187,7 +199,7 @@ def test_settings_are_saved(play):
 
 
 def test_intro_every_time(play):
-    out = play("5", "4", "2", "0", "1", "2", "2", "10", "0")
+    out = play("5", "4", "2", "0", "1", "2", "2", "11", "0")
     assert out.count("Changelog") == 2
 
 

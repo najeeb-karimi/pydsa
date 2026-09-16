@@ -53,14 +53,19 @@ def tree_menu(kind):
     if tree is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu(kind.name, [
+    return operation_menu(kind.name, kind.guide, operations(tree), guides=["tree"], new_label="New Tree").run()
+
+
+def operations(tree):
+    """Return the tree's operations as (label, action) pairs."""
+    return [
         ("Insert", lambda: insert(tree)),
         ("Delete", lambda: delete(tree)),
         ("Search", lambda: search(tree)),
         ("Traversals", lambda: traversals(tree)),
         ("Tree Stats", lambda: render.tree_stats(tree)),
         ("Display", lambda: show(tree)),
-    ], guides=[kind.guide, "tree"], new_label="New Tree").run()
+    ]
 
 
 def show(tree):

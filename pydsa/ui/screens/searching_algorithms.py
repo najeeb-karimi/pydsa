@@ -36,11 +36,17 @@ def run():
     if items is Nav.BACK:
         return Nav.BACK
 
+    return operation_menu("list", "searching", operations(items), guides=[search.guide for search in SEARCHES],
+                          new_label="New List").run()
+
+
+def operations(items):
+    """Return the searching operations on items as (label, action) pairs."""
     kind = "str" if isinstance(items[0], str) else "num"
-    return operation_menu("list", [
+    return [
         *[(search.name, lambda search=search: run_search(items, search, kind, "the list")) for search in SEARCHES],
         ("Display", lambda: render.array(items)),
-    ], guides=["searching", *(search.guide for search in SEARCHES)], new_label="New List").run()
+    ]
 
 
 def create(kind):

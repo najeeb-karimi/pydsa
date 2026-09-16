@@ -27,9 +27,9 @@ def test_array(play):
         "6", "1", "99",  # Linear search
         "7", "8", "9",  # Size, data type, display
         "5", "0",  # Sort menu, then back
-        "10", "1", "2", "x", "0", "2",  # New Array: a str array after two invalid sizes
+        "11", "1", "2", "x", "0", "2",  # New Array: a str array after two invalid sizes
         "2", "1", "hi", "1",
-        "11", "0",  # New Data Structure, then exit
+        "12", "0",  # Main Menu, then exit
     )
     assert "⏱️ Array operations" in out
     assert "'abc' isn't a valid int." in out
@@ -56,8 +56,8 @@ def test_stack(play):
         "2", "Messi",
         "2", "7", "1",  # Push 7 as an int: the stack is full
         "4", "6", "7", "8", "3",
-        "9", "2",  # New Stack with the example
-        "10", "0",
+        "10", "2",  # New Stack with the example
+        "11", "0",
     )
     assert "The stack is empty, so there's nothing to pop." in out
     assert "The stack is empty, so there's nothing to peek at." in out
@@ -100,8 +100,8 @@ def test_deque(play):
         "3", "x",  # The deque is full
         "6", "7", "9", "10", "11",
         "5", "4",  # Pop back, then pop front
-        "12", "2",  # New Deque with the example
-        "13", "0",
+        "13", "2",  # New Deque with the example
+        "14", "0",
     )
     assert "The deque is empty, so there's nothing to pop." in out
     assert "The deque is empty, so there's nothing to peek at." in out
@@ -129,7 +129,7 @@ def test_linked_lists(play):
         "8", "1", "b", "8", "2", "99",  # Search
         "6", "5", "6", "0", "7",  # Delete from position (out of bounds, then 0) and from the end
         "9",
-        "10", "2", "2", "10",  # New Linked List: the doubly example, displayed backward
+        "11", "2", "2", "10",  # New Linked List: the doubly example, displayed backward
         "0",
     )
     assert "The list is empty, so there's nothing to delete." in out
@@ -158,10 +158,10 @@ def test_circular_linked_lists(play):
         "7", "6", "1",  # Delete from the end, then from position 1
         "10", "5",  # Walk 5 nodes around a 2-node loop
         "9",
-        "11", "4", "2",  # New Linked List: the doubly circular example
+        "12", "4", "2",  # New Linked List: the doubly circular example
         "11", "2", "4",  # Walk 4 nodes backward
         "10",  # Display backward
-        "13", "0",
+        "14", "0",
     )
     assert "The list is empty, so there's nothing to walk around." in out
     assert "Inserted 'a' at the end." in out
@@ -185,8 +185,8 @@ def test_trees(play):
         "3", "1", "99", "3", "1", "50",
         "5", "2", "5", "0",  # Preorder traversal, then back
         "6",  # Tree stats
-        "8", "2", "2", "5", "4", "7",  # New Tree: the AVL example, level order, then display
-        "9", "0",
+        "9", "2", "2", "5", "4", "7",  # New Tree: the AVL example, level order, then display
+        "10", "0",
     )
     assert "Created an empty BST for numbers." in out
     assert "The tree is empty." in out
@@ -209,9 +209,9 @@ def test_heaps(play):
         "3",  # Extract the min
         "5", "4, x", "4,,1", "20, 10, 30, 5",  # Build from a list after an invalid and an empty key
         "4", "6", "7", "8",
-        "9", "2", "2",  # New Heap: the max heap example
+        "10", "2", "2",  # New Heap: the max heap example
         "3", "4",
-        "10", "0",
+        "11", "0",
     )
     assert "The heap is empty, so there's nothing to extract." in out
     assert "The heap is empty, so there's nothing to peek at." in out
@@ -243,8 +243,8 @@ def test_priority_queue(play):
         "5", "1", "write", "0",  # 'write' jumps to the front
         "4", "6", "7",
         "3", "3", "3", "3",  # Dequeue all three items, then one more
-        "8", "3", "2",  # New Heap: the example priority queue
-        "9", "0",
+        "9", "3", "2",  # New Heap: the example priority queue
+        "10", "0",
     )
     assert "The priority queue is empty, so there's nothing to dequeue." in out
     assert "The priority queue is empty, so there's nothing to peek at." in out
@@ -273,8 +273,8 @@ def test_trie(play):
         "6", "car", "6", "", "6", "z",
         "3", "car", "3", "card",
         "7", "8",
-        "9", "2",  # New Trie with the example
-        "10", "0",
+        "10", "2",  # New Trie with the example
+        "11", "0",
     )
     assert "'car' isn't in the trie, so nothing was deleted." in out
     assert "The trie is empty." in out
@@ -313,13 +313,13 @@ def test_graphs(play):
         "4", "0", "2", "-3", "8", "1", "0",  # Add a negative edge, then Dijkstra refuses to run
         "8", "3",  # Cycle Detection
         "9",
-        "10", "2", "1", "2", "9",  # New Graph: an empty undirected adjacency list
+        "11", "2", "1", "2", "9",  # New Graph: an empty undirected adjacency list
         "2", "0", "2", "1", "2", "1",  # Add vertices 0 and 1, then 1 again
         "4", "0", "1", "4", "4", "0", "5", "3",
         "7", "2", "0",
         "8", "4",  # Graph Algorithms > Kruskal
         "3", "0",
-        "11", "0",
+        "12", "0",
     )
     assert "The number of vertices must be a whole number." in out
     assert "The weight can't be 0" in out
@@ -358,8 +358,8 @@ def test_hash_tables(play):
         "4", "2", "7", "4", "2", "5",
         "3", "2", "1", "3", "2", "5",
         "5",
-        "6", "1", "2", "5",  # New Hash Table: the chaining example
-        "7", "0",
+        "7", "1", "2", "5",  # New Hash Table: the chaining example
+        "8", "0",
     )
     assert "Inserted key 1 with value 'a' in slot 1." in out
     assert "Inserted key 4 with value 'b' in slot 2." in out
@@ -383,7 +383,7 @@ def test_hash_sets(play):
         "3", "2", "2", "9", "3", "2", "2", "2",  # Remove 9 (missing) and 2 from B
         "4", "1", "x",
         "5", "6", "7", "1", "7", "2", "8",
-        "9", "11", "0",
+        "9", "12", "0",
     )
     assert "Created two empty sets, A and B, with 3 buckets each." in out
     assert "Added 1 to set A." in out
@@ -409,8 +409,8 @@ def test_disjoint_sets(play):
         "4", "1", "4",
         "2", "4", "9",  # Missing element
         "5", "6",
-        "7", "2",  # New Disjoint Set with the example
-        "8", "0",
+        "8", "2",  # New Disjoint Set with the example
+        "9", "0",
     )
     assert "The number of elements must be a whole number." in out
     assert "Created a disjoint set of 5 elements, numbered 0 to 4, each in a set of its own." in out
@@ -432,10 +432,10 @@ def test_sorting_algorithms(play):
         "9",  # Counting Sort can't sort the float
         "11", "2",  # Compare all algorithms, descending
         "12",
-        "13", "3",  # New List: the example
+        "14", "3",  # New List: the example
         "10", "1",  # Radix Sort
         "9", "2",  # Counting Sort, descending
-        "14", "0",  # Main Menu, then exit
+        "15", "0",  # Main Menu, then exit
     )
     assert "'x' isn't a valid number." in out
     assert "Created a list of 3 numbers." in out
@@ -456,10 +456,10 @@ def test_searching_algorithms(play):
         "5", "2", "7",  # Interpolation Search for the float 7.0
         "6", "1", "5",  # Exponential Search for a missing value
         "2", "1", "2004",
-        "8", "2", "pear, apple, fig",  # New List of words
+        "9", "2", "pear, apple, fig",  # New List of words
         "5",  # Interpolation Search can't search words
         "3", "fig",
-        "9", "0",
+        "10", "0",
     )
     assert "Found 300 at index 7." in out
     assert "Searched this sorted copy and checked 4 positions" in out
@@ -478,9 +478,9 @@ def test_graph_algorithms(play):
         "2", "0",  # Dijkstra from vertex 0
         "3", "4", "5",  # Topological sort, cycle detection, display
         "2", "9",  # A missing vertex
-        "6", "2",  # New Graph: the undirected example
+        "7", "2",  # New Graph: the undirected example
         "3", "4", "5",  # Cycle detection, Prim and Kruskal
-        "8", "0",
+        "9", "0",
     )
     assert "Found the shortest paths from vertex 0 to 4 other vertices." in out
     assert "0 → 2 → 1 → 3 → 4" in out

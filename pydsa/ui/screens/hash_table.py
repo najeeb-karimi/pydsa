@@ -58,12 +58,18 @@ def table_menu(kind):
     if table is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu(kind.name, [
+    return operation_menu(kind.name, kind.guide, operations(table, kind), guides=["hash-table"],
+                          new_label="New Hash Table").run()
+
+
+def operations(table, kind):
+    """Return the operations of a hash table of the given kind as (label, action) pairs."""
+    return [
         ("Insert", lambda: insert(kind, table)),
         ("Delete", lambda: delete(kind, table)),
         ("Search", lambda: search(kind, table)),
         ("Display", lambda: kind.show(table)),
-    ], guides=[kind.guide, "hash-table"], new_label="New Hash Table").run()
+    ]
 
 
 def create(kind):

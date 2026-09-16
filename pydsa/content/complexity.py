@@ -262,3 +262,30 @@ TOPIC_TABLES = {
               "exponential-search"),
     **_shared(GRAPH_ALGORITHMS, "graph-algorithms", "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"),
 }
+
+# The columns that belong to a topic in a table it shares with other kinds, such as Singly in the linked list table
+TOPIC_COLUMNS = {
+    "singly-linked-list": ("Singly",),
+    "doubly-linked-list": ("Doubly",),
+    "singly-circular-linked-list": ("Singly circular",),
+    "doubly-circular-linked-list": ("Doubly circular",),
+    "bst": ("BST (average)", "BST (worst)"),
+    "avl-tree": ("AVL tree",),
+    "adjacency-matrix-graph": ("Adjacency matrix",),
+    "adjacency-list-graph": ("Adjacency list",),
+    "chaining-hash-table": ("Separate chaining",),
+    "linear-probing-hash-table": ("Linear probing",),
+}
+
+
+def cost(topic_id, row_name):
+    """Return the (column, value) pairs of the row named row_name in a topic's tables, for the topic's own columns.
+
+    Raises KeyError if none of the topic's tables has that row.
+    """
+    for table in TOPIC_TABLES[topic_id]:
+        for row in table.rows:
+            if row[0] == row_name:
+                wanted = TOPIC_COLUMNS.get(topic_id)
+                return [(column, value) for column, value in zip(table.columns[1:], row[1:]) if wanted is None or column in wanted]
+    raise KeyError(f"The {topic_id!r} complexity tables have no row named {row_name!r}.")

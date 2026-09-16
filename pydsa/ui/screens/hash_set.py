@@ -19,7 +19,12 @@ def run():
     if sets is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("hash sets", [
+    return operation_menu("hash sets", "hash-set", operations(sets), guides=["hash-table"], new_label="New Hash Set").run()
+
+
+def operations(sets):
+    """Return the operations on the two sets as (label, action) pairs."""
+    return [
         ("Add", lambda: add(sets)),
         ("Remove", lambda: remove(sets)),
         ("Check Membership", lambda: contains(sets)),
@@ -28,7 +33,7 @@ def run():
         ("Difference", lambda: difference(sets)),
         ("Subset Check", lambda: subsets(sets)),
         ("Display", lambda: render.hash_sets(sets)),
-    ], guides=["hash-set", "hash-table"], new_label="New Hash Set").run()
+    ]
 
 
 def create():

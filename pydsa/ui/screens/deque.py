@@ -23,7 +23,12 @@ def run():
     if deque is Nav.BACK:
         return Nav.BACK
 
-    return operation_menu("deque", [
+    return operation_menu("deque", "deque", operations(deque), new_label="New Deque").run()
+
+
+def operations(deque):
+    """Return the deque's operations as (label, action) pairs."""
+    return [
         ("Push Front", lambda: push(deque, "front")),
         ("Push Back", lambda: push(deque, "back")),
         ("Pop Front", lambda: pop(deque, "front")),
@@ -34,7 +39,7 @@ def run():
         ("Check if Full", lambda: result(f"Is the deque full? {yes_no(deque.is_full())}.")),
         ("Size", lambda: result(f"The deque holds {len(deque)} of {plural(deque.capacity, 'item')}.")),
         ("Display", lambda: show(deque)),
-    ], guides=["deque"], new_label="New Deque").run()
+    ]
 
 
 def create():
