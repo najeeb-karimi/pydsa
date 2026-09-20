@@ -5,7 +5,7 @@ from typing import NamedTuple
 from pydsa.content import texts
 from pydsa.core.errors import NotFoundError
 from pydsa.core.tree import AVLTree, BinarySearchTree
-from pydsa.ui import random_data, render
+from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_value, not_found, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -121,18 +121,22 @@ def ask_key(tree):
 
 def insert(tree):
     key = ask_key(tree)
-    tree.insert(key)
+    trace = []
+    tree.insert(key, trace)
+    stepper.play(trace, render.tree_step)
     success(f"Inserted {fmt(key)}.")
     show(tree)
 
 
 def delete(tree):
     key = ask_key(tree)
+    trace = []
     try:
-        tree.delete(key)
+        tree.delete(key, trace)
     except NotFoundError:
         not_found(f"{fmt(key)} isn't in the tree, so nothing was deleted.")
         return
+    stepper.play(trace, render.tree_step)
     success(f"Deleted {fmt(key)}.")
     show(tree)
 

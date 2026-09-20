@@ -6,6 +6,7 @@ User data always goes into Text objects, so brackets in a value are never read a
 import inspect
 import re
 import textwrap
+from math import inf
 
 from rich import box
 from rich.cells import cell_len
@@ -21,7 +22,7 @@ from rich.text import Text
 from rich.tree import Tree
 
 from pydsa import __version__, settings
-from pydsa.content import complexity, notes, registry, texts
+from pydsa.content import complexity, narration, notes, registry, texts
 from pydsa.ui.console import console, info, page, plural, result
 
 STRIKE = chr(0x0336)  # Combining long stroke overlay
@@ -284,6 +285,125 @@ def goodbye():
 
 
 # ---------------------------------------------------------------------------
+# Steps
+# ---------------------------------------------------------------------------
+
+def _marker():
+    """Return the mark that points out what changed when colors aren't shown."""
+    return "*" if plain_output() else ""
+
+
+def _marked(text, mark):
+    """Return text highlighted when mark is set, and marked with * when colors aren't shown."""
+    return Text(text + _marker(), style="changed") if mark else Text(text)
+
+
+def step_caption(number, event, label=fmt):
+    """Print the heading of one step: its number and the sentence for what happened."""
+    console.print()
+    console.print(Text(f"Step {number}: {narration.caption(event, label)}", style="title"))
+
+
+def step_captions(events, label=fmt):
+    """List what happened in every step, without drawing the state after each one."""
+    steps = Table.grid(padding=(0, 1))
+    steps.add_column(style="muted", justify="right", no_wrap=True)
+    steps.add_column()
+    for number, event in enumerate(events, start=1):
+        steps.add_row(f"{number}.", narration.caption(event, label))
+    show(Group(Text("🪜 Step by step:", style="title"), Padding(steps, (0, 0, 0, 2), expand=False)))
+
+
+def list_step(number, event, label=fmt):
+    """Draw one step that works on a list, such as a sorting or a searching step."""
+    step_caption(number, event, label)
+    console.print(Text.assemble(("List: ", "muted"), _values(event.snapshot, event.marks, _marker(), label)))
+
+
+def tree_step(number, event):
+    """Draw one step of a tree operation, with the tree it left behind."""
+    step_caption(number, event)
+    snapshot_tree(event.snapshot, event.marks)
+
+
+def snapshot_tree(snapshot, marks=()):
+    """Draw a tree held as nested (key, left, right) tuples, pointing out the keys in marks."""
+    if snapshot is None:
+        info("The tree is empty.")
+        return
+    _tree(snapshot, lambda node: (node[1], node[2]), lambda node: _marked(fmt(node[0]), node[0] in marks))
+
+
+def heap_step(number, event, label=fmt):
+    """Draw one step of a heap operation as a tree and as the array that stores it."""
+    step_caption(number, event, label)
+    if event.snapshot:
+        marker = _marker()
+        _heap_tree(event.snapshot, label, event.marks, marker)
+        console.print(Text.assemble(("Array: ", "muted"), _values(event.snapshot, event.marks, marker, label)))
+
+
+def walk_step(number, event, waiting="In the queue"):
+    """Draw one step of a graph traversal: the vertices visited so far and the ones still waiting."""
+    step_caption(number, event)
+    order = " → ".join(str(vertex) for vertex in event.snapshot["order"])
+    rest = ", ".join(str(vertex) for vertex in event.snapshot["waiting"])
+    console.print(Text.assemble(("Visited: ", "muted"), order or "nothing yet"))
+    console.print(Text.assemble((f"{waiting}: ", "muted"), rest or "nothing"))
+
+
+def path_step(number, event):
+    """Draw one step of the search for a cycle in a directed graph: the path it's on."""
+    step_caption(number, event)
+    path = " → ".join(str(vertex) for vertex in event.snapshot)
+    console.print(Text.assemble(("Current path: ", "muted"), path or "empty"))
+
+
+def edges_step(number, event, collected="Edges so far"):
+    """Draw one step that collects edges, such as a step of a minimum spanning tree."""
+    step_caption(number, event)
+    edges = ", ".join(_edge(edge) for edge in event.snapshot)
+    console.print(Text.assemble((f"{collected}: ", "muted"), edges or "none yet"))
+
+
+def _edge(edge):
+    """Return an edge as "0 — 1", or as "0 — 1 (4)" when it comes with a weight."""
+    u, v, *weight = edge
+    return f"{u} — {v}" + (f" ({weight[0]})" if weight else "")
+
+
+def vertex_step(number, event, title, column):
+    """Draw one step that keeps a number per vertex, such as a distance or a count of edges."""
+    step_caption(number, event)
+    table = _table(title, box=box.SQUARE)
+    table.add_column("Vertex", justify="right", style="code")
+    table.add_column(column, justify="right")
+    for vertex, value in event.snapshot.items():
+        table.add_row(_marked(str(vertex), vertex in event.marks),
+                      Text("∞", style="muted") if value == inf else Text(str(value)))
+    show(table)
+
+
+def prefix_step(number, event):
+    """Draw one step of a trie operation: the path spelled out from the root."""
+    step_caption(number, event)
+    console.print(Text.assemble(("Path from the root: ", "muted"), " → ".join(event.snapshot) or "the root"))
+
+
+def hash_step(number, event, draw):
+    """Draw one step of a hash table operation with draw(snapshot, marks)."""
+    step_caption(number, event)
+    draw(event.snapshot, event.marks)
+
+
+def union_step(number, event):
+    """Draw one step of a disjoint set operation: the parent and rank arrays it left behind."""
+    step_caption(number, event)
+    parent, rank = event.snapshot
+    show(parent_arrays(parent, rank, event.marks))
+
+
+# ---------------------------------------------------------------------------
 # Arrays, stacks, queues and deques
 # ---------------------------------------------------------------------------
 
@@ -355,26 +475,22 @@ def circular_slots(buffer, ends):
         note("Struck-out items were already removed; their slots are free to reuse.")
 
 
-def sorting_steps(items, steps):
-    """Show items before sorting and after every step from a sorting generator; return the number of steps.
+def sorting_steps(before, events):
+    """Show the list as it was before sorting, then after every step, with what happened in each one.
 
-    Values that changed since the previous step are highlighted, and marked with * when colors aren't shown.
+    Values that changed in a step are highlighted, and marked with * when colors aren't shown.
     """
-    marker = "*" if plain_output() else ""
+    marker = _marker()
     table = _table("🪜 Sorting steps", box=box.SIMPLE_HEAVY)
     table.add_column("Step", justify="right", style="muted")
     table.add_column("Array")
-    previous = list(items)
-    table.add_row("start", _values(previous))
-    count = 0
-    for count, step in enumerate(steps, start=1):
-        changed = {index for index, (old, new) in enumerate(zip(previous, step)) if old != new}
-        table.add_row(str(count), _values(step, changed, marker))
-        previous = step
+    table.add_column("What happened")
+    table.add_row("start", _values(before), "")
+    for number, event in enumerate(events, start=1):
+        table.add_row(str(number), _values(event.snapshot, event.marks, marker), narration.caption(event))
     show(table)
     if marker:
         note("* marks the values that moved in each step.")
-    return count
 
 
 def _values(values, changed=(), marker="", label=fmt):
@@ -603,28 +719,16 @@ def heap(heap, label=fmt, name="heap"):
     note("The array stores the tree level by level: index i has its children at 2i + 1 and 2i + 2.")
 
 
-def heap_steps(steps, first, label=fmt):
-    """Show every step of a heap operation as a tree and as the array; first describes the starting step.
+def heap_steps(events, label=fmt):
+    """Show every step of a heap operation as a tree and as the array.
 
     The keys that moved are highlighted, and marked with * when colors aren't shown.
     """
-    marker = "*" if plain_output() else ""
-    for number, step in enumerate(steps):
-        if number == 0:
-            caption = first
-        else:
-            was, went = step.moved
-            direction = "up" if went < was else "down"
-            relative = "parent" if went < was else "child"
-            caption = f"Moved {label(step.items[went])} {direction}, swapping it with its {relative} {label(step.items[was])}."
-        console.print()
-        console.print(Text(f"Step {number}: {caption}", style="title"))
-        if step.items:
-            _heap_tree(step.items, label, step.moved, marker)
-            console.print(Text.assemble(("Array: ", "muted"), _values(step.items, step.moved, marker, label)))
-    if len(steps) == 1:
-        note("No swaps were needed: the heap property already held.")
-    elif marker:
+    for number, event in enumerate(events, start=1):
+        heap_step(number, event, label)
+    if len(events) == 1:
+        note("No swaps were needed: the heap rule already held.")
+    elif _marker():
         note("* marks the keys that moved in each step.")
 
 
@@ -714,32 +818,42 @@ def adjacency_list(adj_list, directed=True):
 # Hash tables and hash sets
 # ---------------------------------------------------------------------------
 
-def chaining_table(table):
+def chaining_buckets(buckets, marks=()):
     """Show every bucket of a separate chaining hash table with its chain of key-value pairs."""
     grid = _table("Separate Chaining Hash Table", box=box.SQUARE)
     grid.add_column("Bucket", justify="right", style="code")
     grid.add_column("Chain")
-    for index, bucket in enumerate(table.table):
+    for index, bucket in enumerate(buckets):
         chain = " → ".join(f"{fmt(key)}: {fmt(value)}" for key, value in bucket)
-        grid.add_row(str(index), Text(chain) if bucket else Text("empty", style="muted"))
+        grid.add_row(_marked(str(index), index in marks), Text(chain) if bucket else Text("empty", style="muted"))
     show(grid)
 
 
-def probing_table(table):
-    """Show every slot of a linear probing hash table, including the slot each key hashes to."""
+def chaining_table(table):
+    """Show a separate chaining hash table as it is now."""
+    chaining_buckets(table.table)
+
+
+def probing_slots(slots, home, marks=()):
+    """Show every slot of a linear probing hash table; home(key) gives the slot a key hashes to."""
     grid = _table("Linear Probing Hash Table", box=box.SQUARE)
     grid.add_column("Slot", justify="right", style="code")
     grid.add_column("Key")
     grid.add_column("Value")
     grid.add_column("Home slot", justify="right", style="muted")
-    for index, slot in enumerate(table.table):
+    for index, slot in enumerate(slots):
         if slot is None:
-            grid.add_row(str(index), Text("empty", style="muted"), "", "")
+            grid.add_row(_marked(str(index), index in marks), Text("empty", style="muted"), "", "")
         else:
             key, value = slot
-            grid.add_row(str(index), Text(fmt(key)), Text(fmt(value)), str(table.hash_function(key)))
+            grid.add_row(_marked(str(index), index in marks), Text(fmt(key)), Text(fmt(value)), str(home(key)))
     show(grid)
     note("The home slot is where a key's hash points; a key that collided sits further along.")
+
+
+def probing_table(table):
+    """Show a linear probing hash table as it is now."""
+    probing_slots(table.table, table.hash_function)
 
 
 def set_items(items):
@@ -768,25 +882,31 @@ def hash_sets(sets):
 # Disjoint sets
 # ---------------------------------------------------------------------------
 
-def disjoint_set(union_find):
-    """Show the parent and rank arrays of a disjoint set, then the sets they describe."""
+def parent_arrays(parents, ranks, marks=()):
+    """Return the parent and rank arrays of a disjoint set as a table, pointing out the elements in marks."""
     title = "Parent and Rank Arrays"
     table = _table(title, box=box.SQUARE)
     table.add_column("Element", justify="right", style="muted")
-    for element in range(len(union_find)):
-        table.add_column(str(element), justify="center")
+    for element in range(len(parents)):
+        table.add_column(_marked(str(element), element in marks), justify="center")
     table.add_row("Parent", *(Text(str(parent), style="code" if parent == element else "")
-                              for element, parent in enumerate(union_find.parent)))
-    table.add_row("Rank", *(str(rank) for rank in union_find.rank))
+                              for element, parent in enumerate(parents)))
+    table.add_row("Rank", *(str(rank) for rank in ranks))
+    if _fits(table):
+        return table
 
-    if not _fits(table):
-        table = _table(title, box=box.SQUARE)
-        for column in ("Element", "Parent", "Rank"):
-            table.add_column(column, justify="right")
-        for element, (parent, rank) in enumerate(zip(union_find.parent, union_find.rank)):
-            table.add_row(str(element), Text(str(parent), style="code" if parent == element else ""), str(rank))
+    table = _table(title, box=box.SQUARE)
+    for column in ("Element", "Parent", "Rank"):
+        table.add_column(column, justify="right")
+    for element, (parent, rank) in enumerate(zip(parents, ranks)):
+        table.add_row(_marked(str(element), element in marks),
+                      Text(str(parent), style="code" if parent == element else ""), str(rank))
+    return table
 
-    show(table)
+
+def disjoint_set(union_find):
+    """Show the parent and rank arrays of a disjoint set, then the sets they describe."""
+    show(parent_arrays(union_find.parent, union_find.rank))
     note("A root is its own parent, and a root's rank is an upper bound on the height of its tree.")
     disjoint_sets(union_find)
 

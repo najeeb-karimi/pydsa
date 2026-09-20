@@ -788,7 +788,7 @@ add("avl-tree", "Insert", "Adds a key like a binary search tree does, then rotat
         if balance > 1: node.left = rotate_left(node.left), return rotate_right(node)
         if balance < -1: node.right = rotate_right(node.right), return rotate_left(node)
         return node
-    """, (f"{AVL}.insert", f"{AVL}._insert", f"{AVL}._left_rotate", f"{AVL}._right_rotate"))
+    """, (f"{AVL}.insert", f"{AVL}._insert", f"{AVL}._rebalance", f"{AVL}._left_rotate", f"{AVL}._right_rotate"))
 add("avl-tree", "Delete", "Removes one copy of a key like a binary search tree does, then rotates on the way back up to rebalance.",
     ["Delete the key as in a binary search tree, using the in-order successor for a node with two children.",
      "On the way back up, update each node's height and balance factor.",
@@ -802,7 +802,7 @@ add("avl-tree", "Delete", "Removes one copy of a key like a binary search tree d
         if balance > 1: rotate right, first rotating node.left left if it leans right
         if balance < -1: rotate left, first rotating node.right right if it leans left
         return node
-    """, (f"{AVL}.delete", f"{AVL}._delete"))
+    """, (f"{AVL}.delete", f"{AVL}._delete", f"{AVL}._rebalance"))
 tree_shared("avl-tree", "Looks for a key by going left or right at every node, along a path the balance keeps short.")
 add("avl-tree", "Tree Stats", "Shows the tree's height, its numbers of nodes and leaves, and its smallest and largest keys.",
     ["The height is read straight from the root, since every AVL node stores its own height.",

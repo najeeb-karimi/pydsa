@@ -18,11 +18,11 @@ def holds_heap_property(heap):
 def check_steps(steps, final):
     """Every step after the first swaps exactly the two keys it marks, and the last step is the final heap."""
     for previous, step in zip(steps, steps[1:]):
-        was, went = step.moved
-        expected = list(previous.items)
+        was, went = step.marks  # A swap marks where the sifting key was and where it went
+        expected = list(previous.snapshot)
         expected[was], expected[went] = expected[went], expected[was]
-        assert step.items == expected
-    assert steps[-1].items == final
+        assert step.snapshot == expected
+    assert steps[-1].snapshot == final
 
 
 @pytest.mark.parametrize("heap_class, sign", [(MinHeap, 1), (MaxHeap, -1)], ids=["min", "max"])
@@ -36,7 +36,7 @@ def test_random_operations_match_heapq(heap_class, sign):
                 key = rng.randint(-20, 20)
                 steps = heap.insert(key)
                 heapq.heappush(model, sign * key)
-                assert steps[0].moved == (len(heap) - 1,)
+                assert list(steps[0].marks) == [len(heap) - 1]
                 check_steps(steps, heap.items)
             elif op == "extract":
                 if model:
@@ -58,7 +58,7 @@ def test_random_operations_match_heapq(heap_class, sign):
                 steps = heap.heapify(keys)
                 model = [sign * key for key in keys]
                 heapq.heapify(model)
-                assert steps[0].items == keys
+                assert steps[0].snapshot == keys
                 check_steps(steps, heap.items)
                 assert len(steps) - 1 <= 2 * len(keys)  # Heapify needs only O(n) swaps
 
@@ -99,7 +99,8 @@ def test_update_sifts_up_or_down():
     heap = MinHeap("num")
     heap.heapify([10, 20, 30, 40, 50])
     steps = heap.update(4, 5)  # 5 climbs past 20 and 10
-    assert [step.moved for step in steps] == [(4,), (4, 1), (1, 0)]
+    assert [tuple(step.marks) for step in steps] == [(4,), (4, 1), (1, 0)]
+    assert [step.kind for step in steps] == ["replace", "sift_up", "sift_up"]
     assert heap.items[0] == 5 and holds_heap_property(heap)
     heap.update(0, 45)
     assert holds_heap_property(heap)
@@ -110,10 +111,10 @@ def test_insert_and_extract_steps():
     heap = MinHeap("num")
     heap.heapify([10, 20, 30])
     steps = heap.insert(5)
-    assert [step.items for step in steps] == [[10, 20, 30, 5], [10, 5, 30, 20], [5, 10, 30, 20]]
+    assert [step.snapshot for step in steps] == [[10, 20, 30, 5], [10, 5, 30, 20], [5, 10, 30, 20]]
     key, steps = heap.extract()
     assert key == 5
-    assert steps[0] == ([20, 10, 30], (0,))
+    assert (steps[0].kind, steps[0].snapshot, tuple(steps[0].marks)) == ("move_last", [20, 10, 30], (0,))
     assert heap.items == [10, 20, 30]
     single = MaxHeap("num")
     single.insert(1)

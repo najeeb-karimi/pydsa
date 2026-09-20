@@ -5,7 +5,7 @@ from typing import Callable, NamedTuple
 from pydsa.content import texts
 from pydsa.core.errors import CapacityError, NotFoundError
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
-from pydsa.ui import random_data, render
+from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_int, ask_value, error, info, not_found, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -109,14 +109,27 @@ def fill_random(kind):
     return table
 
 
+def show_steps(kind, table, trace):
+    """Play the steps of a hash table operation, drawing the table after each one."""
+    if kind is PROBING:
+        def draw(snapshot, marks):
+            render.probing_slots(snapshot, table.hash_function, marks)
+    else:
+        draw = render.chaining_buckets
+    stepper.play(trace, lambda number, event: render.hash_step(number, event, draw))
+
+
 def insert(kind, table):
     key = ask_value(what="key")
     value = ask_value(what="value")
+    trace = []
     try:
-        index, updated = table.insert(key, value)
+        index, updated = table.insert(key, value, trace)
     except CapacityError:
+        show_steps(kind, table, trace)
         error(f"The table is full, so key {fmt(key)} wasn't inserted.")
         return
+    show_steps(kind, table, trace)
     action = "Updated" if updated else "Inserted"
     success(f"{action} key {fmt(key)} with value {fmt(value)} in {kind.unit} {index}.")
     kind.show(table)
@@ -124,14 +137,17 @@ def insert(kind, table):
 
 def delete(kind, table):
     key = ask_value(what="key")
+    trace = []
     try:
         if kind is PROBING:
-            index, rehashed = table.delete(key)
+            index, rehashed = table.delete(key, trace)
         else:
-            index, rehashed = table.delete(key), 0
+            index, rehashed = table.delete(key, trace), 0
     except NotFoundError:
+        show_steps(kind, table, trace)
         not_found(f"Key {fmt(key)} isn't in the table, so nothing was deleted.")
         return
+    show_steps(kind, table, trace)
     success(f"Deleted key {fmt(key)} from {kind.unit} {index}.")
     if rehashed:
         info(f"Rehashed {plural(rehashed, 'key')} from the same cluster, so they can still be found.")
@@ -140,9 +156,12 @@ def delete(kind, table):
 
 def search(kind, table):
     key = ask_value(what="key")
+    trace = []
     try:
-        index, value = table.lookup(key)
+        index, value = table.lookup(key, trace)
     except NotFoundError:
+        show_steps(kind, table, trace)
         not_found(f"Key {fmt(key)} isn't in the table.")
         return
+    show_steps(kind, table, trace)
     success(f"Found key {fmt(key)} in {kind.unit} {index} with value {fmt(value)}.")

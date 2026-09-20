@@ -20,6 +20,11 @@ ALGORITHMS = [
     sorting.radix_sort,
 ]
 
+def lists(events):
+    """Return the list as it was after every step."""
+    return [event.snapshot for event in events]
+
+
 _rng = random.Random(7)
 CASES = [
     [],
@@ -43,7 +48,7 @@ def test_sorts_in_place(algorithm, order):
             continue
 
         items, stats = list(data), SortStats()
-        steps = list(algorithm(items, order, stats))
+        steps = lists(algorithm(items, order, stats))
         expected = sorted(data, reverse=order == "desc")
 
         assert items == expected
@@ -71,7 +76,7 @@ def test_returns_the_sorted_list(algorithm):
 
 
 def test_bubble_sort_yields_after_every_swap():
-    assert list(sorting.bubble_sort([3, 2, 1])) == [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
+    assert lists(sorting.bubble_sort([3, 2, 1])) == [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
 
 
 def test_counters():
@@ -95,13 +100,13 @@ def test_merge_sort_yields_after_every_merge():
 
 def test_counting_sort_handles_negative_values():
     items = [3, -2, 0, -2, 5]
-    steps = list(sorting.counting_sort(items))
+    steps = lists(sorting.counting_sort(items))
     assert items == [-2, -2, 0, 3, 5]
     assert steps[0] == [-2, -2, 0, -2, 5]  # Both copies of -2 are written first
 
 
 def test_radix_sort_yields_after_every_digit():
-    assert list(sorting.radix_sort([170, 45, 75, 90, 802, 24, 2, 66])) == [
+    assert lists(sorting.radix_sort([170, 45, 75, 90, 802, 24, 2, 66])) == [
         [170, 90, 802, 2, 24, 45, 75, 66],
         [802, 2, 24, 45, 66, 170, 75, 90],
         [2, 24, 45, 66, 75, 90, 170, 802],

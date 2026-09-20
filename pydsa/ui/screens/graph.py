@@ -4,7 +4,7 @@ from pydsa.algorithms import graph_algorithms
 from pydsa.content import texts
 from pydsa.core.errors import CycleError, DuplicateError, NegativeWeightError, NotFoundError, OutOfBoundsError
 from pydsa.core.graph import ListGraph, MatrixGraph
-from pydsa.ui import random_data, render
+from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_int, error, info, not_found, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, noted, operation_menu
 
@@ -190,11 +190,15 @@ def traversals(graph):
 
 def traverse(graph, name):
     start = ask_vertex(f"🔢 Which vertex should the {name} start from?")
+    trace = []
     try:
-        order = graph.bfs(start) if name == "BFS" else graph.dfs(start)
+        order = graph.bfs(start, trace) if name == "BFS" else graph.dfs(start, trace)
     except MISSING_VERTEX:
         missing_vertex(graph, start)
         return
+    # BFS keeps the vertices it still has to visit in a queue, while DFS backs out along the path it took
+    waiting = "In the queue" if name == "BFS" else "On the path"
+    stepper.play(trace, lambda number, event: render.walk_step(number, event, waiting))
     result(f"{name} from vertex {start}: {' → '.join(str(vertex) for vertex in order)}")
 
 
@@ -229,8 +233,9 @@ def pick_algorithm(graph):
 def shortest_paths(graph):
     render.explanation("dijkstra")
     source = ask_vertex("🔢 Which vertex should the paths start from?")
+    trace = []
     try:
-        paths = graph_algorithms.dijkstra(graph, source)
+        paths = graph_algorithms.dijkstra(graph, source, trace)
     except MISSING_VERTEX:
         missing_vertex(graph, source)
         return
@@ -238,6 +243,7 @@ def shortest_paths(graph):
         u, v, weight = problem.edge
         error(f"Dijkstra's algorithm can't handle negative weights, but the edge {edge_name(graph, u, v)} weighs {weight}.")
         return
+    stepper.play(trace, lambda number, event: render.vertex_step(number, event, "🧭 Distances so far", "Distance"))
     routes = {vertex: graph_algorithms.shortest_path(paths, vertex) for vertex in graph.vertices()}
     reachable = sum(route is not None for route in routes.values()) - 1
     success(f"Found the shortest paths from vertex {source} to {plural(reachable, 'other vertex', 'other vertices')}.")
@@ -246,21 +252,36 @@ def shortest_paths(graph):
 
 def topological_sort(graph):
     render.explanation("topological-sort")
+    trace = []
     try:
-        order = graph_algorithms.topological_sort(graph)
+        order = graph_algorithms.topological_sort(graph, trace)
     except CycleError as problem:
+        play_degrees(trace)
         error("The graph has a cycle, so it has no topological order.")
         info(f"These vertices are on a cycle or come after one: {', '.join(str(v) for v in problem.remaining)}.")
         return
     if not order:
         info("The graph has no vertices yet.")
         return
+    play_degrees(trace)
     result(f"Topological order: {' → '.join(str(vertex) for vertex in order)}")
+
+
+def play_degrees(trace):
+    """Play the steps of a topological sort, counting the edges that still point at each vertex."""
+    stepper.play(trace, lambda number, event:
+                 render.vertex_step(number, event, "📥 Edges still pointing at each vertex", "Edges"))
 
 
 def cycle_detection(graph):
     render.explanation("cycle-detection")
-    cycle = graph_algorithms.find_cycle(graph)
+    trace = []
+    cycle = graph_algorithms.find_cycle(graph, trace)
+    if graph.directed:
+        # The search follows one path at a time, while an undirected graph joins group after group
+        stepper.play(trace, render.path_step)
+    else:
+        stepper.play(trace, lambda number, event: render.edges_step(number, event, "Edges without a cycle"))
     if cycle is None:
         result("The graph has no cycles.")
     else:
@@ -274,7 +295,9 @@ def spanning_tree(graph, name):
     if not graph.vertices():
         info("The graph has no vertices yet.")
         return
-    forest = (graph_algorithms.prim if name == "Prim" else graph_algorithms.kruskal)(graph)
+    trace = []
+    forest = (graph_algorithms.prim if name == "Prim" else graph_algorithms.kruskal)(graph, trace)
+    stepper.play(trace, lambda number, event: render.edges_step(number, event, "In the tree"))
     if forest.trees == 1:
         success(f"Found a minimum spanning tree with {plural(len(forest.edges), 'edge')} and a total weight of {forest.total}.")
     else:

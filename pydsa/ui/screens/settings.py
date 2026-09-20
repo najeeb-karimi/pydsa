@@ -8,6 +8,7 @@ from pydsa.ui.console import apply_colors, colors_forced_off, error, info, succe
 from pydsa.ui.menu import Menu, Nav, back_option
 
 DETAIL = {"brief": "Brief", "detailed": "Detailed"}
+STEPS = {"ask": "Ask Each Time", "all": "All at Once", "pause": "Pause After Each One"}
 INTRO = {"once": "Once per Session", "always": "Every Time"}
 
 
@@ -21,6 +22,7 @@ def run():
         current = settings.current
         choice = Menu("⚙️ Which setting do you want to change?", [
             [(f"Explanations: {DETAIL[current.detail]}", change_detail),
+             (f"Steps: {STEPS[current.steps]}", change_steps),
              (f"Colors: {on_off(current.colors)}", change_colors),
              (f"Clear the Screen: {on_off(current.clear_screen)}", change_clear_screen),
              (f"Welcome Intro: {INTRO[current.intro]}", change_intro)],
@@ -60,6 +62,15 @@ def change_detail():
          "Either way, Read the Guide and Show the Code in a topic's menu show everything.",
          "📖 How much of each explanation do you want to see?",
          [("brief", "Brief"), ("detailed", "Detailed")])
+
+
+def change_steps():
+    pick("steps",
+         "Operations such as a sort, an AVL rotation or a graph search take several steps, and PyDSA can walk "
+         "you through them one at a time, telling you what happens in each one. Ask Each Time asks before a "
+         "run starts, where pressing Enter shows everything at once. A piped or scripted run never pauses.",
+         "🪜 How do you want to see the steps of an operation?",
+         [("ask", "Ask each time"), ("all", "Show them all at once"), ("pause", "Pause after each step")])
 
 
 def change_colors():

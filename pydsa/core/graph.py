@@ -2,11 +2,20 @@
 
 Both classes offer vertices() and edges(v), the shared interface the graph algorithms work through. An
 undirected edge is stored both ways, so it shows up in the edges of both of its vertices.
+
+The traversals take an optional trace list and record every vertex they visit, as TraceEvents whose
+snapshot holds the vertices visited so far and the ones still waiting in the queue or on the path.
 """
 
 from collections import deque
 
+from pydsa.algorithms.trace import record
 from pydsa.core.errors import DuplicateError, NotFoundError, OutOfBoundsError
+
+
+def _walk(order, waiting):
+    """Return the state of a traversal to draw: the vertices visited so far and the ones still waiting."""
+    return {"order": list(order), "waiting": list(waiting)}
 
 
 # ---------------------------------------------------------------------------
@@ -86,24 +95,29 @@ class MatrixGraph:
         """Return the vertices v has an edge to, in increasing order."""
         return [i for i in range(self.num_vertices) if self.adj_matrix[v][i] != 0]
 
-    def dfs(self, start_vertex):
+    def dfs(self, start_vertex, trace=None):
         """Return the vertices in depth-first order starting from start_vertex."""
         self._check_vertices(start_vertex)
         order = []
         visited = [False] * self.num_vertices
+        path = []  # The vertices the search went through to get here, which it backs out of again
 
         def visit(v):
             """Visit v, then recursively visit its unvisited neighbors."""
             visited[v] = True
             order.append(v)
+            path.append(v)
+            record(trace, "visit", _walk(order, path), {v: "visited"}, vertex=v)
             for i in self.neighbors(v):
                 if not visited[i]:
                     visit(i)
+            path.pop()
+            record(trace, "back", _walk(order, path), {v: "done"}, vertex=v)
 
         visit(start_vertex)
         return order
 
-    def bfs(self, start_vertex):
+    def bfs(self, start_vertex, trace=None):
         """Return the vertices in breadth-first order starting from start_vertex."""
         self._check_vertices(start_vertex)
         order = []
@@ -114,11 +128,17 @@ class MatrixGraph:
         while queue:
             v = queue.popleft()
             order.append(v)
+            record(trace, "visit", _walk(order, queue), {v: "visited"}, vertex=v)
             # Enqueue every unvisited neighbor of v and mark it as visited
+            added = []
             for i in self.neighbors(v):
                 if not visited[i]:
                     queue.append(i)
                     visited[i] = True
+                    added.append(i)
+            if added:
+                record(trace, "enqueue", _walk(order, queue), {i: "waiting" for i in added},
+                       vertex=v, neighbors=added)
         return order
 
 
@@ -205,24 +225,29 @@ class ListGraph:
         """Return the vertices v has an edge to, in the order the edges were added."""
         return [neighbor for neighbor, _ in self.adj_list[v]]
 
-    def dfs(self, start_vertex):
+    def dfs(self, start_vertex, trace=None):
         """Return the vertices in depth-first order starting from start_vertex."""
         self._check_vertices(start_vertex)
         order = []
         visited = set()
+        path = []  # The vertices the search went through to get here, which it backs out of again
 
         def visit(v):
             """Visit v, then recursively visit its unvisited neighbors."""
             visited.add(v)
             order.append(v)
+            path.append(v)
+            record(trace, "visit", _walk(order, path), {v: "visited"}, vertex=v)
             for neighbor in self.neighbors(v):
                 if neighbor not in visited:
                     visit(neighbor)
+            path.pop()
+            record(trace, "back", _walk(order, path), {v: "done"}, vertex=v)
 
         visit(start_vertex)
         return order
 
-    def bfs(self, start_vertex):
+    def bfs(self, start_vertex, trace=None):
         """Return the vertices in breadth-first order starting from start_vertex."""
         self._check_vertices(start_vertex)
         order = []
@@ -232,8 +257,14 @@ class ListGraph:
         while queue:
             v = queue.popleft()
             order.append(v)
+            record(trace, "visit", _walk(order, queue), {v: "visited"}, vertex=v)
+            added = []
             for neighbor in self.neighbors(v):
                 if neighbor not in visited:
                     queue.append(neighbor)
                     visited.add(neighbor)
+                    added.append(neighbor)
+            if added:
+                record(trace, "enqueue", _walk(order, queue), {vertex: "waiting" for vertex in added},
+                       vertex=v, neighbors=added)
         return order

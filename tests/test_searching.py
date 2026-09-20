@@ -34,8 +34,9 @@ def test_matches_list_index(search):
             data = [rng.choice([-2.5, 0.5, 1.25, 3.0, 7.75]) for _ in data]
         for target in set(data) | {100, -100, 0.75}:
             expected = data.index(target) if target in data else -1
-            probes = []
-            assert search(data, target, probes) == expected
+            trace = []
+            assert search(data, target, trace) == expected
+            probes = searching.positions(trace)
             assert all(0 <= position < len(data) for position in probes)
             if search in PROBE_LIMITS:
                 assert len(probes) <= PROBE_LIMITS[search](len(data))
@@ -61,12 +62,14 @@ def test_interpolation_search_needs_numbers():
 
 def test_probes_show_the_path_through_the_sorted_copy():
     data = [10, 1987, 672, 8, 2004, 42, 7, 300]  # Sorted: [7, 8, 10, 42, 300, 672, 1987, 2004]
-    probes = []
-    assert searching.jump_search(data, 300, probes) == 7
-    assert probes == [1, 3, 5, 4]
-    probes = []
-    assert searching.exponential_search(data, 5, probes) == -1
-    assert probes == [0, 1]
+    trace = []
+    assert searching.jump_search(data, 300, trace) == 7
+    assert searching.positions(trace) == [1, 3, 5, 4]
+    assert [event.kind for event in trace] == ["too_small", "too_small", "block", "match"]
+    trace = []
+    assert searching.exponential_search(data, 5, trace) == -1
+    assert searching.positions(trace) == [0, 1]
+    assert [event.kind for event in trace] == ["passed", "bound"]
 
 
 def test_binary_search_keeps_the_original_order():

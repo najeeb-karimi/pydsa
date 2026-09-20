@@ -1,10 +1,12 @@
 """Sorting algorithms written as generators that sort a list in place, one step at a time.
 
-Every generator yields a snapshot (a copy) of the list after each step, so a caller can show the
-intermediate states or simply exhaust the generator. When it finishes, the list is sorted and is also
-the generator's return value. order is "asc" or "desc", and an optional SortStats counts the work done.
+Every generator yields a TraceEvent per step, holding a snapshot (a copy) of the list, the positions that
+changed and the values the step is about, so a caller can narrate the steps or simply exhaust the generator.
+When it finishes, the list is sorted and is also the generator's return value. order is "asc" or "desc", and
+an optional SortStats counts the work done.
 """
 
+from pydsa.algorithms.trace import event
 from pydsa.core.errors import InvalidTypeError
 
 COUNTING_RANGE_LIMIT = 10_000  # Counting sort needs one counter per value between the smallest and largest
@@ -29,6 +31,11 @@ def _swap(items, i, j, stats):
     stats.writes += 2
 
 
+def _moved(*positions):
+    """Return the marks of a step: every position whose value changed."""
+    return {position: "moved" for position in positions}
+
+
 def accepts(algorithm, items):
     """Return True if algorithm can sort items.
 
@@ -45,7 +52,7 @@ def accepts(algorithm, items):
 
 
 def bubble_sort(items, order="asc", stats=None):
-    """Bubble Sort, yielding the list after every swap."""
+    """Bubble Sort, with a step for every swap."""
     stats = stats or SortStats()
     n = len(items)
     for i in range(n):
@@ -54,7 +61,7 @@ def bubble_sort(items, order="asc", stats=None):
             if _out_of_order(items[j], items[j + 1], order, stats):
                 _swap(items, j, j + 1, stats)
                 swapped = True
-                yield list(items)
+                yield event("swap", list(items), _moved(j, j + 1), a=items[j], b=items[j + 1])
         # A pass without swaps means the list is already sorted
         if not swapped:
             break
@@ -62,7 +69,7 @@ def bubble_sort(items, order="asc", stats=None):
 
 
 def selection_sort(items, order="asc", stats=None):
-    """Selection Sort, yielding the list after every pass."""
+    """Selection Sort, with a step for every pass."""
     stats = stats or SortStats()
     n = len(items)
     for i in range(n):
@@ -73,12 +80,12 @@ def selection_sort(items, order="asc", stats=None):
                 min_max_index = j
         # Swap it with the first unsorted element
         _swap(items, i, min_max_index, stats)
-        yield list(items)
+        yield event("select", list(items), _moved(i, min_max_index), value=items[i], index=i)
     return items
 
 
 def insertion_sort(items, order="asc", stats=None):
-    """Insertion Sort, yielding the list after every insertion."""
+    """Insertion Sort, with a step for every insertion."""
     stats = stats or SortStats()
     for i in range(1, len(items)):
         key = items[i]
@@ -90,12 +97,13 @@ def insertion_sort(items, order="asc", stats=None):
             j -= 1
         items[j + 1] = key
         stats.writes += 1
-        yield list(items)
+        kind = "insert" if j + 1 < i else "in_place"
+        yield event(kind, list(items), _moved(*range(j + 1, i + 1)), value=key, index=j + 1)
     return items
 
 
 def quick_sort(items, order="asc", stats=None):
-    """Quick Sort, yielding the list after every partition."""
+    """Quick Sort, with a step for every partition."""
     yield from _quick_sort(items, 0, len(items) - 1, order, stats or SortStats())
     return items
 
@@ -117,27 +125,27 @@ def _partition(items, low, high, order, stats):
             i += 1
             _swap(items, i, j, stats)
     _swap(items, i + 1, high, stats)
-    yield list(items)
+    yield event("partition", list(items), {i + 1: "pivot"}, pivot=pivot, index=i + 1, low=low, high=high)
     return i + 1
 
 
 def heap_sort(items, order="asc", stats=None):
-    """Heap Sort, yielding the list while building the heap and while emptying it."""
+    """Heap Sort, with a step for every sift while the heap is built and while it's taken apart."""
     stats = stats or SortStats()
     n = len(items)
 
     # Build a max heap (or min heap)
     for i in range(n // 2 - 1, -1, -1):
         _heapify(items, n, i, order, stats)
-        yield list(items)
+        yield event("sift", list(items), _moved(i), index=i)
 
     # Repeatedly move the root to the end and restore the heap
     for i in range(n - 1, 0, -1):
         _swap(items, 0, i, stats)
-        yield list(items)
+        yield event("take_root", list(items), _moved(0, i), value=items[i], index=i)
 
         _heapify(items, i, 0, order, stats)
-        yield list(items)
+        yield event("sift", list(items), _moved(0), index=0)
 
     return items
 
@@ -166,7 +174,7 @@ def _heapify(items, n, i, order, stats):
 
 
 def shell_sort(items, order="asc", stats=None):
-    """Shell Sort, yielding the list after every gap size."""
+    """Shell Sort, with a step for every gap size."""
     stats = stats or SortStats()
     n = len(items)
     gap = n // 2
@@ -175,6 +183,7 @@ def shell_sort(items, order="asc", stats=None):
     while gap > 0:
         # Gapped insertion sort: the first gap elements are already in gapped order,
         # so keep adding one more element until the whole list is gap-sorted
+        before = list(items)
         for i in range(gap, n):
             temp = items[i]
             # Shift earlier gap-sorted elements up until the correct spot for temp is found
@@ -187,14 +196,19 @@ def shell_sort(items, order="asc", stats=None):
             # Put temp in its correct location
             items[j] = temp
             stats.writes += 1
-        yield list(items)
+        yield event("gap", list(items), _changed(before, items), gap=gap)
         gap //= 2
 
     return items
 
 
+def _changed(before, after):
+    """Return the marks of a step: every position that holds another value than it did before."""
+    return _moved(*(index for index, (old, new) in enumerate(zip(before, after)) if old != new))
+
+
 def merge_sort(items, order="asc", stats=None):
-    """Merge Sort, yielding the list after every merge."""
+    """Merge Sort, with a step for every merge."""
     yield from _merge_sort(items, 0, len(items), order, stats or SortStats())
     return items
 
@@ -221,11 +235,11 @@ def _merge_sort(items, low, high, order, stats):
     for offset, value in enumerate(merged):
         items[low + offset] = value
         stats.writes += 1
-    yield list(items)
+    yield event("merge", list(items), _moved(*range(low, high)), low=low, mid=mid, high=high - 1)
 
 
 def counting_sort(items, order="asc", stats=None):
-    """Counting Sort for ints, yielding the list after all copies of a value are written back.
+    """Counting Sort for ints, with a step for every value that's written back.
 
     Raises InvalidTypeError right away if accepts() rejects items.
     """
@@ -245,17 +259,19 @@ def _counting_sort(items, order, stats):
         positions = range(len(counts)) if order == "asc" else range(len(counts) - 1, -1, -1)
         index = 0
         for position in positions:
+            written = []
             for _ in range(counts[position]):
                 items[index] = position + offset
                 stats.writes += 1
+                written.append(index)
                 index += 1
-            if counts[position]:
-                yield list(items)
+            if written:
+                yield event("count_write", list(items), _moved(*written), value=position + offset)
     return items
 
 
 def radix_sort(items, order="asc", stats=None):
-    """Radix Sort (least significant digit first) for non-negative ints, yielding the list after every digit.
+    """Radix Sort (least significant digit first) for non-negative ints, with a step for every digit.
 
     Raises InvalidTypeError right away if accepts() rejects items.
     """
@@ -275,9 +291,10 @@ def _radix_sort(items, order, stats):
         if order == "desc":
             buckets.reverse()
 
+        before = list(items)
         for index, value in enumerate(value for bucket in buckets for value in bucket):
             items[index] = value
             stats.writes += 1
-        yield list(items)
+        yield event("digit", list(items), _changed(before, items), place=place)
         place *= 10
     return items

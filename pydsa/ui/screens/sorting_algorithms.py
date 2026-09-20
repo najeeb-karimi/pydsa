@@ -7,7 +7,7 @@ from typing import Callable, NamedTuple
 
 from pydsa.algorithms import sorting
 from pydsa.content import texts
-from pydsa.ui import random_data, render
+from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_list, ask_order, error, info, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 
@@ -90,9 +90,11 @@ def run_sort(items, sort, noun):
         return False
     order = ask_order()
     stats = sorting.SortStats()
-    steps = render.sorting_steps(items, sort.function(items, order, stats))
+    before = list(items)  # The steps are played after the sorting is done, so the first list is kept here
+    steps = stepper.play(sort.function(items, order, stats), render.list_step,
+                         lambda events: render.sorting_steps(before, events))
     order_name = "ascending" if order == "asc" else "descending"
-    success(f"Sorted {noun} in {order_name} order in {plural(steps, 'step')}, "
+    success(f"Sorted {noun} in {order_name} order in {plural(len(steps), 'step')}, "
             f"with {plural(stats.comparisons, 'comparison')} and {plural(stats.writes, 'write')}.")
     return True
 

@@ -3,7 +3,7 @@
 from pydsa.content import texts
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.errors import OutOfBoundsError
-from pydsa.ui import random_data, render
+from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_int, error, info, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 
@@ -77,13 +77,20 @@ def missing_element(union_find, *elements):
     error(f"Element {element} doesn't exist. Valid elements are 0 to {len(union_find) - 1}.")
 
 
+def show_steps(trace):
+    """Play the steps of a disjoint set operation, drawing the parent and rank arrays after each one."""
+    stepper.play(trace, render.union_step)
+
+
 def union(union_find):
     a, b = ask_pair()
+    trace = []
     try:
-        merged = union_find.union(a, b)
+        merged = union_find.union(a, b, trace)
     except OutOfBoundsError:
         missing_element(union_find, a, b)
         return
+    show_steps(trace)
     if not merged:
         info(f"{a} and {b} are already in the same set, so nothing changed.")
         return
@@ -94,11 +101,13 @@ def union(union_find):
 def find(union_find):
     element = ask_int("🔢 Which element's root do you want to find?", "element")
     parents_before = list(union_find.parent)
+    trace = []
     try:
-        root = union_find.find(element)
+        root = union_find.find(element, trace)
     except OutOfBoundsError:
         missing_element(union_find, element)
         return
+    show_steps(trace)
     result(f"The root of {element} is {root}.")
     relinked = sum(1 for before, after in zip(parents_before, union_find.parent) if before != after)
     if relinked:
@@ -108,9 +117,11 @@ def find(union_find):
 
 def connected(union_find):
     a, b = ask_pair()
+    trace = []
     try:
-        same_set = union_find.connected(a, b)
+        same_set = union_find.connected(a, b, trace)
     except OutOfBoundsError:
         missing_element(union_find, a, b)
         return
+    show_steps(trace)
     result(f"Are {a} and {b} connected? {yes_no(same_set)}.")

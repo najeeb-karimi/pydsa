@@ -6,6 +6,7 @@ import pytest
 
 from pydsa import __version__, app, settings, topics
 from pydsa.settings import Settings
+from pydsa.ui import stepper
 from pydsa.ui.console import console
 
 
@@ -156,6 +157,20 @@ def test_operations_show_their_note_and_their_code(play):
     assert "Cost: O(V + E)" in out
 
 
+def test_steps_can_be_watched_one_at_a_time(play, monkeypatch):
+    monkeypatch.setattr(stepper, "can_pause", lambda: True)  # Pretend PyDSA runs in a real terminal
+    settings.save(Settings(steps="pause"))
+
+    out = play("3", "1", "3", "2", "1", "", "a", "0")  # Sorting > the example > Bubble Sort, ascending
+    assert "Step 1: 45 came after 170, so the two swapped places." in out
+    assert "· Enter: next · a: the rest · s: stop" in out
+    assert "List: [45*, 170*, 75, 90, 802, 24, 2, 66]" in out
+
+    out = play("3", "1", "3", "2", "1", "s", "0")  # s stops the steps after the first one
+    assert "Stopped after 1 of" in out
+    assert "Sorted a copy of the list in ascending order" in out
+
+
 def test_learning_tools(play):
     out = play(
         "4",  # Learning Tools
@@ -188,7 +203,7 @@ def test_settings_are_saved(play):
     out = play(
         "5",  # Settings
         "1", "2",  # Explanations > Detailed
-        "3", "2",  # Clear the Screen > Off
+        "4", "2",  # Clear the Screen > Off
         "0", "0",
     )
     assert out.count("Saved your settings.") == 2
@@ -199,13 +214,13 @@ def test_settings_are_saved(play):
 
 
 def test_intro_every_time(play):
-    out = play("5", "4", "2", "0", "1", "2", "2", "11", "0")
+    out = play("5", "5", "2", "0", "1", "2", "2", "11", "0")
     assert out.count("Changelog") == 2
 
 
 def test_restore_defaults(play):
     settings.save(Settings(detail="detailed", colors=False))
-    out = play("5", "5", "1", "0", "0")
+    out = play("5", "6", "1", "0", "0")
     assert "Explanations: Brief" in out
     assert json.loads(settings.path().read_text(encoding="utf-8"))["colors"] is True
 

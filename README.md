@@ -137,6 +137,7 @@ If the terminal says the command isn't found, make sure your virtual environment
   - **Main Menu:** goes back to the first menu.
   - **`0) Exit`:** closes the app.
 - Before an operation runs, a short note tells you what it does and what it costs.
+- Operations that take several steps, such as a sort, an AVL rotation or a graph search, tell you what happens in each step. PyDSA asks whether you want to watch them one at a time: press Enter to see everything at once, or type `y` to watch. At a step, Enter shows the next one, `a` shows the rest and `s` stops.
 - A guide that's longer than your terminal pauses after each screenful: press Enter to keep reading, `a` to show the rest or `s` to stop.
 - If you type something that isn't allowed, PyDSA tells you what went wrong and asks again, so you can't break anything.
 
@@ -162,6 +163,7 @@ Choose **Learning Tools** on the main menu to read the overview, browse every gu
 ### ⚙️ Settings
 Choose **Settings** on the main menu to change how PyDSA behaves. Your choices are saved in a `.pydsa` folder in your home folder, so they last between sessions:
 - **Explanations:** before an operation or algorithm runs, Brief shows a one-line note or a short summary, and Detailed also shows how it works, step by step.
+- **Steps:** whether PyDSA asks before a run with several steps, always pauses after each step, or shows them all at once.
 - **Colors:** turn colors off if your terminal shows strange symbols.
 - **Clear the Screen:** turn it off to keep everything on screen and scroll back through it.
 - **Welcome Intro:** show the long intro once per session, or every time you return to the main menu.
@@ -199,6 +201,6 @@ All the code is inside the `pydsa` folder:
 - `core/`: the data structures themselves.
 - `algorithms/`: the sorting, searching and graph algorithms.
 - `ui/`: everything you see and type in the terminal, such as menus, prompts and output.
-- `content/`: the guides and the glossary (Markdown files in `content/guides`), the notes shown before every operation, the ASCII art titles and the complexity tables.
+- `content/`: the guides and the glossary (Markdown files in `content/guides`), the notes shown before every operation, the sentence for every kind of step, the ASCII art titles and the complexity tables.
 
 The tests are in the `tests` folder.

@@ -185,11 +185,11 @@ def test_tree_stats(capsys):
 def test_heap_steps_show_the_tree_and_the_array(capsys):
     heap = MinHeap("num")
     heap.heapify([10, 20, 30])
-    render.heap_steps(heap.insert(5), "Added 5 as the last leaf.")
+    render.heap_steps(heap.insert(5))
     out = capsys.readouterr().out
-    assert "Step 0: Added 5 as the last leaf." in out
-    assert "Step 1: Moved 5 up, swapping it with its parent 20." in out
-    assert "Step 2: Moved 5 up, swapping it with its parent 10." in out
+    assert "Step 1: Added 5 as the last leaf, at index 3." in out
+    assert "Step 2: 5 belongs above 20, so the two swapped places." in out
+    assert "Step 3: 5 belongs above 10, so the two swapped places." in out
     assert "Array: [5*, 10*, 30, 20]" in out
     assert "* marks the keys that moved" in out
     assert out.count("┴") == 3  # One tree diagram per step
@@ -301,11 +301,13 @@ def test_hash_tables(capsys):
 
 def test_sorting_steps_mark_moved_values(capsys):
     items = [3, 2, 1]
-    count = render.sorting_steps(items, sorting.bubble_sort(items))
+    events = list(sorting.bubble_sort(items))
+    render.sorting_steps([3, 2, 1], events)
     out = capsys.readouterr().out
-    assert count == 3
+    assert len(events) == 3
     assert any("start" in line and "[3, 2, 1]" in line for line in out.splitlines())
     assert "[2*, 3*, 1]" in out
+    assert "2 came after 3, so the two swapped places." in out
     assert "* marks the values that moved" in out
     assert items == [1, 2, 3]
 

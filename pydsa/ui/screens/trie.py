@@ -3,7 +3,7 @@
 from pydsa.content import texts
 from pydsa.core.errors import DuplicateError, NotFoundError
 from pydsa.core.trie import Trie
-from pydsa.ui import random_data, render
+from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask, error, info, not_found, plural, result, success, yes_no
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -73,13 +73,20 @@ def ask_prefix():
     return ask("✍️ Enter the prefix (leave it empty to match every word):").strip()
 
 
+def show_steps(trace):
+    """Play the steps of a trie operation, drawing the path spelled out so far after each one."""
+    stepper.play(trace, render.prefix_step)
+
+
 def insert(trie):
     word = ask_word()
+    trace = []
     try:
-        added = trie.insert(word)
+        added = trie.insert(word, trace)
     except DuplicateError:
         info(f"{fmt(word)} is already in the trie, so nothing changed.")
         return
+    show_steps(trace)
     success(f"Inserted {fmt(word)} with {plural(added, 'new node')}.")
     if added < len(word):
         info(f"The first {plural(len(word) - added, 'character')} reused nodes that other words already had.")
@@ -88,11 +95,13 @@ def insert(trie):
 
 def delete(trie):
     word = ask_word()
+    trace = []
     try:
-        pruned = trie.delete(word)
+        pruned = trie.delete(word, trace)
     except NotFoundError:
         not_found(f"{fmt(word)} isn't in the trie, so nothing was deleted.")
         return
+    show_steps(trace)
     if pruned:
         success(f"Deleted {fmt(word)} and pruned {plural(pruned, 'node')} that no longer led to a word.")
     else:
@@ -102,7 +111,10 @@ def delete(trie):
 
 def search(trie):
     word = ask_word()
-    if word in trie:
+    trace = []
+    found = trie.search(word, trace)
+    show_steps(trace)
+    if found:
         success(f"Found {fmt(word)} in the trie.")
     elif trie.starts_with(word):
         not_found(f"{fmt(word)} isn't a word in the trie, although some words start with it.")

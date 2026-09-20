@@ -5,7 +5,7 @@ The array screen searches with the same algorithm list and runner.
 
 from pydsa.algorithms import searching
 from pydsa.content import texts
-from pydsa.ui import random_data, render
+from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_list, ask_value, error, not_found, plural, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import fmt
@@ -74,13 +74,17 @@ def run_search(items, search, kind, noun):
         error(search.limit)
         return
     target = ask_value(kind, "target")
-    probes = []
-    index = search.function(items, target, probes)
+    trace = []
+    index = search.function(items, target, trace)
+    probes = searching.positions(trace)
     checked = plural(len(probes), "position")
     if search.function is searching.linear_search:
-        render.search_probes(items, probes, f"Checked {checked}, numbered in order under the values.")
+        values = items
+        caption = f"Checked {checked}, numbered in order under the values."
     else:
-        render.search_probes(sorted(items), probes, f"Searched this sorted copy and checked {checked}, numbered in order under the values.")
+        values = sorted(items)
+        caption = f"Searched this sorted copy and checked {checked}, numbered in order under the values."
+    stepper.play(trace, render.list_step, lambda events: render.search_probes(values, probes, caption))
     if index == -1:
         not_found(f"{fmt(target)} isn't in {noun}.")
     else:

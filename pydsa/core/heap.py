@@ -1,27 +1,16 @@
 """Binary min heap and max heap stored in an array."""
 
-from typing import NamedTuple
-
+from pydsa.algorithms.trace import event
 from pydsa.core.errors import EmptyError, InvalidTypeError
 from pydsa.core.tree import DATA_TYPES
-
-
-class HeapStep(NamedTuple):
-    """A snapshot of the heap's array during an operation.
-
-    moved holds the indexes to point out: the key that was just placed, or the two keys that were just swapped,
-    as (where the sifting key was, where it went).
-    """
-
-    items: list
-    moved: tuple = ()
 
 
 class Heap:
     """Binary heap stored in a list; subclasses decide which of two keys belongs closer to the root.
 
     The children of the node at index i are at 2i + 1 and 2i + 2, and its parent is at (i - 1) // 2.
-    Operations that move keys return the list of HeapSteps they went through.
+    Operations that move keys return the list of TraceEvents they went through, one per step: a snapshot of
+    the array, the indexes whose key moved and the keys the step is about.
     """
 
     kind = None  # "min" or "max"
@@ -58,7 +47,8 @@ class Heap:
         """Add key as the last leaf and sift it up; return the steps."""
         self.check_type(key)
         self.items.append(key)
-        return [self._snapshot((len(self.items) - 1,))] + self._sift_up(len(self.items) - 1)
+        index = len(self.items) - 1
+        return [self._step("add_leaf", (index,), value=key, index=index)] + self._sift_up(index)
 
     def extract(self):
         """Remove and return the root key and the steps: the last leaf moves to the root and sifts down."""
@@ -67,7 +57,7 @@ class Heap:
         if not self.items:
             return root, []
         self.items[0] = last
-        return root, [self._snapshot((0,))] + self._sift_down(0)
+        return root, [self._step("move_last", (0,), value=last, root=root)] + self._sift_down(0)
 
     def heapify(self, keys):
         """Replace the heap's keys with keys and sift down every parent, from the last one to the root; return the steps."""
@@ -75,7 +65,7 @@ class Heap:
         for key in keys:
             self.check_type(key)
         self.items = keys
-        steps = [self._snapshot()]
+        steps = [self._step("unordered")]
         for index in range(len(self.items) // 2 - 1, -1, -1):
             steps += self._sift_down(index)
         return steps
@@ -84,18 +74,18 @@ class Heap:
         """Replace the key at index and sift it up or down to its place; return the steps."""
         self.check_type(key)
         self.items[index] = key
-        steps = [self._snapshot((index,))]
+        steps = [self._step("replace", (index,), value=key, index=index)]
         if index and self._above(key, self.items[(index - 1) // 2]):
             return steps + self._sift_up(index)
         return steps + self._sift_down(index)
 
-    def _snapshot(self, moved=()):
-        return HeapStep(list(self.items), moved)
+    def _step(self, kind, moved=(), **data):
+        """Return one step: what happened, a copy of the array and the indexes whose key moved."""
+        return event(kind, list(self.items), {index: "moved" for index in moved}, **data)
 
     def _swap(self, index, other):
-        """Swap the sifting key at index with the key at other and return the step."""
+        """Swap the key at index with the key at other."""
         self.items[index], self.items[other] = self.items[other], self.items[index]
-        return self._snapshot((index, other))
 
     def _sift_up(self, index):
         steps = []
@@ -103,7 +93,9 @@ class Heap:
             parent = (index - 1) // 2
             if not self._above(self.items[index], self.items[parent]):
                 break
-            steps.append(self._swap(index, parent))
+            self._swap(index, parent)
+            # The sifting key sits at parent now, and the key it passed at index
+            steps.append(self._step("sift_up", (index, parent), value=self.items[parent], parent=self.items[index]))
             index = parent
         return steps
 
@@ -116,7 +108,9 @@ class Heap:
                     top = child
             if top == index:
                 return steps
-            steps.append(self._swap(index, top))
+            self._swap(index, top)
+            # The sifting key sits at top now, and the child it passed at index
+            steps.append(self._step("sift_down", (index, top), value=self.items[top], child=self.items[index]))
             index = top
 
     # Tree extras: a heap is a complete binary tree, so its shape follows from its size alone

@@ -6,7 +6,7 @@ from pydsa.content import texts
 from pydsa.core.errors import EmptyError, NotFoundError
 from pydsa.core.heap import MaxHeap, MinHeap
 from pydsa.core.priority_queue import PriorityQueue
-from pydsa.ui import random_data, render
+from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_int, ask_list, ask_value, error, info, not_found, plural, result, success
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.render import entry, fmt
@@ -123,11 +123,17 @@ def example(kind):
     return heap
 
 
+def show_steps(steps, label=fmt):
+    """Play the steps of a heap operation, drawing the heap as a tree and as its array after each one."""
+    stepper.play(steps, lambda number, event: render.heap_step(number, event, label),
+                 lambda events: render.heap_steps(events, label), label=label)
+
+
 def insert(heap):
     key = ask_value(heap.data_type, "key")
     steps = heap.insert(key)
+    show_steps(steps)
     success(f"Inserted {fmt(key)} with {plural(len(steps) - 1, 'swap')}.")
-    render.heap_steps(steps, f"Added {fmt(key)} as the last leaf.")
 
 
 def extract(heap, kind):
@@ -136,10 +142,10 @@ def extract(heap, kind):
     except EmptyError:
         error("The heap is empty, so there's nothing to extract.")
         return
-    success(f"Extracted the {kind.root} key, {fmt(key)}.")
     if steps:
-        render.heap_steps(steps, f"Moved the last leaf, {fmt(steps[0].items[0])}, to the root.")
-    else:
+        show_steps(steps)
+    success(f"Extracted the {kind.root} key, {fmt(key)}.")
+    if not steps:
         info("That was the only key, so the heap is empty now.")
 
 
@@ -154,8 +160,8 @@ def build(heap, kind):
     """Ask for a list of keys and heapify them, replacing the heap's keys."""
     keys = ask_list("✍️ Enter the keys, separated by commas (they replace the heap's current keys):", heap.data_type)
     steps = heap.heapify(keys)
+    show_steps(steps)
     success(f"Built a {kind.name} from {plural(len(keys), 'key')} with {plural(len(steps) - 1, 'swap')}.")
-    render.heap_steps(steps, "Started from the keys in the order you typed them.")
 
 
 def level_order(heap):
@@ -230,8 +236,8 @@ def enqueue(queue):
     item = ask_value()
     priority = ask_priority()
     steps = queue.enqueue(item, priority)
+    show_steps(steps, entry)
     success(f"Enqueued {fmt(item)} with priority {priority}.")
-    render.heap_steps(steps, f"Added {entry(steps[0].items[-1])} as the last leaf.", entry)
 
 
 def dequeue(queue):
@@ -240,10 +246,10 @@ def dequeue(queue):
     except EmptyError:
         error("The priority queue is empty, so there's nothing to dequeue.")
         return
-    success(f"Dequeued {fmt(item)}, which had priority {priority}.")
     if steps:
-        render.heap_steps(steps, f"Moved the last leaf, {entry(steps[0].items[0])}, to the root.", entry)
-    else:
+        show_steps(steps, entry)
+    success(f"Dequeued {fmt(item)}, which had priority {priority}.")
+    if not steps:
         info("That was the only item, so the priority queue is empty now.")
 
 
@@ -264,5 +270,5 @@ def change_priority(queue):
     except NotFoundError:
         not_found(f"{fmt(item)} isn't in the priority queue, so nothing changed.")
         return
+    show_steps(steps, entry)
     success(f"Changed the priority of {fmt(item)} from {old} to {priority}.")
-    render.heap_steps(steps, f"Set the priority of {fmt(item)} to {priority}.", entry)

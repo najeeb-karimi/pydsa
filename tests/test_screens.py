@@ -218,9 +218,9 @@ def test_heaps(play):
     assert "The heap is empty." in out
     assert "Inserted 30 with 0 swaps." in out
     assert "Inserted 10 with 1 swap." in out
-    assert "Step 1: Moved 5.5 up, swapping it with its parent 10." in out
+    assert "Step 2: 5.5 belongs above 10, so the two swapped places." in out
     assert "Extracted the smallest key, 5.5." in out
-    assert "Step 0: Moved the last leaf, 10, to the root." in out
+    assert "Step 1: Took the root 5.5 out and moved the last leaf, 10, up to the root." in out
     assert "No swaps were needed" in out
     assert "'x' isn't a valid number." in out
     assert "Some of the keys are empty." in out
@@ -250,7 +250,7 @@ def test_priority_queue(play):
     assert "The priority queue is empty, so there's nothing to peek at." in out
     assert "Enqueued 'write' with priority 2." in out
     assert "The priority must be a whole number." in out
-    assert "Step 1: Moved 1: 'fix' up, swapping it with its parent 2: 'write'." in out
+    assert "Step 2: 1: 'fix' belongs above 2: 'write', so the two swapped places." in out
     assert "'nope' isn't in the priority queue, so nothing changed." in out
     assert "Changed the priority of 'write' from 2 to 0." in out
     assert "The next item is 'write', with priority 0." in out

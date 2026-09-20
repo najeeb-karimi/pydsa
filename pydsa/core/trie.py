@@ -1,5 +1,10 @@
-"""Trie (prefix tree) of strings."""
+"""Trie (prefix tree) of strings.
 
+insert(), search() and delete() take an optional trace list and record the path they walked through the
+nodes, as TraceEvents whose snapshot is the prefix spelled so far.
+"""
+
+from pydsa.algorithms.trace import record
 from pydsa.core.errors import DuplicateError, InvalidTypeError, NotFoundError
 
 
@@ -28,37 +33,48 @@ class Trie:
     def __len__(self):
         return self.word_count
 
-    def _find(self, prefix):
+    def _find(self, prefix, trace=None):
         """Return the node where the path spelling prefix ends, or None if there's no such path."""
         self._check(prefix, "prefix")
         node = self.root
-        for char in prefix:
+        for position, char in enumerate(prefix, start=1):
+            spelled = prefix[:position]
             node = node.children.get(char)
             if node is None:
+                record(trace, "no_link", spelled, {spelled: "missing"}, char=char, prefix=spelled)
                 return None
+            record(trace, "follow", spelled, {spelled: "checked"}, char=char, prefix=spelled)
         return node
 
-    def insert(self, word):
+    def insert(self, word, trace=None):
         """Insert word and return how many new nodes it needed."""
         self._check(word)
         if not word:
             raise ValueError("A word needs at least one character.")
         node, added = self.root, 0
-        for char in word:
+        for position, char in enumerate(word, start=1):
+            spelled = word[:position]
             if char not in node.children:
                 node.children[char] = TrieNode()
                 added += 1
+                record(trace, "new_node", spelled, {spelled: "new"}, char=char, prefix=spelled)
+            else:
+                record(trace, "follow", spelled, {spelled: "checked"}, char=char, prefix=spelled)
             node = node.children[char]
         if node.is_word:
             raise DuplicateError(f"{word!r} is already in the trie.")
         node.is_word = True
         self.word_count += 1
+        record(trace, "mark_word", word, {word: "new"}, word=word)
         return added
 
-    def search(self, word):
+    def search(self, word, trace=None):
         """Return True if word was inserted (a prefix of another word doesn't count)."""
-        node = self._find(word)
-        return node is not None and node is not self.root and node.is_word
+        node = self._find(word, trace)
+        found = node is not None and node is not self.root and node.is_word
+        if node is not None:
+            record(trace, "is_word" if found else "not_word", word, {word: "checked"}, word=word)
+        return found
 
     def __contains__(self, word):
         return self.search(word)
@@ -87,7 +103,7 @@ class Trie:
         for char in sorted(node.children):
             self._collect(node.children[char], spelled + char, words)
 
-    def delete(self, word):
+    def delete(self, word, trace=None):
         """Delete word, prune the nodes that no longer lead to any word and return how many were pruned."""
         self._check(word)
         path = [self.root]
@@ -101,14 +117,17 @@ class Trie:
 
         path[-1].is_word = False
         self.word_count -= 1
+        record(trace, "unmark", word, {word: "checked"}, word=word)
         pruned = 0
         # Walk back toward the root, removing nodes that end no word and have no children left
         for depth in range(len(word), 0, -1):
             node = path[depth]
             if node.is_word or node.children:
+                record(trace, "keep_node", word[:depth], {word[:depth]: "checked"}, prefix=word[:depth])
                 break
             del path[depth - 1].children[word[depth - 1]]
             pruned += 1
+            record(trace, "prune", word[:depth - 1], {word[:depth]: "removed"}, prefix=word[:depth])
         return pruned
 
     def node_count(self):
