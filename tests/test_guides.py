@@ -108,4 +108,7 @@ def test_the_wheel_includes_every_guide(tmp_path):
         names = set(archive.namelist())
     expected = {f"pydsa/content/guides/{path}" for paths in registry.locations().values() for path in paths}
     expected |= {f"pydsa/content/guides/{name}.md" for name in registry.DOCUMENTS}
+    expected |= {"pydsa/progress.py", "pydsa/content/quizzes.py", "pydsa/ui/screens/practice.py",
+                 "pydsa/practice/__init__.py", "pydsa/practice/quiz.py", "pydsa/practice/challenges.py",
+                 "pydsa/practice/experiments.py"}
     assert expected <= names

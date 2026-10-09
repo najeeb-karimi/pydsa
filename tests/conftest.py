@@ -2,7 +2,7 @@
 
 import pytest
 
-from pydsa import app, settings
+from pydsa import app, progress, settings
 from pydsa.settings import Settings
 from pydsa.ui.console import console, force_colors_off
 
@@ -18,9 +18,11 @@ def isolated_settings(monkeypatch, tmp_path):
     """Keep saved files in a temporary PyDSA home and start every test from the default settings and colors."""
     monkeypatch.setenv("PYDSA_HOME", str(tmp_path / "pydsa-home"))
     settings.current = Settings()
+    progress.current = progress.Progress()
     force_colors_off(False)
     yield
     settings.current = Settings()
+    progress.current = progress.Progress()
     force_colors_off(False)
 
 

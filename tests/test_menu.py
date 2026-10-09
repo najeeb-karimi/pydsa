@@ -32,7 +32,7 @@ def test_codes_are_right_aligned(capsys, monkeypatch):
 def test_invalid_codes_ask_again(monkeypatch, capsys):
     feed(monkeypatch, "9", "x", " 1 ")
     assert Menu("Pick:", [[("A", lambda: "a")]]).select() == "a"
-    assert capsys.readouterr().out.count("🚫 Invalid choice. Please type one of the numbers shown, or h for help.") == 2
+    assert capsys.readouterr().out.count("🚫 Invalid choice. Please type one of the codes shown, or h for help.") == 2
 
 
 def test_open_shows_the_menu_again_when_a_sub_menu_goes_back(monkeypatch):
@@ -66,7 +66,7 @@ def test_operation_menu_layout_and_navigation(monkeypatch, capsys):
     assert menu.run() is Nav.EXIT
     out = capsys.readouterr().out
     assert ("⚔️ What do you want to do with the thing?\n  1) Read the Guide\n  2) Push\n  3) Show the Code\n\n"
-            "  4) New Thing\n  5) Main Menu\n  0) Exit\n") in out
+            "  4) New Thing\n  5) Main Menu\n  6) Practice\n  0) Exit\n") in out
     assert "📖 Stack" in out
     assert "💡 Push: Puts an item on top of the stack. · Cost: Time O(1) · Extra space O(1)\npushed\n" in out
     assert "📝 Pseudocode: Push" in out and "def push(self, item):" in out

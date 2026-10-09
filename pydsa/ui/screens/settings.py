@@ -2,7 +2,7 @@
 
 from dataclasses import replace
 
-from pydsa import settings
+from pydsa import progress, settings
 from pydsa.settings import Settings
 from pydsa.ui.console import apply_colors, colors_forced_off, error, info, success
 from pydsa.ui.menu import Menu, Nav, back_option
@@ -26,7 +26,7 @@ def run():
              (f"Colors: {on_off(current.colors)}", change_colors),
              (f"Clear the Screen: {on_off(current.clear_screen)}", change_clear_screen),
              (f"Welcome Intro: {INTRO[current.intro]}", change_intro)],
-            [("Restore the Defaults", restore_defaults)],
+            [("Restore the Defaults", restore_defaults), ("Reset Progress", reset_progress)],
             [back_option()],
         ]).select()
         if choice is Nav.BACK:
@@ -106,3 +106,16 @@ def restore_defaults():
     ]).select()
     if confirmed is True:
         save(Settings())
+
+
+def reset_progress():
+    confirmed = Menu("Reset all visited topics, quiz scores and solved predictions?", [
+        [("Yes, reset progress", lambda: True)],
+        [back_option("No, keep my progress")],
+    ]).select()
+    if confirmed is True:
+        notice = progress.reset()
+        if notice:
+            error(notice)
+        else:
+            success("Reset your progress.")

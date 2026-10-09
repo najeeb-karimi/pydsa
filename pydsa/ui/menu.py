@@ -48,13 +48,14 @@ class Menu:
     title, every time after the first.
     """
 
-    def __init__(self, title, groups, *, can_go_back=True, compact_repeat=False):
+    def __init__(self, title, groups, *, can_go_back=True, compact_repeat=False, status=None):
         self.title = title
         self.groups = []
         self.options = {}
         self.can_go_back = can_go_back
         self.compact_repeat = compact_repeat
         self.shown = False
+        self.status = status
         next_code = 1
         for group in groups:
             entries = []
@@ -69,6 +70,8 @@ class Menu:
 
     def choose(self):
         """Show the menu, ask until a valid code or the back shortcut is typed, and return the chosen option."""
+        if self.status:
+            self.status()
         groups = [[(option.code, option.label) for option in group] for group in self.groups]
         while True:
             try:
@@ -164,7 +167,7 @@ def operation_menu(name, topic, operations, *, guides=(), new_label):
     topic is the ID of the topic the menu belongs to. Read the Guide comes first, showing the topic's guide or
     one of guides (more topic IDs). Then come operations, as (label, action) pairs that show their note before
     they run, and Show the Code. The last group holds the shared navigation: new_label (start this screen
-    again), Main Menu and 0) Exit.
+    again), Main Menu, Practice and 0) Exit.
     """
 
     def start_again():
@@ -176,12 +179,16 @@ def operation_menu(name, topic, operations, *, guides=(), new_label):
         render.home()
         return Nav.HOME
 
+    def practice():
+        from pydsa.ui.screens.practice import topic as practice_topic
+        practice_topic(topic)
+
     return Menu(
         f"⚔️ What do you want to do with the {name}?",
         [
             [("Read the Guide", lambda: read_guide([topic, *guides])), *noted(topic, operations),
              ("Show the Code", lambda: show_the_code(topic, operations))],
-            [(new_label, start_again), ("Main Menu", go_home), exit_option()],
+            [(new_label, start_again), ("Main Menu", go_home), ("Practice", practice), exit_option()],
         ],
         compact_repeat=True,
     )

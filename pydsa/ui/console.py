@@ -132,6 +132,8 @@ def show_help(location):
         Text("Choose Read the Guide in a topic's menu to read its guide, and Show the Code to see how an operation "
              "is written. On the main menu, Learning Tools has an overview and a glossary, and Settings changes how "
              "PyDSA behaves.", style="muted"),
+        Text("In quizzes, a–d choose an answer and :b leaves the quiz. Practice has quizzes, predictions and "
+             "Big-O experiments.", style="muted"),
     )
     console.print()
     console.print(Panel(body, title="❓ Help", title_align="left", border_style="info", padding=(0, 1)))
@@ -176,7 +178,8 @@ def _print_menu(title, groups, compact):
                 console.print()
             for code, label in group:
                 console.print(Text.assemble("  ", (f"{code:>{width}})", "code"), " ", label))
-    console.print(Text(MENU_HINT, style="muted"))
+    hint = "h help · :b back · q quit" if "b" in codes else MENU_HINT
+    console.print(Text(hint, style="muted"))
 
 
 def ask_code(title, groups, compact=False):
@@ -192,14 +195,14 @@ def ask_code(title, groups, compact=False):
         if choice in codes:
             return choice
         command = choice.lower()
-        if command in ("h", "?"):
+        if command in ("h", "?", ":h", ":?"):
             show_help(title)
-        elif command == "b":
+        elif command in ("b", ":b"):
             raise BackRequested
-        elif command == "q":
+        elif command in ("q", ":q"):
             raise QuitRequested
         else:
-            error("Invalid choice. Please type one of the numbers shown, or h for help.")
+            error("Invalid choice. Please type one of the codes shown, or h for help.")
 
 
 def ask_int(question, what, min_value=None, max_value=None):

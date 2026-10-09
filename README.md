@@ -40,6 +40,12 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 - **Glossary:** short explanations of every term the guides use, which you can list from A to Z or look up by typing part of a word.
 - **Which Data Structure Should I Use?:** common needs, like an undo history or autocomplete, matched with the topic that fits them.
 
+**Practice** (on the main menu and in every topic's operation menu):
+- **Quizzes:** five explained questions for every topic and algorithm, with shuffled choices and a chance to retry missed answers.
+- **Predict the Result:** inspect fresh practice data and predict an operation's result. The real implementation checks the answer.
+- **Big-O Experiments:** compare actual work as input sizes grow, using random, sorted or reversed inputs. Tables show work counts, growth ratios, bars and elapsed time.
+- **Progress:** visited topics, best quiz scores, quiz attempts and solved predictions are saved between sessions.
+
 ## 👀 A Quick Look
 Here's a short session, trimmed to fit: the user opens the stack, loads the example and pops the top item. The numbers after `>>>` are what the user typed.
 ```text
@@ -50,6 +56,7 @@ Here's a short session, trimmed to fit: the user opens the stack, loads the exam
 
   4) Learning Tools
   5) Settings
+  6) Practice
 
   0) Exit
 >>> 1
@@ -133,6 +140,7 @@ If the terminal says the command isn't found, make sure your virtual environment
 - Once you're working with a data structure or an algorithm, its menu offers:
   - **Read the Guide:** shows the topic's whole guide and its complexity table. Where a menu has more than one guide, such as a kind of tree and trees in general, you pick which one to read.
   - **Show the Code:** pick an operation to see its pseudocode next to the real Python code that runs it.
+  - **Practice:** take a quiz, predict a result on fresh data, or run a work-count experiment where one is available.
   - **New ...** (such as **New Stack**): starts that topic over with fresh data.
   - **Main Menu:** goes back to the first menu.
   - **`0) Exit`:** closes the app.
@@ -151,6 +159,7 @@ These work in every menu:
 | `q` | `:q` | Quits PyDSA |
 
 While typing a value, the shortcuts start with `:`, so you can still enter a real `q` or `b`. Pressing Ctrl+C also quits cleanly.
+In quizzes, type `a`, `b`, `c` or `d` to answer; use `:b` to leave because `b` is an answer choice. Help and quit still work with `h` and `q`.
 
 ### ✍️ Typing Values
 - **Examples, random values or your own data:** every topic lets you start with a preloaded example, fill it with random values of the size you choose, or create your own, so you can explore before typing anything.
@@ -160,6 +169,17 @@ While typing a value, the shortcuts start with `:`, so you can still enter a rea
 ### 📚 Learning Tools
 Choose **Learning Tools** on the main menu to read the overview, browse every guide, look up a term in the glossary, or find the data structure that fits what you need. Words shown in bold in a guide are explained in the glossary.
 
+### 🧩 Practice and Progress
+Choose **Practice** in a topic's operation menu to work on that topic. On the main menu, Practice offers a mixed quiz across visited topics, a prediction on a visited topic, all experiments, a topic browser and your progress. If you have not visited a topic yet, start with the browser.
+
+Each quiz explains every answer and ends with a score. You can retry missed questions; the saved score comes from the completed first round. Leaving a quiz early does not save a partial score. The quiz average uses your best score for each practiced topic.
+
+Predictions show new practice data, so they do not change the structure you were working with. Enter a number, a word, `true` or `false`, or a list such as `[1, 2, 3]`. Put quotes around words in a list, such as `['car', 'card']`. Correct predictions add to your solved count.
+
+Experiments count comparisons and writes, search probes, heap swaps, tree nodes visited, hash probes or parent hops. A steady **work ÷ expected(n)** ratio suggests that the measured work follows the chosen growth pattern. Input sizes are capped to keep runs short. Elapsed milliseconds are secondary: machine speed and tracing affect them, and input construction is excluded. For binary search, the work count covers probes only; preparing the sorted copy still takes work.
+
+The main menu shows how many topics you have visited, and topic lists mark visits with `✓`. Progress is saved in `progress.json` beside your settings, under `~/.pydsa` or the folder named by `PYDSA_HOME`. Settings offers **Reset Progress**, with confirmation. Restoring settings defaults keeps your progress.
+
 ### ⚙️ Settings
 Choose **Settings** on the main menu to change how PyDSA behaves. Your choices are saved in a `.pydsa` folder in your home folder, so they last between sessions:
 - **Explanations:** before an operation or algorithm runs, Brief shows a one-line note or a short summary, and Detailed also shows how it works, step by step.
@@ -167,6 +187,7 @@ Choose **Settings** on the main menu to change how PyDSA behaves. Your choices a
 - **Colors:** turn colors off if your terminal shows strange symbols.
 - **Clear the Screen:** turn it off to keep everything on screen and scroll back through it.
 - **Welcome Intro:** show the long intro once per session, or every time you return to the main menu.
+- **Reset Progress:** clear visited topics, quiz scores and solved predictions after confirming.
 
 ### 🚩 Command-Line Options
 ```bash
@@ -200,7 +221,9 @@ pytest
 All the code is inside the `pydsa` folder:
 - `core/`: the data structures themselves.
 - `algorithms/`: the sorting, searching and graph algorithms.
+- `practice/`: quiz sessions, predictions checked against core operations, and bounded work-count experiments.
 - `ui/`: everything you see and type in the terminal, such as menus, prompts and output.
 - `content/`: the guides and the glossary (Markdown files in `content/guides`), the notes shown before every operation, the sentence for every kind of step, the ASCII art titles and the complexity tables.
+- `progress.py`: versioned learning records saved next to the settings.
 
 The tests are in the `tests` folder.

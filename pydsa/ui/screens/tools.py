@@ -36,7 +36,8 @@ def browse():
 def pick_guide(category):
     """Let the user read the guides of one category, sub-topics included, until they go back."""
     menu = Menu("📖 Which guide do you want to read?", [
-        [(topic.title if topic.parent is None else f"↳ {topic.title}", lambda topic=topic: render.guide(topic.id))
+        [(render.topic_label(topic.id, topic.title if topic.parent is None else f"↳ {topic.title}"),
+          lambda topic=topic: render.guide(topic.id))
          for topic in topics.TOPICS if topic.category == category],
         [back_option()],
     ], compact_repeat=True)

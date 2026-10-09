@@ -1,9 +1,9 @@
 # PyDSA v5 roadmap: new data structures & algorithms
 
 ## Context
-[roadmap-v4.md](roadmap-v4.md) turns PyDSA into a guided learning tool with guides, operation notes, narrated steps, quizzes, experiments and progress. v5 builds on that to widen what learners can explore: balanced and range-query trees, caches and probabilistic structures, more graph algorithms, string search, dynamic programming, and recursion with backtracking.
+PyDSA v4.4 provides guides, operation notes, narrated steps, quizzes, predictions, experiments and saved progress. v5 builds on that to widen what learners can explore: balanced and range-query trees, caches and probabilistic structures, more graph algorithms, string search, dynamic programming, and recursion with backtracking.
 
-**Start v5 only after every v4 phase is done**, since each new topic depends on the v4 frameworks.
+The v4 phases are complete. Each new topic builds on those learning frameworks.
 
 ## Decisions (from Q&A)
 - **New data structures:**

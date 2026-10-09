@@ -21,7 +21,7 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
-from pydsa import __version__, settings
+from pydsa import __version__, progress, settings
 from pydsa.content import complexity, narration, notes, registry, texts
 from pydsa.ui.console import console, info, page, plural, result
 
@@ -99,12 +99,14 @@ def main_intro():
 
 
 _intro_shown = False  # Whether this session already showed the full intro
+_progress_notice_shown = False
 
 
 def start_session():
     """Forget that the intro was shown, so the next home() shows it in full."""
-    global _intro_shown
+    global _intro_shown, _progress_notice_shown
     _intro_shown = False
+    _progress_notice_shown = False
 
 
 def skip_intro():
@@ -131,7 +133,8 @@ def topic_list(topics, categories):
         table.add_column("Topic")
         for topic in topics:
             if topic.category == category:
-                table.add_row(topic.id, Text(topic.title) if topic.parent is None else Text.assemble(("↳ ", "muted"), topic.title))
+                title = topic_label(topic.id, topic.title)
+                table.add_row(topic.id, Text(title) if topic.parent is None else Text.assemble(("↳ ", "muted"), title))
         show(table)
     note("Open a topic directly with: pydsa --topic ID")
 
@@ -164,8 +167,26 @@ def _complexity(topic_id):
     return parts
 
 
+def _visit(topic_id):
+    """Save visits where a topic is actually shown, including nested topics and algorithm guides."""
+    global _progress_notice_shown
+    notice = progress.visit(topic_id)
+    if notice and not _progress_notice_shown:
+        info(notice)
+        _progress_notice_shown = True
+
+
+def topic_label(topic_id, title):
+    return ("✓ " if topic_id in progress.current.visited else "") + title
+
+
+def progress_summary():
+    show(Text(progress.summary(), style="muted"))
+
+
 def intro(art, topic_id):
     """Show a topic's ASCII title, the summary from its guide and its complexity tables."""
+    _visit(topic_id)
     ascii_art(art)
     parsed = registry.guide(topic_id)
     show(_markdown_panel(parsed.summary, f"🎯 {parsed.title}"))
@@ -175,12 +196,14 @@ def intro(art, topic_id):
 
 def summary(topic_id):
     """Show the summary from a topic's guide, such as the kind of tree the user just picked."""
+    _visit(topic_id)
     parsed = registry.guide(topic_id)
     show(_markdown_panel(parsed.summary, f"🧪 {parsed.title}"))
 
 
 def guide(topic_id):
     """Show a topic's whole guide and its complexity tables, a screenful at a time if they're taller than the terminal."""
+    _visit(topic_id)
     parsed = registry.guide(topic_id)
     parts = [_markdown_panel(_sections(parsed, SECTION_ICONS), f"📖 {parsed.title}"), *_complexity(topic_id)]
     if registry.glossary_links(parsed.body()):
@@ -193,6 +216,7 @@ def explanation(topic_id):
 
     Brief shows the summary from the algorithm's guide, and Detailed its How it works section.
     """
+    _visit(topic_id)
     parsed = registry.guide(topic_id)
     title = f"ℹ️ How {parsed.title} Works"
     if settings.current.detail == "brief":
@@ -950,6 +974,24 @@ def sort_comparison(results):
     note("Try a sorted list, a reversed one and one full of duplicates to see how differently the algorithms react.")
     if rejected:
         note("— marks an algorithm that can't sort this list.")
+
+
+def experiment(experiment, rows, mode):
+    """Show work growth with ratios and bars that stay readable in a narrow terminal."""
+    table = _table(f"📈 {experiment.name} ({mode})", box=box.SIMPLE_HEAVY)
+    for name in ("n", "Work", "Ratio", "ms", "Growth"):
+        table.add_column(name, justify="left" if name == "Growth" else "right")
+    maximum = max((row.work for row in rows), default=1) or 1
+    bar_width = min(12, max(1, console.width // 6))
+    for row in rows:
+        length = max(1, round(bar_width * row.work / maximum)) if row.work else 0
+        table.add_row(str(row.n), str(row.work), f"{row.ratio:.2f}", f"{row.milliseconds:.2f}", "█" * length)
+    show(table)
+    note(f"Ratio = work ÷ expected(n), using {experiment.growth}. A steady ratio suggests that the measured "
+         "work follows this growth pattern; it does not prove a complexity bound.")
+    note(experiment.note)
+    note("Milliseconds measure only the run, excluding input construction. Machine speed, tracing and allocation "
+         "affect timing, so compare work counts first.")
 
 
 def search_probes(values, probes, caption):

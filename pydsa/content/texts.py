@@ -26,9 +26,9 @@ BANNER = r"""
 WELCOME = "Welcome to PyDSA, where you learn data structures and algorithms by using them. Pick a topic, read its short summary, then build your own data and watch every change as a table or diagram. You move around by typing the number next to an option."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ Every operation with more than one step now tells you what happens in each one, from an AVL rotation to a hash table probe
-   ★ Watch a run step by step: PyDSA asks before it starts, then Enter shows the next step, a the rest and s stops
-   ★ A new Steps setting decides whether PyDSA asks, always pauses or shows every step at once"""
+   ★ Practice every topic with explained quizzes and predict-the-result challenges, or mix the topics you have visited
+   ★ Big-O experiments compare real work counts as inputs grow, with random, sorted and reversed data
+   ★ Visits, best quiz scores and solved predictions are saved between sessions; Settings can reset your progress"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""
