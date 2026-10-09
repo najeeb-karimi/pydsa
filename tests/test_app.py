@@ -130,18 +130,18 @@ def test_topics_open_with_a_summary_and_read_the_guide_shows_it_all(play):
 
 
 def test_read_the_guide_lets_you_pick_a_guide(play):
-    out = play("2", "1", "1", "2", "1", "2", "0")  # Non-linear > Tree > BST > Use the example > Read the Guide > Tree
+    out = play("2", "1", "1", "2", "1", "2", "0")  # Trees & heaps > Tree > BST > Use the example > Read the Guide > Tree
     assert "🧪 Binary Search Tree (BST)" in out
     assert "📖 Which guide do you want to read?" in out
     assert "📖 Tree" in out
 
 
 def test_algorithm_explanations_follow_the_detail_setting(play):
-    out = play("3", "1", "3", "2", "1", "0")  # Algorithms > Sorting > Use the example > Bubble Sort, ascending
+    out = play("5", "1", "3", "2", "1", "0")  # Algorithms > Sorting > Use the example > Bubble Sort, ascending
     assert "ℹ️ How Bubble Sort Works" in out and "set Explanations to Detailed" in out
 
     settings.save(Settings(detail="detailed"))  # Saved, because every session loads the settings file
-    out = play("3", "1", "3", "2", "1", "0")
+    out = play("5", "1", "3", "2", "1", "0")
     assert "If a whole pass makes no swaps" in out and "set Explanations to Detailed" not in out
 
 
@@ -152,7 +152,7 @@ def test_operations_show_their_note_and_their_code(play):
     assert "📝 Pseudocode: Peek" in out and "def peek(self):" in out
 
     settings.save(Settings(detail="detailed"))
-    out = play("2", "4", "2", "2", "2", "7", "1", "0", "0")  # Adjacency list > example > undirected > BFS from 0
+    out = play("3", "1", "2", "2", "2", "7", "1", "0", "0")  # Adjacency list > example > undirected > BFS from 0
     assert "  3. Finding a vertex's neighbors is just its list." in out
     assert "Cost: O(V + E)" in out
 
@@ -161,21 +161,21 @@ def test_steps_can_be_watched_one_at_a_time(play, monkeypatch):
     monkeypatch.setattr(stepper, "can_pause", lambda: True)  # Pretend PyDSA runs in a real terminal
     settings.save(Settings(steps="pause"))
 
-    out = play("3", "1", "3", "2", "1", "", "a", "0")  # Sorting > the example > Bubble Sort, ascending
+    out = play("5", "1", "3", "2", "1", "", "a", "0")  # Sorting > the example > Bubble Sort, ascending
     assert "Step 1: 170 came after 45, so the two swapped places." in out
     assert "· Enter: next · a: the rest · s: stop" in out
     assert "List: [45*, 170*, 75, 90, 802, 24, 2, 66]" in out
 
-    out = play("3", "1", "3", "2", "1", "s", "0")  # s stops the steps after the first one
+    out = play("5", "1", "3", "2", "1", "s", "0")  # s stops the steps after the first one
     assert "Stopped after 1 of" in out
     assert "Sorted a copy of the list in ascending order" in out
 
 
 def test_learning_tools(play):
     out = play(
-        "4",  # Learning Tools
+        "6",  # Learning Tools
         "1",  # Overview
-        "2", "3", "18", "0", "0",  # Browse the Guides > Algorithms > Dijkstra, then back twice
+        "2", "5", "18", "0", "0",  # Browse the Guides > Algorithms > Dijkstra, then back twice
         "3", "1",  # Glossary > List All Terms
         "2", "amort", "2", "vertx", "2", "zzz", "2", " ", "2", ":b",  # Look Up a Term
         "0",
@@ -201,7 +201,7 @@ def test_learning_tools(play):
 
 def test_settings_are_saved(play):
     out = play(
-        "5",  # Settings
+        "7",  # Settings
         "1", "2",  # Explanations > Detailed
         "4", "2",  # Clear the Screen > Off
         "0", "0",
@@ -214,13 +214,13 @@ def test_settings_are_saved(play):
 
 
 def test_intro_every_time(play):
-    out = play("5", "5", "2", "0", "1", "2", "2", "11", "0")
+    out = play("7", "5", "2", "0", "1", "2", "2", "11", "0")
     assert out.count("Changelog") == 2
 
 
 def test_restore_defaults(play):
     settings.save(Settings(detail="detailed", colors=False))
-    out = play("5", "6", "1", "0", "0")
+    out = play("7", "6", "1", "0", "0")
     assert "Explanations: Brief" in out
     assert json.loads(settings.path().read_text(encoding="utf-8"))["colors"] is True
 
@@ -229,6 +229,6 @@ def test_settings_that_cannot_be_saved_last_for_the_session(play, monkeypatch, t
     blocker = tmp_path / "not-a-folder"
     blocker.write_text("", encoding="utf-8")
     monkeypatch.setenv("PYDSA_HOME", str(blocker))
-    out = play("5", "1", "2", "0", "0")
+    out = play("7", "1", "2", "0", "0")
     assert "Couldn't save the settings" in out
     assert settings.current.detail == "detailed"

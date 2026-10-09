@@ -1610,6 +1610,60 @@ add("graph-algorithms", "Minimum Spanning Tree (Kruskal)",
 display("graph-algorithms", "Draws the graph as an adjacency list.")
 
 
+for topic, source, insertion, deletion in (
+    ("red-black-tree", "pydsa.core.red_black_tree:RedBlackTree",
+     "Adds a red leaf and restores the color rules with recoloring and rotations.",
+     "Removes one key and repairs any lost black height."),
+    ("b-tree", "pydsa.core.b_tree:BTree",
+     "Splits full nodes before placing a key in a sorted leaf.",
+     "Removes one key after borrowing or merging to keep nodes large enough."),
+):
+    if topic == "red-black-tree":
+        insert_steps = ["Insert a red leaf along the search path.",
+                        "With a red uncle, recolor and move the check upward.",
+                        "With a black uncle, straighten an inner bend, then recolor and rotate.",
+                        "Finish with a black root."]
+        delete_steps = ["Find one occurrence and reconnect its child or successor.",
+                        "If a black node was removed, inspect the sibling's color and children.",
+                        "Recolor or rotate, carrying any missing black upward until the rules hold."]
+        insert_code = "insert(key):\n    attach a red leaf\n    while its parent is red:\n        if its uncle is red: recolor and move up\n        else: rotate the inner bend if needed, then recolor and rotate\n    make the root black"
+        delete_code = "delete(key):\n    replace one matching node with its child or successor\n    if the removed position was black:\n        repair using the sibling and its near and far children\n    make any remaining replacement black"
+        insert_sources = tuple(f"{source}.{method}" for method in ("insert", "_fix_insert", "_rotate", "_paint"))
+        delete_sources = tuple(f"{source}.{method}" for method in ("delete", "_fix_delete", "_rotate", "_paint"))
+    else:
+        insert_steps = ["Split a full root to make a new level when needed.",
+                        "Split a full child before descending into its range.",
+                        "Insert the key into its sorted position in the leaf."]
+        delete_steps = ["Find one occurrence of the key.",
+                        "Replace an internal key with a predecessor or successor when that child has enough keys.",
+                        "Before descending, borrow through the parent or merge minimum-size siblings.",
+                        "Remove the leaf key and shorten or clear an empty root."]
+        insert_code = "insert(key):\n    if the root is full: create a parent and split it\n    while the node has children:\n        choose the key's range\n        split that child if full\n        descend into the remaining range\n    insert the key in sorted order"
+        delete_code = "delete(key):\n    find one copy or report a missing key\n    replace an internal key or merge its neighbors\n    before descending into a minimum-size child: borrow or merge\n    remove the key from its leaf\n    shorten or clear an empty root"
+        insert_sources = (f"{source}.insert", f"{source}._split")
+        delete_sources = tuple(f"{source}.{method}" for method in ("delete", "_delete", "_fill", "_merge"))
+    add(topic, "Insert", insertion,
+        insert_steps, "Insert", insert_code, insert_sources)
+    add(topic, "Delete", deletion,
+        delete_steps, "Delete", delete_code, delete_sources)
+    add(topic, "Search", "Follows key ranges until it finds a match or reaches a missing branch.",
+        ["Compare with the current node's keys.", "Follow the only child range that can contain the key.",
+         "Return the matching node or report that the key is absent."], "Search",
+        "search(key):\n    while a node remains:\n        if it contains key: return node\n        follow the matching child range\n    return None",
+        f"{source}.search")
+    add(topic, "Traversals", "Lists the keys in inorder, preorder, postorder or level order.",
+        ["Choose an order for visiting nodes and their keys.", "Collect every key in that order."], "Traversals",
+        "inorder(node):\n    visit each child before the separator to its right\n    collect every key in order",
+        tuple(f"{source}.{method}" for method in ("inorder", "preorder", "postorder", "level_order")))
+    add(topic, "Tree Stats", "Shows the height, counts, smallest key and largest key.",
+        ["Count the levels, keys and leaves.", "Follow outer branches to the smallest and largest keys.",
+         "Also read black height or count multi-key nodes, depending on the tree."], "Tree stats",
+        "stats():\n    count levels, keys and leaves\n    follow the outer branches for the smallest and largest keys\n    report black height or minimum degree and node count",
+        tuple(f"{source}.{method}" for method in ("height", "__len__", "leaf_count", "min", "max",
+                                                  "black_height" if topic == "red-black-tree" else "node_count")))
+    display(topic, "Draws the current tree with its node colors or grouped keys.")
+
+
 _BY_KEY = {(note.topic, note.operation): note for note in NOTES}
 
 

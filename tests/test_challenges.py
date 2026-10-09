@@ -41,6 +41,8 @@ def expected(topic, state):
     values = state.get("values")
     if topic == "array":
         return values[state["index"]]
+    if topic in ("red-black-tree", "b-tree"):
+        return sorted([*values, state["target"]])
     if topic == "stack":
         return values[-1]
     if topic == "queue" or topic in challenges.LINKED:

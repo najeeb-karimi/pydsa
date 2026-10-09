@@ -203,7 +203,7 @@ def test_nested_topic_visits_refresh_on_return(play, topic, label):
 
 
 def test_guide_browser_visit_marks_refresh(play):
-    out = play("4", "2", "1", "2", "0", "0", "0", "0")
+    out = play("6", "2", "1", "2", "0", "0", "0", "0")
     assert "2) ✓ Stack" in out
 
 

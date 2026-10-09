@@ -609,12 +609,15 @@ GAP = 2  # Spaces between two sibling subtrees in a tree diagram
 def _diagram(node, children, label):
     """Return the lines of a top-down diagram of the subtree rooted at node, and the column of the root's middle.
 
-    children(node) returns the (left, right) pair, with None for a missing child, and label(node) returns a Text.
+    children(node) returns binary child slots or any number of multi-key children; label(node) returns a Text.
     Every line is padded to the same width, so subtrees can be placed side by side.
     """
     text = label(node)
     size = cell_len(text.plain)
-    left, right = children(node)
+    branches = tuple(children(node))
+    if len(branches) != 2:
+        return _multi_diagram(node, branches, children, label)
+    left, right = branches
     if left is None and right is None:
         return [text], (size - 1) // 2
 
@@ -651,20 +654,59 @@ def _diagram(node, children, label):
     return lines, mid
 
 
-def _outline(node, children, label):
-    """Return a rich Tree of the subtree rooted at node, with each child labeled L (left) or R (right)."""
+def _multi_diagram(node, branches, children, label):
+    """Lay out any number of children under a multi-key node, preserving rich labels."""
+    text = label(node)
+    if not branches:
+        return [text], (cell_len(text.plain) - 1) // 2
+    diagrams = [_diagram(child, children, label) for child in branches]
+    widths = [cell_len(lines[0].plain) for lines, _ in diagrams]
+    offsets, offset = [], 0
+    for width in widths:
+        offsets.append(offset)
+        offset += width + GAP
+    centers = [start + mid for start, (_, mid) in zip(offsets, diagrams)]
+    mid = (centers[0] + centers[-1]) // 2
+    start = mid - (cell_len(text.plain) - 1) // 2
+    shift = max(0, -start)
+    start, mid = start + shift, mid + shift
+    centers = [center + shift for center in centers]
+    width = max(offset - GAP + shift, start + cell_len(text.plain))
+    connector = [" "] * width
+    for column in range(centers[0], centers[-1] + 1):
+        connector[column] = "─"
+    for index, center in enumerate(centers):
+        connector[center] = "┌" if index == 0 else "┐" if index == len(centers) - 1 else "┬"
+    connector[mid] = "┼" if mid in centers else "┴"
+    lines = [Text.assemble(" " * start, text, " " * (width - start - cell_len(text.plain))),
+             Text("".join(connector), style="muted")]
+    for row in range(max(len(lines) for lines, _ in diagrams)):
+        pieces = [" " * shift]
+        for index, (child_lines, _) in enumerate(diagrams):
+            if index:
+                pieces.append(" " * GAP)
+            pieces.append(child_lines[row] if row < len(child_lines) else " " * widths[index])
+        pieces.append(" " * (width - (offset - GAP + shift)))
+        lines.append(Text.assemble(*pieces))
+    return lines, mid
+
+
+def _outline(node, children, label, multi=False):
+    """Return an outline with binary sides or numbered children for multi-key nodes."""
     view = Tree(Text.assemble(("root ", "muted"), label(node)), guide_style="muted")
     branches = [(view, node)]
     while branches:
         branch, parent = branches.pop(0)
-        for side, child in zip("LR", children(parent)):
+        child_nodes = tuple(children(parent))
+        sides = (str(index) for index in range(len(child_nodes))) if multi else "LR"
+        for side, child in zip(sides, child_nodes):
             if child is not None:
                 branches.append((branch.add(Text.assemble((f"{side} ", "muted"), label(child))), child))
     return view
 
 
-def _tree(root, children, label):
-    """Print a binary tree as a top-down diagram, or as an outline if the diagram is too wide for the terminal."""
+def _tree(root, children, label, multi=False):
+    """Print a tree top-down, or as an outline if the diagram is too wide for the terminal."""
     lines, _ = _diagram(root, children, label)
     console.print()
     if cell_len(lines[0].plain) <= console.width:
@@ -672,8 +714,9 @@ def _tree(root, children, label):
             line.rstrip()
             console.print(line, soft_wrap=True)
         return True
-    console.print(_outline(root, children, label))
-    note("The tree is too wide to draw here, so it's shown as an outline: L marks a left child and R a right child.")
+    console.print(_outline(root, children, label, multi))
+    note("The tree is too wide to draw here, so it's shown as an outline: " +
+         ("children are numbered from left to right." if multi else "L marks a left child and R a right child."))
     return False
 
 
@@ -700,6 +743,59 @@ def traversal(name, keys):
     result(f"{name} traversal: {', '.join(fmt(key) for key in keys) or 'the tree is empty'}")
 
 
+def red_black_snapshot(state, marks=()):
+    if state is None:
+        info("The tree is empty.")
+        return
+
+    def label(node):
+        style = "bold red" if node[1] == "R" else "bold black on white"
+        text = Text(f"{fmt(node[0])} ({node[1]})", style=style)
+        if node[0] in marks:
+            text.append(_marker(), style="changed")
+        return text
+
+    _tree(state, lambda node: (node[2], node[3]), label)
+
+
+def red_black_tree(tree):
+    from pydsa.core.red_black_tree import snapshot
+    red_black_snapshot(snapshot(tree.root))
+    note("R is red and B is black; missing children also count as black.")
+
+
+def red_black_step(number, event):
+    step_caption(number, event)
+    red_black_snapshot(event.snapshot, event.marks)
+
+
+def b_tree_snapshot(state, marks=()):
+    if state is None:
+        info("The tree is empty.")
+        return
+
+    def label(node):
+        pieces = ["["]
+        for index, key in enumerate(node[0]):
+            if index:
+                pieces.append(" | ")
+            pieces.append(_marked(fmt(key), key in marks))
+        return Text.assemble(*pieces, "]")
+
+    _tree(state, lambda node: node[1], label, multi=True)
+
+
+def b_tree(tree):
+    from pydsa.core.b_tree import snapshot
+    b_tree_snapshot(snapshot(tree.root))
+    note(f"Minimum degree t = {tree.t}; each node holds at most {2 * tree.t - 1} keys.")
+
+
+def b_tree_step(number, event):
+    step_caption(number, event)
+    b_tree_snapshot(event.snapshot, event.marks)
+
+
 def tree_stats(tree, name="tree"):
     """Show the height, node count, leaf count and smallest and largest keys of a tree or heap."""
     if len(tree) == 0:
@@ -709,7 +805,14 @@ def tree_stats(tree, name="tree"):
     table.add_column("Stat")
     table.add_column("Value", justify="right", style="code")
     table.add_row("Height (levels)", str(tree.height()))
-    table.add_row("Nodes", str(len(tree)))
+    if hasattr(tree, "node_count"):
+        table.add_row("Keys", str(len(tree)))
+        table.add_row("Nodes", str(tree.node_count()))
+        table.add_row("Minimum degree", str(tree.t))
+    else:
+        table.add_row("Nodes", str(len(tree)))
+    if hasattr(tree, "black_height"):
+        table.add_row("Black height (includes absent leaf)", str(tree.black_height()))
     table.add_row("Leaves", str(tree.leaf_count()))
     table.add_row("Smallest key", Text(fmt(tree.min())))
     table.add_row("Largest key", Text(fmt(tree.max())))

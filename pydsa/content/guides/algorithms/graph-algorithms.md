@@ -32,5 +32,5 @@ A delivery company planning its week. It needs the quickest route to every addre
 
 ## In PyDSA
 - This screen runs the algorithms on the directed example graph, the undirected example graph or a random graph.
-- To run them on a graph you build yourself, open Graph under the non-linear data structures and choose `Graph Algorithms` in its menu.
+- To run them on a graph you build yourself, open Graph under Graphs & sets and choose `Graph Algorithms` in its menu.
 - Only the algorithms that fit the graph's direction are offered: topological sort for directed graphs, and minimum spanning trees for undirected graphs.

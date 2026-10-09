@@ -8,8 +8,10 @@ from typing import Callable
 
 from pydsa.algorithms import searching, sorting
 from pydsa.core.disjoint_set import DisjointSet
+from pydsa.core.b_tree import BTree
 from pydsa.core.hash_table import LinearProbingHashTable
 from pydsa.core.heap import MinHeap
+from pydsa.core.red_black_tree import RedBlackTree
 from pydsa.core.tree import AVLTree, BinarySearchTree
 
 MODES = ("random", "sorted", "reversed")
@@ -99,6 +101,13 @@ def _hash(n, mode, rng):
     return table, (n - 1) * table.size
 
 
+def _b_tree_run(data):
+    tree, key = data
+    trace = []
+    tree.insert(key, trace)
+    return sum(event.kind in ("bt_descend", "bt_insert") for event in trace)
+
+
 def _hash_run(data):
     table, key = data
     trace = []
@@ -167,6 +176,12 @@ EXPERIMENTS = (
                "log2(n)", "Work counts nodes visited in the final insertion. Ordered input makes the BST a chain, so its ratio against the logarithmic reference grows."),
     Experiment("avl-insert", "avl-tree", "AVL insertion path", LOG, SMALL, _tree(AVLTree), _tree_run,
                "log2(n)", "Work counts nodes visited in the final insertion; rotations keep paths short even for ordered inputs."),
+    Experiment("red-black-insert", "red-black-tree", "Red-Black insertion path", LOG, SMALL,
+               _tree(RedBlackTree), _tree_run, "log2(n)",
+               "Work counts existing nodes compared in the final insertion. Recoloring and rotations are excluded; the color rules keep paths short for ordered inputs too."),
+    Experiment("b-tree-insert", "b-tree", "B-tree insertion path (minimum degree 3)", LOG, SMALL,
+               _tree(lambda data_type: BTree(3, data_type)), _b_tree_run, "log2(n)",
+               "Work counts node visits in the final insertion, including its leaf. Degree stays at 3; comparisons inside nodes and splits are excluded from this count."),
     Experiment("hash-probes", "linear-probing-hash-table", "Hash insertion: colliding integer keys", lambda n: n,
                SMALL, _hash, _hash_run, "n", "All keys share a home slot. Work counts occupied slots probed during the final insertion; this deliberately shows collisions rather than average behavior."),
     Experiment("find-hops", "disjoint-set", "Find before path compression", LOG, LARGE, _unions, _find_run,

@@ -14,20 +14,26 @@ pydsa
 New to Python or the terminal? Follow the step-by-step [Installation](#-installation) below instead.
 
 ## ✨ What You Can Learn
-**Linear data structures** (items are kept in a line, one after another):
+**Linear structures** (items are kept in a line, one after another):
 - **Array:** a fixed-size row of items. You can also sort it with nine different sorting methods and watch every step, or search it with five different searching methods.
 - **Stack:** the last item you add is the first one out, like a stack of plates.
 - **Queue:** the first item you add is the first one out, like people waiting in line.
 - **Deque:** a queue you can add to and remove from at both ends.
 - **Linked List:** items connected like a chain, in singly (one-way) and doubly (two-way) versions. Each one also comes in a circular version, where the last item links back to the first, so you can walk around the loop.
 
-**Non-linear data structures** (items are connected in more complex ways):
+**Trees & heaps** (keys arranged in branches or by priority):
 - **Tree:** items arranged like a family tree, as a Binary Search Tree (BST) or a self-balancing AVL tree. Trees are drawn from the top down, and you can also walk through them level by level or see their height and size.
+- **Red-Black Tree:** a balanced search tree with red and black nodes. Watch recoloring and rotations after insertions and deletions; R/B markers keep colors readable in plain output.
+- **B-Tree:** a search tree with several keys per node. Choose its minimum degree, then watch full nodes split or deletion borrow keys and merge siblings.
 - **Heap & Priority Queue:** a min heap always keeps the smallest item on top, and a max heap the largest. You can watch every swap as items move up or down the tree. The priority queue is built on a heap and always serves the most important item first.
 - **Trie:** stores words letter by letter, so words that start the same way share their first letters. It can finish words for you (autocomplete).
+
+**Graphs & sets** (connections and groups):
 - **Graph:** points connected by lines with weights, stored as a table (adjacency matrix) or as lists (adjacency list). The lines can be one-way (directed) or two-way (undirected). You can walk through it with BFS or DFS, and run the graph algorithms below on it.
-- **Hash Table:** stores key-value pairs for fast lookups, using separate chaining or linear probing to handle keys that land in the same spot. There's also a **Hash Set**, which keeps unique items and lets you combine two sets with union, intersection and difference.
 - **Disjoint Set:** splits items into groups that don't overlap and quickly tells you whether two items are in the same group (also called Union-Find).
+
+**Hashing & caches** (keys mapped to storage positions):
+- **Hash Table:** stores key-value pairs for fast lookups, using separate chaining or linear probing to handle keys that land in the same spot. There's also a **Hash Set**, which keeps unique items and lets you combine two sets with union, intersection and difference.
 
 **Algorithms** (step-by-step recipes for solving common problems):
 - **Sorting:** nine ways to put a list in order: Bubble, Selection, Insertion, Quick, Heap, Shell, Merge, Counting and Radix Sort. Watch every step, or compare how much work each one does on the same list.
@@ -50,13 +56,15 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 Here's a short session, trimmed to fit: the user opens the stack, loads the example and pops the top item. The numbers after `>>>` are what the user typed.
 ```text
 📂 What do you want to learn?
-  1) Linear data structures
-  2) Non-linear data structures
-  3) Algorithms
+  1) Linear structures
+  2) Trees & heaps
+  3) Graphs & sets
+  4) Hashing & caches
+  5) Algorithms
 
-  4) Learning Tools
-  5) Settings
-  6) Practice
+  6) Learning Tools
+  7) Settings
+  8) Practice
 
   0) Exit
 >>> 1

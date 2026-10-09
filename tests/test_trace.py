@@ -1,13 +1,16 @@
 """Step events: the exact steps small runs take, and a caption for every one of them."""
 
 import pytest
+import random
 
 from pydsa.algorithms import graph_algorithms, searching, sorting
 from pydsa.content import narration
 from pydsa.core.disjoint_set import DisjointSet
+from pydsa.core.b_tree import BTree
 from pydsa.core.graph import ListGraph
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
 from pydsa.core.heap import MinHeap
+from pydsa.core.red_black_tree import RedBlackTree
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.core.trie import Trie
 
@@ -243,6 +246,20 @@ def test_spanning_trees_record_the_edges_they_take_and_leave():
 def every_run():
     """Yield the events of at least one run of every operation that records its steps."""
     values = [7, 8, 10, 42, 300, 672, 1987, 2004]
+    for seed in range(8):
+        rng = random.Random(seed)
+        keys = list(range(24))
+        rng.shuffle(keys)
+        for balanced in (RedBlackTree(), BTree(2)):
+            for key in keys:
+                yield traced(balanced.insert, key)
+            yield traced(balanced.search, 12)
+            yield traced(balanced.search, -1)
+            yield traced(balanced.inorder)
+            removed = list(keys)
+            rng.shuffle(removed)
+            for key in removed:
+                yield traced(balanced.delete, key)
     for sort in (sorting.bubble_sort, sorting.selection_sort, sorting.insertion_sort, sorting.quick_sort,
                  sorting.heap_sort, sorting.shell_sort, sorting.merge_sort, sorting.counting_sort,
                  sorting.radix_sort):
@@ -324,7 +341,7 @@ ALL_EVENTS = [event for events in every_run() for event in events]
 def test_every_step_has_a_caption_that_reads_as_a_sentence():
     for event in ALL_EVENTS:
         sentence = narration.caption(event)
-        assert sentence.endswith(".") and sentence[0].isupper() or sentence[0] in "'0123456789", sentence
+        assert sentence.endswith(".") and (sentence[0].isupper() or sentence[0] in "'-0123456789"), sentence
 
 
 def test_every_caption_is_used_and_every_kind_has_one():

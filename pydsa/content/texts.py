@@ -26,9 +26,9 @@ BANNER = r"""
 WELCOME = "Welcome to PyDSA, where you learn data structures and algorithms by using them. Pick a topic, read its short summary, then build your own data and watch every change as a table or diagram. You move around by typing the number next to an option."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ Practice every topic with explained quizzes and predict-the-result challenges, or mix the topics you have visited
-   ★ Big-O experiments compare real work counts as inputs grow, with random, sorted and reversed data
-   ★ Visits, best quiz scores and solved predictions are saved between sessions; Settings can reset your progress"""
+   ★ Explore Red-Black trees with recoloring and rotations, and B-trees with splits, borrowing and merges
+   ★ New tree topics include guides, narrated steps, code views, quizzes, predictions and experiments
+   ★ Browse structures in Linear structures, Trees & heaps, Graphs & sets, and Hashing & caches"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""
@@ -296,4 +296,30 @@ GRAPH_ALGORITHMS_ASCII = r"""
 |  _( )_  | `-'`-'|___\  `-'`   |  \ `"/  \  ) / |  | \ `'   /|   |    (_(=)_)  |( ' ) |   | |  (_,_)  |  |\    `-'  |
 \ (_ o _) /  |        \\        /   '. \_/``".'  |  |  \    / |   |     (_I_)   (_{;}_)|   | |  |      |  | \       /
  '.(_,_).'   `--------` `'-...-'      '-----'    ''-'   `'-'  '---'     '---'   '(_,_) '---' '--'      '--'  `-...-'
+"""
+
+
+RED_BLACK_TREE_ASCII = r"""
+.-------.        .-''-.   ______              _______     .---.        ____        _______   .--.   .--.          ,---------. .-------.        .-''-.      .-''-.
+|  _ _   \     .'_ _   \ |    _ `''.         \  ____  \   | ,_|      .'  __ `.    /   __  \  |  | _/  /           \          \|  _ _   \     .'_ _   \   .'_ _   \
+| ( ' )  |    / ( ` )   '| _ | ) _  \        | |    \ | ,-./  )     /   '  \  \  | ,_/  \__) | (`' ) /             `--.  ,---'| ( ' )  |    / ( ` )   ' / ( ` )   '
+|(_ o _) /   . (_ o _)  ||( ''_'  ) |        | |____/ / \  '_ '`)   |___|  /  |,-./  )       |(_ ()_)                 |   \   |(_ o _) /   . (_ o _)  |. (_ o _)  |
+| (_,_).' __ |  (_,_)___|| . (_) `. |        |   _ _ '.  > (_)  )      _.-`   |\  '_ '`)     | (_,_)   __             :_ _:   | (_,_).' __ |  (_,_)___||  (_,_)___|
+|  |\ \  |  |'  \   .---.|(_    ._) '        |  ( ' )  \(  .  .-'   .'   _    | > (_)  )  __ |  |\ \  |  |            (_I_)   |  |\ \  |  |'  \   .---.'  \   .---.
+|  | \ `'   / \  `-'    /|  (_.\.' /         | (_{;}_) | `-'`-'|___ |  _( )_  |(  .  .-'_/  )|  | \ `'   /           (_(=)_)  |  | \ `'   / \  `-'    / \  `-'    /
+|  |  \    /   \       / |       .'          |  (_,_)  /  |        \\ (_ o _) / `-'`-'     / |  |  \    /             (_I_)   |  |  \    /   \       /   \       /
+''-'   `'-'     `'-..-'  '-----'`            /_______.'   `--------` '.(_,_).'    `._____.'  `--'   `'-'              '---'   ''-'   `'-'     `'-..-'     `'-..-'
+"""
+
+
+B_TREE_ASCII = r"""
+ _______           ,---------. .-------.        .-''-.      .-''-.
+\  ____  \         \          \|  _ _   \     .'_ _   \   .'_ _   \
+| |    \ |          `--.  ,---'| ( ' )  |    / ( ` )   ' / ( ` )   '
+| |____/ /             |   \   |(_ o _) /   . (_ o _)  |. (_ o _)  |
+|   _ _ '.             :_ _:   | (_,_).' __ |  (_,_)___||  (_,_)___|
+|  ( ' )  \            (_I_)   |  |\ \  |  |'  \   .---.'  \   .---.
+| (_{;}_) |           (_(=)_)  |  | \ `'   / \  `-'    / \  `-'    /
+|  (_,_)  /            (_I_)   |  |  \    /   \       /   \       /
+/_______.'             '---'   ''-'   `'-'     `'-..-'     `'-..-'
 """

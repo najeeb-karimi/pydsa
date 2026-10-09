@@ -111,4 +111,5 @@ def test_the_wheel_includes_every_guide(tmp_path):
     expected |= {"pydsa/progress.py", "pydsa/content/quizzes.py", "pydsa/ui/screens/practice.py",
                  "pydsa/practice/__init__.py", "pydsa/practice/quiz.py", "pydsa/practice/challenges.py",
                  "pydsa/practice/experiments.py"}
+    expected |= {"pydsa/core/red_black_tree.py", "pydsa/core/b_tree.py", "pydsa/ui/screens/balanced_trees.py"}
     assert expected <= names

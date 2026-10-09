@@ -235,6 +235,23 @@ DISJOINT_SET = ComplexityTable(
 )
 
 
+RED_BLACK_TREE = ComplexityTable(
+    "Red-Black tree operations", ("Operation", "Time", "Extra space"),
+    (("Insert", "O(log n)", "O(1)"), ("Delete", "O(log n)", "O(1)"),
+     ("Search", "O(log n)", "O(1)"), ("Traversals", "O(n)", "O(n)"),
+     ("Tree stats", "O(n)", "O(log n)")),
+    "n is the number of keys, including duplicates. Height and counts walk the tree; black height follows one path. Traversals return a list and level order also uses a queue. Optional trace snapshots add time and memory beyond these costs.",
+)
+
+B_TREE = ComplexityTable(
+    "B-tree operations", ("Operation", "Time", "Extra space"),
+    (("Insert", "O(t logₜ n)", "O(t logₜ n)"), ("Delete", "O(t logₜ n)", "O(t + logₜ n)"),
+     ("Search", "O(log t · logₜ n)", "O(1)"), ("Traversals", "O(n)", "O(n)"),
+     ("Tree stats", "O(n)", "O(logₜ n)")),
+    "n counts keys, and t is the minimum degree. For fixed t, insert, delete and search are O(log n). Search uses binary search inside a node; list shifts, splits and merges take O(t) per level. Insertion can allocate new nodes. These costs exclude optional trace snapshots.",
+)
+
+
 def _shared(table, *topic_ids):
     return dict.fromkeys(topic_ids, (table,))
 
@@ -242,6 +259,8 @@ def _shared(table, *topic_ids):
 # The tables shown with each topic's summary and guide, by topic ID
 TOPIC_TABLES = {
     "array": (ARRAY, SORTING),
+    "red-black-tree": (RED_BLACK_TREE,),
+    "b-tree": (B_TREE,),
     "stack": (STACK,),
     "queue": (QUEUE,),
     "deque": (DEQUE,),

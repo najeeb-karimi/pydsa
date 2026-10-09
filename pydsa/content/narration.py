@@ -55,6 +55,33 @@ TEMPLATES = {
     "unbalanced": "Node {node} is out of balance by {balance}, so its subtree has to be rotated.",
     "rotate": "The {case} rotation put {top} on top, and the subtree is balanced again.",
 
+    # Red-black and multi-key search trees
+    "tree_found": "Found {key} in this node.",
+    "tree_missing": "The search reached an empty branch without finding {key}.",
+    "tree_walk": "Visited {key}; the traversal has collected {keys}.",
+    "rb_insert": "Added {key} as a red leaf; now check its parent and the root.",
+    "rb_remove": "Removed one occurrence of {key}; now repair any lost black height.",
+    "rb_successor": "The inorder successor {successor} moves into {key}'s position, preserving search order.",
+    "rb_recolor": "Colored {key} {color}.",
+    "rb_rotate": "Rotated {direction} at {node}, putting {top} above it while keeping search order.",
+    "rb_insert_uncle": "The parent and uncle are red, so recolor them black and move the check up from {node}.",
+    "rb_insert_inner": "The new key forms an inner bend at {node}; rotate its parent to make a straight path.",
+    "rb_insert_outer": "The path through {node} is straight and the uncle is black; recolor and rotate the grandparent.",
+    "rb_delete_red_sibling": "The sibling under {node} is red; recolor and rotate to expose a black sibling.",
+    "rb_delete_black_children": "The sibling under {node} has two black children; recolor it red and move the missing black up.",
+    "rb_delete_near": "The sibling {node} has a red near child and a black far child; rotate to put red on the far side.",
+    "rb_delete_far": "The sibling under {node} has a red far child; recolor and rotate to restore black height.",
+    "bt_visit": "Compare {key} with the sorted keys in this node: {keys}.",
+    "bt_descend": "Follow child {index}, the next range that can hold {key}.",
+    "bt_split": "Split a full node and lift its middle key {key} into the parent.",
+    "bt_insert": "Inserted {key} into its sorted position in a leaf.",
+    "bt_borrow_left": "Move separator {key} down and borrow the left sibling's largest key to replace it.",
+    "bt_borrow_right": "Move separator {key} down and borrow the right sibling's smallest key to replace it.",
+    "bt_merge": "Join two minimum-size siblings with separator {key} to make one node.",
+    "bt_replace": "Replace internal key {key} with neighboring key {value}, then remove that copy further down.",
+    "bt_remove": "Removed one copy of {key} from its leaf.",
+    "bt_done": "Deletion of {key} is complete; the root has been shortened or cleared if needed.",
+
     # Hash tables
     "home": "{key} hashes to index {index}, where the work starts.",
     "update": "{key} was already there, so only its value changed.",
@@ -138,6 +165,10 @@ def caption(event, label=repr):
 
 def _written(key, value, label):
     """Return one value of a step's data as it should read in the sentence."""
+    if key == "color":
+        return "red" if value == "R" else "black"
+    if key == "keys":
+        return ", ".join(label(item) for item in value)
     if key in VALUE_KEYS:
         return label(value)  # A value is written as a whole, even when it's a tuple, like a queue entry
     if isinstance(value, (list, tuple)):

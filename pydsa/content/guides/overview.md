@@ -13,7 +13,7 @@ In a linear data structure, the items form a line: each item has at most one ite
 
 ## Non-linear data structures
 In a non-linear data structure, an item can connect to several others.
-- Trees arrange items in a hierarchy. Binary search trees keep keys sorted, and AVL trees also keep themselves balanced.
+- Trees arrange items in a hierarchy. Binary search trees keep keys sorted; AVL and Red-Black trees also keep themselves balanced. B-trees hold several keys per node and keep their leaves at the same depth.
 - Heaps keep the smallest or largest item on top, which makes them ideal for priority queues.
 - A trie stores words letter by letter, so words with the same beginning share their nodes.
 - Graphs model any kind of connection, like roads, friendships or dependencies.

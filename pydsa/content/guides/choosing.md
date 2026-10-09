@@ -17,6 +17,8 @@
 - Finding every word that starts with a few letters, as autocomplete does: a Trie (`trie`).
 
 ## Keep items sorted
+- A frequently updated sorted collection whose balancing you want to explore: a Red-Black Tree (`red-black-tree`), with recoloring and rotations to keep paths short.
+- A search tree with several keys per node, like a block-based index: a B-Tree (`b-tree`), with a minimum degree you choose.
 - A sorted collection you keep adding to and removing from, with quick searches: an AVL Tree (`avl-tree`), because it stays balanced whatever order the keys arrive in.
 - Sorting a list once, then searching it many times: Merge Sort (`merge-sort`) or Quick Sort (`quick-sort`), followed by Binary Search (`binary-search`).
 

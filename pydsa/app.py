@@ -13,7 +13,9 @@ from pydsa.ui.screens import tools
 
 QUESTIONS = {
     "linear": "🏁 Which linear data structure do you want to learn?",
-    "non-linear": "🧭 Which non-linear data structure do you want to learn?",
+    "trees": "🌳 Which tree or heap do you want to learn?",
+    "graphs": "🧭 Which graph or set do you want to learn?",
+    "hashing": "🗝️ Which hashing structure do you want to learn?",
     "algorithms": "🧮 Which algorithms do you want to learn?",
 }
 

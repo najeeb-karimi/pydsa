@@ -118,6 +118,24 @@ BANKS = {
     ),
 }
 
+BANKS.update({
+    "red-black-tree": (
+        ("What color must a nonempty Red-Black tree's root have?", "Black", ("Red", "Either color", "No color"), "Fix-up finishes by making the root black."),
+        ("Which child is forbidden under a red node?", "A red child", ("A black child", "An absent child", "A smaller key"), "Two consecutive red nodes break a balancing rule."),
+        ("How are absent leaves treated when counting black height?", "As black", ("As red", "As stored keys", "As rotations"), "Every missing child contributes one black leaf to its path."),
+        ("What can repair a Red-Black tree after an update?", "Recoloring and rotations", ("Sorting every key again", "Hashing the root", "Discarding duplicate keys"), "These local changes restore the color rules while keeping search order."),
+        ("What does deleting a duplicate key remove in PyDSA?", "One occurrence", ("All occurrences", "The whole tree", "Only red occurrences"), "Each insertion adds one node and each successful deletion removes one node."),
+    ),
+    "b-tree": (
+        ("With minimum degree t, how many keys can one B-tree node hold at most?", "2t − 1", ("t − 1", "t", "2t + 1"), "A full node has 2t minus one keys and can have 2t children."),
+        ("What must be equal for all B-tree leaves?", "Their depth", ("Their keys", "Their colors", "Their number of siblings"), "Splits and deletion repairs preserve the common leaf level."),
+        ("What happens before insertion enters a full child?", "The child splits and its middle key moves up", ("The tree loses its root", "Every key is rehashed", "The child is ignored"), "Splitting leaves space in the child chosen next."),
+        ("What can give a minimum-size child enough keys before deletion descends?", "Borrowing from a sibling or merging", ("Painting it red", "Increasing every key", "Removing every child"), "A separator moves through the parent, or two siblings join around it."),
+        ("How many children does an internal node with k keys have?", "k + 1", ("k", "Always two", "2k + 1"), "The keys separate one more child range than there are keys."),
+    ),
+})
+
+
 # Variant-specific questions replace one foundation question, keeping each bank at five questions.
 VARIANTS = {
     "singly-linked-list": ("linked-list", "How can you move through a singly linked list?", "Forward through next links", ("Backward through previous links", "Only by array index", "Only by hash lookup"), "Each node has a next link, without a previous link."),

@@ -17,7 +17,7 @@ def run():
     """Pick an example graph and run the graph algorithms menu."""
     render.intro(texts.GRAPH_ALGORITHMS_ASCII, "graph-algorithms")
     info("This screen runs the graph algorithms on an example or random graph. To run them on a graph you build "
-         "yourself, open Graph under the non-linear data structures and choose Graph Algorithms.")
+         "yourself, open Graph under Graphs & sets and choose Graph Algorithms.")
     graph = Menu("🛠️ Which example graph do you want to use?", [
         [("The directed example graph (Dijkstra, Topological Sort, Cycle Detection)", lambda: example(True)),
          ("The undirected example graph (Dijkstra, Cycle Detection, Prim, Kruskal)", lambda: example(False)),

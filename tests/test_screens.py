@@ -6,10 +6,10 @@ from pydsa import __version__
 
 
 def test_home_navigation(play):
-    out = play("7", "1", "0", "2", "9", "0", "0")
+    out = play("9", "1", "0", "3", "9", "0", "0")
     assert f"⏳ Version {__version__}" in out
     assert out.count("🚫 Invalid choice.") == 2
-    assert "🧭 Which non-linear data structure" in out
+    assert "🧭 Which graph or set" in out
     assert "Goodbye!" in out
 
 
@@ -178,7 +178,7 @@ def test_circular_linked_lists(play):
 
 def test_trees(play):
     out = play(
-        "2", "1", "1", "1", "0", "1", "1",  # Non-linear > Tree > BST > Create > back > Create > Numbers
+        "2", "1", "1", "1", "0", "1", "1",  # Trees & heaps > Tree > BST > Create > back > Create > Numbers
         "7", "6",  # Display the empty tree and its stats
         "2", "1", "50", "2", "1", "30", "2", "2", "70.5",
         "4", "1", "30", "4", "1", "99",
@@ -203,7 +203,7 @@ def test_trees(play):
 
 def test_heaps(play):
     out = play(
-        "2", "2", "1", "1", "1",  # Non-linear > Heap & Priority Queue > Min Heap > Create > Numbers
+        "2", "4", "1", "1", "1",  # Trees & heaps > Heap & Priority Queue > Min Heap > Create > Numbers
         "3", "4", "7", "8",  # Extract, peek, stats and display on an empty heap
         "2", "1", "30", "2", "1", "10", "2", "2", "5.5",  # Insert 30, 10 and 5.5
         "3",  # Extract the min
@@ -234,7 +234,7 @@ def test_heaps(play):
 
 def test_priority_queue(play):
     out = play(
-        "2", "2", "3", "1",  # Non-linear > Heap & Priority Queue > Priority Queue > Start empty
+        "2", "4", "3", "1",  # Trees & heaps > Heap & Priority Queue > Priority Queue > Start empty
         "3", "4",  # Dequeue and peek on an empty queue
         "2", "1", "write", "2",  # Enqueue 'write' with priority 2
         "2", "1", "fix", "x", "1",  # Enqueue 'fix' after an invalid priority
@@ -263,7 +263,7 @@ def test_priority_queue(play):
 
 def test_trie(play):
     out = play(
-        "2", "3", "1",  # Non-linear > Trie > Start empty
+        "2", "5", "1",  # Trees & heaps > Trie > Start empty
         "3", "car", "8", "7",  # Delete from, display and count an empty trie
         "2", " ", "card",  # An empty word, then 'card'
         "2", "car", "2", "car",  # 'car' reuses the nodes of 'card', then it's a duplicate
@@ -301,7 +301,7 @@ def test_trie(play):
 
 def test_graphs(play):
     out = play(
-        "2", "4", "1", "1", "1", "x", "0", "3",  # Non-linear > Graph > Matrix > Create > Directed with 3 vertices
+        "3", "1", "1", "1", "1", "x", "0", "3",  # Graphs & sets > Graph > Matrix > Create > Directed with 3 vertices
         "4", "0", "1", "0", "5",  # Add an edge: weight 0 is rejected, then 5
         "4", "0", "1", "7",  # Update it
         "4", "0", "9", "2",  # Missing vertex
@@ -349,7 +349,7 @@ def test_graphs(play):
 
 def test_hash_tables(play):
     out = play(
-        "2", "5", "2", "1", "3",  # Non-linear > Hash Table > Linear Probing > Create with 3 slots
+        "4", "1", "2", "1", "3",  # Hashing & caches > Hash Table > Linear Probing > Create with 3 slots
         "2", "2", "1", "1", "a",  # Keys 1, 4 and 7 all hash to slot 1
         "2", "2", "4", "1", "b",
         "2", "2", "7", "1", "c",
@@ -376,7 +376,7 @@ def test_hash_tables(play):
 
 def test_hash_sets(play):
     out = play(
-        "2", "5", "3", "1", "3",  # Non-linear > Hash Table > Hash Set > Create two sets with 3 buckets
+        "4", "1", "3", "1", "3",  # Hashing & caches > Hash Table > Hash Set > Create two sets with 3 buckets
         "2", "1", "2", "1", "2", "1", "2", "2", "2", "1", "1", "x",  # Add 1, 2 and 'x' to A
         "2", "2", "2", "2", "2", "2", "1", "x",  # Add 2 and 'x' to B
         "2", "1", "2", "1",  # A already has 1
@@ -402,7 +402,7 @@ def test_hash_sets(play):
 
 def test_disjoint_sets(play):
     out = play(
-        "2", "6", "1", "x", "5",  # Non-linear > Disjoint Set > Create with 5 elements after an invalid size
+        "3", "2", "1", "x", "5",  # Graphs & sets > Disjoint Set > Create with 5 elements after an invalid size
         "2", "0", "1", "2", "2", "3", "2", "1", "3",  # Union 0 and 1, 2 and 3, then 1 and 3
         "3", "3",  # Find 3, which compresses its path
         "2", "0", "3",  # Already in the same set
@@ -427,7 +427,7 @@ def test_disjoint_sets(play):
 
 def test_sorting_algorithms(play):
     out = play(
-        "3", "1", "1", "5, x", "3, -1, 2.5",  # Algorithms > Sorting > Type numbers, after an invalid one
+        "5", "1", "1", "5, x", "3, -1, 2.5",  # Algorithms > Sorting > Type numbers, after an invalid one
         "8", "1",  # Merge Sort, ascending
         "9",  # Counting Sort can't sort the float
         "11", "2",  # Compare all algorithms, descending
@@ -451,7 +451,7 @@ def test_sorting_algorithms(play):
 
 def test_searching_algorithms(play):
     out = play(
-        "3", "2", "3",  # Algorithms > Searching > the example
+        "5", "2", "3",  # Algorithms > Searching > the example
         "4", "1", "300",  # Jump Search for the int 300
         "5", "2", "7",  # Interpolation Search for the float 7.0
         "6", "1", "5",  # Exponential Search for a missing value
@@ -474,7 +474,7 @@ def test_searching_algorithms(play):
 
 def test_graph_algorithms(play):
     out = play(
-        "3", "3", "1",  # Algorithms > Graph Algorithms > the directed example
+        "5", "3", "1",  # Algorithms > Graph Algorithms > the directed example
         "2", "0",  # Dijkstra from vertex 0
         "3", "4", "5",  # Topological sort, cycle detection, display
         "2", "9",  # A missing vertex
@@ -500,18 +500,18 @@ def test_graph_algorithms(play):
     (("1", "4", "3", "4", "2", "0"), "Created a deque that holds up to 4 items, with 2 random items pushed onto the back."),
     (("1", "5", "1", "3", "6", "0"), "Created a singly linked list with 6 random nodes."),
     (("2", "1", "2", "3", "1", "7", "0"), "Created an AVL tree with 7 random keys."),
-    (("2", "2", "1", "3", "2", "6", "0"), "Built a min heap from 6 random keys."),
-    (("2", "2", "3", "3", "5", "0"), "Created a priority queue with 5 random items."),
-    (("2", "3", "3", "5", "0"), "Created a trie with 5 random words."),
-    (("2", "4", "1", "3", "2", "5", "1", "6", "0"), "Created an undirected graph with 5 vertices and 6 random edges."),
-    (("2", "4", "2", "3", "1", "4", "2", "3", "0"), "Created a directed graph with 4 vertices and 3 random edges."),
-    (("2", "5", "1", "3", "5", "8", "0"), "Created a hash table with 5 buckets and 8 random keys."),
-    (("2", "5", "2", "3", "5", "5", "0"), "Created a hash table with 5 slots and 5 random keys."),
-    (("2", "5", "3", "3", "4", "6", "0"), "Created two sets, A and B, from 6 random numbers each."),
-    (("2", "6", "3", "8", "5", "0"), "Created a disjoint set of 8 elements and merged the sets of 5 random pairs."),
-    (("3", "1", "4", "8", "3", "0"), "Created a list of 8 random numbers, sorted backwards."),
-    (("3", "2", "4", "8", "4", "0"), "Created a list of 8 random numbers, with lots of duplicates."),
-    (("3", "3", "3", "2", "5", "1", "6", "0"), "Created an undirected graph with 5 vertices and 6 random edges."),
+    (("2", "4", "1", "3", "2", "6", "0"), "Built a min heap from 6 random keys."),
+    (("2", "4", "3", "3", "5", "0"), "Created a priority queue with 5 random items."),
+    (("2", "5", "3", "5", "0"), "Created a trie with 5 random words."),
+    (("3", "1", "1", "3", "2", "5", "1", "6", "0"), "Created an undirected graph with 5 vertices and 6 random edges."),
+    (("3", "1", "2", "3", "1", "4", "2", "3", "0"), "Created a directed graph with 4 vertices and 3 random edges."),
+    (("4", "1", "1", "3", "5", "8", "0"), "Created a hash table with 5 buckets and 8 random keys."),
+    (("4", "1", "2", "3", "5", "5", "0"), "Created a hash table with 5 slots and 5 random keys."),
+    (("4", "1", "3", "3", "4", "6", "0"), "Created two sets, A and B, from 6 random numbers each."),
+    (("3", "2", "3", "8", "5", "0"), "Created a disjoint set of 8 elements and merged the sets of 5 random pairs."),
+    (("5", "1", "4", "8", "3", "0"), "Created a list of 8 random numbers, sorted backwards."),
+    (("5", "2", "4", "8", "4", "0"), "Created a list of 8 random numbers, with lots of duplicates."),
+    (("5", "3", "3", "2", "5", "1", "6", "0"), "Created an undirected graph with 5 vertices and 6 random edges."),
 ], ids=["array", "stack", "queue", "deque", "linked-list", "avl-tree", "min-heap", "priority-queue", "trie",
         "matrix-graph", "list-graph", "chaining", "probing", "hash-set", "disjoint-set", "sorting", "searching",
         "graph-algorithms"])

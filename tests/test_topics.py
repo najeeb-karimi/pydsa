@@ -24,7 +24,10 @@ def test_categories_and_parents():
 def test_category_menus():
     assert [topic.title for topic in topics.listed("linear")] == ["Array", "Stack", "Queue", "Deque", "Linked List"]
     assert [topic.title for topic in topics.listed("algorithms")] == ["Sorting", "Searching", "Graph Algorithms"]
-    assert len(topics.listed("non-linear")) == 6
+    assert list(topics.CATEGORIES) == ["linear", "trees", "graphs", "hashing", "algorithms"]
+    assert [topic.id for topic in topics.listed("trees")] == ["tree", "red-black-tree", "b-tree", "heap", "trie"]
+    assert [topic.id for topic in topics.listed("graphs")] == ["graph", "disjoint-set"]
+    assert [topic.id for topic in topics.listed("hashing")] == ["hash-table", "hash-set"]
 
 
 def test_find():

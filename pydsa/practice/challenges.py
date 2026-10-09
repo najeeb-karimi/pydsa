@@ -8,6 +8,7 @@ from typing import Callable
 
 from pydsa.algorithms import graph_algorithms, searching, sorting
 from pydsa.core.array import Array
+from pydsa.core.b_tree import BTree
 from pydsa.core.deque import Deque
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.graph import ListGraph, MatrixGraph
@@ -17,6 +18,7 @@ from pydsa.core.heap import MaxHeap, MinHeap
 from pydsa.core.linked_list import DoublyCircularLinkedList, DoublyLinkedList, SinglyCircularLinkedList, SinglyLinkedList
 from pydsa.core.priority_queue import PriorityQueue
 from pydsa.core.queue import Queue
+from pydsa.core.red_black_tree import RedBlackTree
 from pydsa.core.stack import Stack
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.core.trie import Trie
@@ -87,7 +89,7 @@ SEARCHES = {name.replace("_", "-"): getattr(searching, name) for name in (
 )}
 GRAPH_TOPICS = {"graph", "adjacency-list-graph", "adjacency-matrix-graph", "graph-algorithms",
                 "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"}
-SUPPORTED = frozenset({"array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "heap", "min-heap",
+SUPPORTED = frozenset({"array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
                        "max-heap", "priority-queue", "trie", "hash-table", "chaining-hash-table",
                        "linear-probing-hash-table", "hash-set", "disjoint-set", "sorting", "searching"}
                       | set(LINKED) | set(SORTS) | set(SEARCHES) | GRAPH_TOPICS)
@@ -137,6 +139,21 @@ def make(topic, rng=None):
                           lambda linked: render.linked_list(list(linked), doubly="doubly" in topic,
                                                            circular="circular" in topic),
                           "The head is the first node, even when the links form a circle.")
+    if topic in ("red-black-tree", "b-tree"):
+        degree = rng.choice((2, 3))
+        tree = BTree(degree) if topic == "b-tree" else RedBlackTree()
+        for value in values:
+            tree.insert(value)
+        target = rng.randrange(1, 30)
+        state.update(target=target, degree=degree)
+
+        def insert_and_walk(tree):
+            tree.insert(target)
+            return tree.inorder()
+
+        return _challenge(topic, f"After inserting {target}, what sequence does inorder traversal return?",
+                          state, tree, insert_and_walk, render.b_tree if topic == "b-tree" else render.red_black_tree,
+                          "Inorder reads keys in sorted order, including every duplicate after insertion.")
     if topic in ("tree", "bst", "avl-tree"):
         tree = AVLTree("num") if topic == "avl-tree" else BinarySearchTree("num")
         for value in values:

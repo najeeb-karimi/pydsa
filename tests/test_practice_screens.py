@@ -49,17 +49,17 @@ def test_incorrect_and_cancelled_predictions_are_not_counted(play):
 
 
 def test_new_user_practice_and_experiment_navigation(play):
-    out = play("6", "1", "2", "3", "1", "2", "0", "5", "0", "0")
+    out = play("8", "1", "2", "3", "1", "2", "0", "5", "0", "0")
     assert out.count("Visit a topic first") == 2
     assert "Ratio" in out and "Milliseconds" in out and "best completed first-round score" in out
     assert "bubble-sort" in progress.current.visited
 
 
 def test_practice_browser_quiz_and_mixed_session(play, ordered_choices):
-    out = play("6", "4", "1", "2", "1", "a", "a", "a", "a", "a", "0", "0", "0", "0", "0")
+    out = play("8", "4", "1", "2", "1", "a", "a", "a", "a", "a", "0", "0", "0", "0", "0")
     assert "Quiz score: 5/5" in out and "✓ Stack" in out
     progress.visit("queue")
-    out = play("6", "1", *("a" for _ in range(10)), "0", "0")
+    out = play("8", "1", *("a" for _ in range(10)), "0", "0")
     assert "Quiz score: 10/10" in out
     assert set(progress.current.quizzes) == {"stack", "queue"}
     assert progress.current.quizzes["stack"].attempts == 2
@@ -91,9 +91,9 @@ def test_visited_labels_refresh_when_returning_to_topic_list(play):
 def test_reset_progress_requires_confirmation(play):
     progress.visit("stack")
     progress.record_quiz("stack", 4, 5)
-    out = play("5", "7", "0", "0", "0")
+    out = play("7", "7", "0", "0", "0")
     assert "stack" in progress.current.visited and "Reset your progress." not in out
-    out = play("5", "7", "1", "0", "0")
+    out = play("7", "7", "1", "0", "0")
     assert "Reset your progress." in out
     assert progress.load()[0] == progress.Progress()
 
@@ -126,7 +126,7 @@ def test_every_operation_menu_has_topic_practice():
 def test_practice_screens_fit_narrow_terminals(play, monkeypatch, capsys, width, ordered_choices):
     console.width = width
     monkeypatch.setattr(render, "ascii_art", lambda art: None)
-    out = play("6", "4", "1", "2", "1", "a", "a", "a", "a", "a", "0", "0", "0", "5", "0", "0",
+    out = play("8", "4", "1", "2", "1", "a", "a", "a", "a", "a", "0", "0", "0", "5", "0", "0",
                argv=["--no-color"])
     assert all(cell_len(line) <= width for line in out.splitlines()), [(cell_len(line), line) for line in out.splitlines() if cell_len(line) > width]
 
@@ -135,4 +135,4 @@ def test_progress_survives_new_app_sessions(play, ordered_choices):
     play("2", "12", "1", "a", "a", "a", "a", "a", "0", "0", argv=["--topic", "stack"])
     progress.current = progress.Progress()
     out = play("0")
-    assert "1 of 47 topics visited" in out and "quiz average 100%" in out
+    assert "1 of 49 topics visited" in out and "quiz average 100%" in out

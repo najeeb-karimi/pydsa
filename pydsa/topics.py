@@ -3,13 +3,15 @@
 from typing import Callable, NamedTuple
 
 from pydsa.ui.screens import (
-    array, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
+    array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
     searching_algorithms, sorting_algorithms, stack, tree, trie,
 )
 
 CATEGORIES = {
-    "linear": "Linear data structures",
-    "non-linear": "Non-linear data structures",
+    "linear": "Linear structures",
+    "trees": "Trees & heaps",
+    "graphs": "Graphs & sets",
+    "hashing": "Hashing & caches",
     "algorithms": "Algorithms",
 }
 
@@ -33,24 +35,26 @@ TOPICS = (
     *(Topic(kind.guide, kind.name.title(), "linear", lambda kind=kind: linked_list.run_kind(kind), "linked-list")
       for kind in (linked_list.SINGLY, linked_list.DOUBLY, linked_list.SINGLY_CIRCULAR, linked_list.DOUBLY_CIRCULAR)),
 
-    Topic("tree", "Tree", "non-linear", tree.run),
-    Topic("bst", "Binary Search Tree (BST)", "non-linear", lambda: tree.run_kind(tree.BST), "tree"),
-    Topic("avl-tree", "AVL Tree", "non-linear", lambda: tree.run_kind(tree.AVL), "tree"),
-    Topic("heap", "Heap & Priority Queue", "non-linear", heap.run),
-    Topic("min-heap", "Min Heap", "non-linear", lambda: heap.run_kind(heap.MIN), "heap"),
-    Topic("max-heap", "Max Heap", "non-linear", lambda: heap.run_kind(heap.MAX), "heap"),
-    Topic("priority-queue", "Priority Queue", "non-linear", heap.run_queue, "heap"),
-    Topic("trie", "Trie", "non-linear", trie.run),
-    Topic("graph", "Graph", "non-linear", graph.run),
-    Topic("adjacency-matrix-graph", "Adjacency Matrix Graph", "non-linear", graph.run_matrix, "graph"),
-    Topic("adjacency-list-graph", "Adjacency List Graph", "non-linear", graph.run_list, "graph"),
-    Topic("hash-table", "Hash Table", "non-linear", hash_table.run),
-    Topic("chaining-hash-table", "Separate Chaining Hash Table", "non-linear",
+    Topic("tree", "Tree", "trees", tree.run),
+    Topic("bst", "Binary Search Tree (BST)", "trees", lambda: tree.run_kind(tree.BST), "tree"),
+    Topic("avl-tree", "AVL Tree", "trees", lambda: tree.run_kind(tree.AVL), "tree"),
+    Topic("red-black-tree", "Red-Black Tree", "trees", balanced_trees.run_red_black),
+    Topic("b-tree", "B-Tree", "trees", balanced_trees.run_b_tree),
+    Topic("heap", "Heap & Priority Queue", "trees", heap.run),
+    Topic("min-heap", "Min Heap", "trees", lambda: heap.run_kind(heap.MIN), "heap"),
+    Topic("max-heap", "Max Heap", "trees", lambda: heap.run_kind(heap.MAX), "heap"),
+    Topic("priority-queue", "Priority Queue", "trees", heap.run_queue, "heap"),
+    Topic("trie", "Trie", "trees", trie.run),
+    Topic("graph", "Graph", "graphs", graph.run),
+    Topic("adjacency-matrix-graph", "Adjacency Matrix Graph", "graphs", graph.run_matrix, "graph"),
+    Topic("adjacency-list-graph", "Adjacency List Graph", "graphs", graph.run_list, "graph"),
+    Topic("hash-table", "Hash Table", "hashing", hash_table.run),
+    Topic("chaining-hash-table", "Separate Chaining Hash Table", "hashing",
           lambda: hash_table.run_kind(hash_table.CHAINING), "hash-table"),
-    Topic("linear-probing-hash-table", "Linear Probing Hash Table", "non-linear",
+    Topic("linear-probing-hash-table", "Linear Probing Hash Table", "hashing",
           lambda: hash_table.run_kind(hash_table.PROBING), "hash-table"),
-    Topic("hash-set", "Hash Set", "non-linear", hash_set.run, "hash-table"),
-    Topic("disjoint-set", "Disjoint Set", "non-linear", disjoint_set.run),
+    Topic("hash-set", "Hash Set", "hashing", hash_set.run),
+    Topic("disjoint-set", "Disjoint Set", "graphs", disjoint_set.run),
 
     # Each algorithm opens the screen that runs it
     Topic("sorting", "Sorting", "algorithms", sorting_algorithms.run),
