@@ -50,8 +50,8 @@ def test_without_a_summary_the_steps_are_listed(capsys):
     numbers, draw = drawn()
     stepper.play(steps(3), draw)
     out = capsys.readouterr().out
-    assert "1. 2 came after 3, so the two swapped places." in out
-    assert "3. 1 came after 2, so the two swapped places." in out
+    assert "1. 3 came after 2, so the two swapped places." in out
+    assert "3. 2 came after 1, so the two swapped places." in out
     assert numbers == []
 
 
@@ -129,7 +129,7 @@ def test_a_single_step_is_never_worth_a_question(watching, typed, capsys):
     typed()
     stepper.play(steps(2), draw)
     assert numbers == []
-    assert "1. 1 came after 2, so the two swapped places." in capsys.readouterr().out
+    assert "1. 2 came after 1, so the two swapped places." in capsys.readouterr().out
 
 
 def test_a_long_run_offers_the_short_version(watching, typed, capsys):
@@ -143,11 +143,12 @@ def test_a_long_run_offers_the_short_version(watching, typed, capsys):
     out = capsys.readouterr().out
     assert f"This run takes {len(many)} steps, which is a lot to watch one at a time." in out
     assert f"👀 Watch all {len(many)} steps anyway?" in out
-    assert numbers == [] and len(shown) == 1
+    assert numbers == [] and shown == []
+    assert f"Showing 6 of {len(many)} steps" in out
 
 
 def test_drawing_a_step_writes_its_caption_and_its_state(capsys):
     render.list_step(2, steps(3)[1])
     out = capsys.readouterr().out
-    assert "Step 2: 1 came after 3, so the two swapped places." in out
+    assert "Step 2: 3 came after 1, so the two swapped places." in out
     assert "List: [2, 1*, 3*]" in out

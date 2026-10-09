@@ -146,6 +146,7 @@ If the terminal says the command isn't found, make sure your virtual environment
   - **`0) Exit`:** closes the app.
 - Before an operation runs, a short note tells you what it does and what it costs.
 - Operations that take several steps, such as a sort, an AVL rotation or a graph search, tell you what happens in each step. PyDSA asks whether you want to watch them one at a time: press Enter to see everything at once, or type `y` to watch. At a step, Enter shows the next one, `a` shows the rest and `s` stops.
+- Runs with more than 200 steps show the first and last three captions by default. In a terminal, you can choose to watch the whole run. Sorting captions group comparisons and writes between changes, and search captions show the active bounds and why the search moves.
 - A guide that's longer than your terminal pauses after each screenful: press Enter to keep reading, `a` to show the rest or `s` to stop.
 - If you type something that isn't allowed, PyDSA tells you what went wrong and asks again, so you can't break anything.
 

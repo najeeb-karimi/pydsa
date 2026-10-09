@@ -7,7 +7,7 @@ from pydsa.core.errors import NotFoundError
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_value, not_found, plural, success
-from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu, topic_option
 from pydsa.ui.render import fmt
 
 
@@ -30,8 +30,8 @@ def run():
     """Show the tree intro, let the user pick a BST or an AVL tree and run its menu."""
     render.intro(texts.TREE_ASCII, "tree")
     return Menu("🧪 Which type of tree do you want?", [
-        [("BST (Binary Search Tree)", lambda: tree_menu(BST)),
-         ("AVL Tree (Adelson-Velsky and Landis)", lambda: tree_menu(AVL))],
+        [topic_option(BST.guide, "BST (Binary Search Tree)", lambda: tree_menu(BST)),
+         topic_option(AVL.guide, "AVL Tree (Adelson-Velsky and Landis)", lambda: tree_menu(AVL))],
         [back_option()],
     ]).open()
 

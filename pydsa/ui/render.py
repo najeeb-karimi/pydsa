@@ -334,7 +334,7 @@ def step_captions(events, label=fmt):
     steps.add_column(style="muted", justify="right", no_wrap=True)
     steps.add_column()
     for number, event in enumerate(events, start=1):
-        steps.add_row(f"{number}.", narration.caption(event, label))
+        steps.add_row(f"{number}.", Text(narration.caption(event, label)))
     show(Group(Text("🪜 Step by step:", style="title"), Padding(steps, (0, 0, 0, 2), expand=False)))
 
 
@@ -342,6 +342,13 @@ def list_step(number, event, label=fmt):
     """Draw one step that works on a list, such as a sorting or a searching step."""
     step_caption(number, event, label)
     console.print(Text.assemble(("List: ", "muted"), _values(event.snapshot, event.marks, _marker(), label)))
+
+
+def trace_summary(events, label=fmt):
+    """Show six captions of a long run with their original step numbers."""
+    console.print(Text(f"Showing 6 of {len(events)} steps; the middle {len(events) - 6} are omitted.", style="muted"))
+    for index in (*range(3), *range(len(events) - 3, len(events))):
+        console.print(Text(f"{index + 1}. {narration.caption(events[index], label)}"))
 
 
 def tree_step(number, event):

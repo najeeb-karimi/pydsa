@@ -20,7 +20,7 @@ class Nav(Enum):
 class Option(NamedTuple):
     """A menu entry: its label, the action it runs, an optional fixed code and an optional role."""
 
-    label: str
+    label: str | Callable[[], str]
     action: Callable[[], object]
     code: str | None = None
     role: str | None = None  # "back" for the option that leaves this menu for the previous one
@@ -29,6 +29,11 @@ class Option(NamedTuple):
 def back_option(label="Go Back"):
     """Return the 0 option that leaves a menu for the previous one."""
     return Option(label, lambda: Nav.BACK, "0", "back")
+
+
+def topic_option(topic, label, action):
+    """Refresh a topic's visit mark whenever its choice is shown."""
+    return Option(lambda: render.topic_label(topic, label), action)
 
 
 def exit_option():
@@ -72,7 +77,8 @@ class Menu:
         """Show the menu, ask until a valid code or the back shortcut is typed, and return the chosen option."""
         if self.status:
             self.status()
-        groups = [[(option.code, option.label) for option in group] for group in self.groups]
+        groups = [[(option.code, option.label() if callable(option.label) else option.label)
+                   for option in group] for group in self.groups]
         while True:
             try:
                 code = ask_code(self.title, groups, compact=self.compact_repeat and self.shown)

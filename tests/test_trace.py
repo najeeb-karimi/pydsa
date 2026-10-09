@@ -44,22 +44,24 @@ def test_bubble_sort_records_every_swap():
     events = list(sorting.bubble_sort([3, 2, 1]))
     assert kinds(events) == ["swap", "swap", "swap"]
     assert [event.snapshot for event in events] == [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
-    assert [event.data for event in events] == [{"a": 2, "b": 3}, {"a": 1, "b": 3}, {"a": 1, "b": 2}]
+    assert [event.data for event in events] == [{"a": 3, "b": 2, "comparisons": 1, "writes": 2},
+                                             {"a": 3, "b": 1, "comparisons": 1, "writes": 2},
+                                             {"a": 2, "b": 1, "comparisons": 1, "writes": 2}]
     assert [sorted(event.marks) for event in events] == [[0, 1], [1, 2], [0, 1]]
 
 
 def test_insertion_sort_tells_a_move_from_a_value_that_stays():
     events = list(sorting.insertion_sort([2, 1, 3]))
     assert kinds(events) == ["insert", "in_place"]
-    assert events[0].data == {"value": 1, "index": 0}
-    assert events[1].data == {"value": 3, "index": 2}
+    assert events[0].data == {"value": 1, "index": 0, "comparisons": 1, "writes": 2}
+    assert events[1].data == {"value": 3, "index": 2, "comparisons": 1, "writes": 1}
 
 
 def test_quick_sort_marks_the_pivot():
     events = list(sorting.quick_sort([3, 1, 4, 2]))
     assert kinds(events) == ["partition", "partition"]
-    assert events[0].data == {"pivot": 2, "index": 1, "low": 0, "high": 3}
-    assert events[0].marks == {1: "pivot"}
+    assert events[0].data == {"pivot": 2, "index": 1, "low": 0, "high": 3, "comparisons": 3, "writes": 4}
+    assert events[0].marks == {0: "moved", 1: "pivot", 3: "moved"}
 
 
 def test_searches_say_why_they_move_on():
@@ -70,8 +72,8 @@ def test_searches_say_why_they_move_on():
     assert kinds(traced(searching.jump_search, values, 300))[-2:] == ["block", "match"]
     assert kinds(traced(searching.exponential_search, values, 5)) == ["passed", "bound"]
     events = traced(searching.binary_search, values, 8)
-    assert events[0].data == {"index": 2, "value": 10, "target": 8}
-    assert events[0].marks == {2: "checked"}
+    assert events[0].data == {"index": 2, "value": 10, "target": 8, "low": 0, "mid": 2, "high": 4}
+    assert events[0].marks == {0: "low", 2: "checked", 4: "high"}
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +160,7 @@ def test_chaining_records_the_bucket_it_used():
     assert kinds(traced(table.insert, 0, 1)) == ["home", "chain"]
     assert kinds(traced(table.insert, 0, 2)) == ["home", "update"]
     assert kinds(traced(table.lookup, 0)) == ["home", "found"]
-    assert kinds(_missing(table.lookup, 9)) == ["home", "miss"]
+    assert kinds(_missing(table.lookup, 9)) == ["home", "chain_probe", "miss"]
 
 
 def test_disjoint_set_records_the_walk_and_the_union():
@@ -205,7 +207,7 @@ def test_dijkstra_records_settled_and_relaxed_vertices():
 
 def test_topological_sort_records_the_in_degrees():
     events = traced(graph_algorithms.topological_sort, example_graph(directed=True))
-    assert kinds(events)[:3] == ["no_incoming", "place", "ready"]
+    assert kinds(events)[:4] == ["no_incoming", "place", "edge_removed", "edge_removed"]
     assert events[0].data == {"vertices": [0]}
     assert events[0].snapshot == {0: 0, 1: 2, 2: 1, 3: 2, 4: 1}
 
@@ -245,6 +247,7 @@ def every_run():
                  sorting.heap_sort, sorting.shell_sort, sorting.merge_sort, sorting.counting_sort,
                  sorting.radix_sort):
         yield list(sort([170, 45, 75, 90, 802, 24, 2, 66]))
+    yield list(sorting.bubble_sort([1, 2, 3]))
     yield list(sorting.insertion_sort([2, 1, 3]))  # A value that stays where it is
     for search in (searching.linear_search, searching.binary_search, searching.jump_search,
                    searching.interpolation_search, searching.exponential_search):
@@ -266,6 +269,9 @@ def every_run():
     chaining = ChainingHashTable(3)
     yield traced(chaining.insert, 0, 1)
     yield traced(chaining.insert, 0, 2)
+    yield traced(chaining.insert, 3, 3)
+    yield traced(chaining.lookup, 3)
+    yield traced(chaining.delete, 3)
     yield traced(chaining.lookup, 0)
     yield traced(chaining.delete, 0)
     yield _missing(chaining.lookup, 0)

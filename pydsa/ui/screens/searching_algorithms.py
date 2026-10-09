@@ -84,7 +84,11 @@ def run_search(items, search, kind, noun):
     else:
         values = sorted(items)
         caption = f"Searched this sorted copy and checked {checked}, numbered in order under the values."
-    stepper.play(trace, render.list_step, lambda events: render.search_probes(values, probes, caption))
+    def summary(events):
+        render.search_probes(values, probes, caption)
+        render.step_captions(events)
+
+    stepper.play(trace, render.list_step, summary)
     if index == -1:
         not_found(f"{fmt(target)} isn't in {noun}.")
     else:

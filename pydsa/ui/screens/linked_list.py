@@ -7,7 +7,7 @@ from pydsa.core.errors import EmptyError, OutOfBoundsError
 from pydsa.core.linked_list import DoublyCircularLinkedList, DoublyLinkedList, SinglyCircularLinkedList, SinglyLinkedList
 from pydsa.ui import random_data, render
 from pydsa.ui.console import ask_int, ask_value, error, info, not_found, plural, result, success
-from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu, topic_option
 from pydsa.ui.render import fmt
 
 
@@ -33,7 +33,8 @@ def run():
     """Show the linked list intro, let the user pick a kind of list and run its menu."""
     render.intro(texts.LINKED_LIST_ASCII, "linked-list")
     return Menu("🧪 Which type of linked list do you want?", [
-        [(kind.name.title(), lambda kind=kind: list_menu(kind)) for kind in (SINGLY, DOUBLY, SINGLY_CIRCULAR, DOUBLY_CIRCULAR)],
+        [topic_option(kind.guide, kind.name.title(), lambda kind=kind: list_menu(kind))
+         for kind in (SINGLY, DOUBLY, SINGLY_CIRCULAR, DOUBLY_CIRCULAR)],
         [back_option()],
     ]).open()
 

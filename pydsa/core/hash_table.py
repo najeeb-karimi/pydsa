@@ -43,11 +43,12 @@ class ChainingHashTable:
         index = self.hash_function(key)
         self._record(trace, "home", index, key=key, index=index)
         # Update the value if the key is already in the bucket
-        for kv in self.table[index]:
+        for position, kv in enumerate(self.table[index]):
             if kv[0] == key:
                 kv[1] = value
                 self._record(trace, "update", index, key=key, index=index)
                 return index, True
+            self._record(trace, "chain_probe", index, key=kv[0], target=key, index=index, position=position)
         # Otherwise, append a new key-value pair to the bucket
         self.table[index].append([key, value])
         self._record(trace, "chain", index, key=key, index=index)
@@ -57,10 +58,11 @@ class ChainingHashTable:
         """Return (index, value) for a key."""
         index = self.hash_function(key)
         self._record(trace, "home", index, key=key, index=index)
-        for kv in self.table[index]:
+        for position, kv in enumerate(self.table[index]):
             if kv[0] == key:
                 self._record(trace, "found", index, key=key, index=index)
                 return index, kv[1]
+            self._record(trace, "chain_probe", index, key=kv[0], target=key, index=index, position=position)
         self._record(trace, "miss", index, key=key, index=index)
         raise NotFoundError(f"Key {key!r} not found.")
 
@@ -73,6 +75,7 @@ class ChainingHashTable:
                 del self.table[index][i]
                 self._record(trace, "remove", index, key=key, index=index)
                 return index
+            self._record(trace, "chain_probe", index, key=kv[0], target=key, index=index, position=i)
         self._record(trace, "miss", index, key=key, index=index)
         raise NotFoundError(f"Key {key!r} not found.")
 

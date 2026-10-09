@@ -56,6 +56,11 @@ class BinaryTree:
         side = "go_left" if key < node.key else "go_right"
         self._record(trace, side, {node.key: "checked"}, key=key, node=node.key)
 
+    def _record_removal(self, trace, kind, node, replacement, marks, **data):
+        """Show the replacement before the recursive caller reconnects its child link."""
+        if trace is not None:
+            record(trace, kind, tree_snapshot(self.root, node, replacement), marks, **data)
+
     def search(self, key):
         """Return the node holding key, or None if it isn't in the tree."""
         self.check_type(key)
@@ -218,11 +223,12 @@ class BinarySearchTree(BinaryTree):
             # Node with one child or no child
             if node.left is None:
                 kind, marks, extra = _removal(node)
-                self._record(trace, kind, marks, key=key, **extra)
+                self._record_removal(trace, kind, node, node.right, marks, key=key, **extra)
                 return node.right
             elif node.right is None:
-                self._record(trace, "delete_one_child", {key: "removed", node.left.key: "moved"},
-                             key=key, child=node.left.key)
+                self._record_removal(trace, "delete_one_child", node, node.left,
+                                     {key: "removed", node.left.key: "moved"},
+                                     key=key, child=node.left.key)
                 return node.left
             # Node with two children: replace it with its in-order successor (smallest key in the right subtree)
             temp = self._min_value_node(node.right)
@@ -302,11 +308,12 @@ class AVLTree(BinaryTree):
         else:
             if not node.left:
                 kind, marks, extra = _removal(node)
-                self._record(trace, kind, marks, key=key, **extra)
+                self._record_removal(trace, kind, node, node.right, marks, key=key, **extra)
                 return node.right  # Only a right child, or no child
             elif not node.right:
-                self._record(trace, "delete_one_child", {key: "removed", node.left.key: "moved"},
-                             key=key, child=node.left.key)
+                self._record_removal(trace, "delete_one_child", node, node.left,
+                                     {key: "removed", node.left.key: "moved"},
+                                     key=key, child=node.left.key)
                 return node.left  # Only a left child
 
             # Two children: replace the key with its in-order successor's key, then delete the successor

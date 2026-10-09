@@ -19,7 +19,11 @@ def positions(trace):
 
 def _check(trace, kind, values, position, **data):
     """Record that a search looked at values[position] and what it decided."""
-    record(trace, kind, list(values), {position: "checked"}, index=position, value=values[position], **data)
+    if trace is None:
+        return
+    marks = {data[key]: key for key in ("low", "mid", "high") if key in data}
+    marks[position] = "checked"
+    record(trace, kind, list(values), marks, index=position, value=values[position], **data)
 
 
 def _is_number(value):
@@ -62,14 +66,15 @@ def _binary(values, target, trace, left=0, right=None):
     right = len(values) - 1 if right is None else right
     while left <= right:
         mid = (left + right) // 2
+        bounds = dict(low=left, mid=mid, high=right)
         if values[mid] == target:
-            _check(trace, "match", values, mid)
+            _check(trace, "match", values, mid, **bounds)
             return mid
         elif values[mid] < target:
-            _check(trace, "too_small", values, mid, target=target)
+            _check(trace, "too_small", values, mid, target=target, **bounds)
             left = mid + 1
         else:
-            _check(trace, "too_large", values, mid, target=target)
+            _check(trace, "too_large", values, mid, target=target, **bounds)
             right = mid - 1
     return -1
 
@@ -88,21 +93,21 @@ def _jump(values, target, trace):
     start, end = 0, min(step, n)
     while True:
         if values[end - 1] >= target:  # The last value of the block
-            _check(trace, "block", values, end - 1, target=target)
+            _check(trace, "block", values, end - 1, target=target, low=start, high=end - 1)
             break
-        _check(trace, "too_small", values, end - 1, target=target)
+        _check(trace, "too_small", values, end - 1, target=target, low=start, high=end - 1)
         start = end
         if start >= n:
             return -1
         end = min(end + step, n)
     for position in range(start, end):
         if values[position] == target:
-            _check(trace, "match", values, position)
+            _check(trace, "match", values, position, low=start, high=end - 1)
             return position
         if values[position] > target:
-            _check(trace, "too_large", values, position, target=target)
+            _check(trace, "too_large", values, position, target=target, low=start, high=end - 1)
             return -1
-        _check(trace, "passed", values, position)
+        _check(trace, "passed", values, position, low=start, high=end - 1)
     return -1
 
 
@@ -126,13 +131,13 @@ def _interpolation(values, target, trace):
             # How far target is between the lowest and highest value decides how far along to look
             position = low + int((target - values[low]) * (high - low) / (values[high] - values[low]))
         if values[position] == target:
-            _check(trace, "match", values, position)
+            _check(trace, "match", values, position, low=low, high=high)
             return position
         if values[position] < target:
-            _check(trace, "too_small", values, position, target=target)
+            _check(trace, "too_small", values, position, target=target, low=low, high=high)
             low = position + 1
         else:
-            _check(trace, "too_large", values, position, target=target)
+            _check(trace, "too_large", values, position, target=target, low=low, high=high)
             high = position - 1
     return -1
 
@@ -148,18 +153,19 @@ def _exponential(values, target, trace):
     if not n:
         return -1
     if values[0] == target:
-        _check(trace, "match", values, 0)
+        _check(trace, "match", values, 0, low=0, high=0)
         return 0
-    _check(trace, "passed", values, 0)
+    _check(trace, "passed", values, 0, low=0, high=0)
     bound = 1
     while bound < n:
+        bounds = dict(low=bound // 2 + 1 if bound > 1 else 1, high=bound)
         if values[bound] == target:
-            _check(trace, "match", values, bound)
+            _check(trace, "match", values, bound, **bounds)
             return bound
         if values[bound] > target:
             # The target can only sit after the previous bound, which was smaller, and before this one
-            _check(trace, "bound", values, bound, target=target)
+            _check(trace, "bound", values, bound, target=target, **bounds)
             return _binary(values, target, trace, bound // 2 + 1, bound - 1)
-        _check(trace, "too_small", values, bound, target=target)
+        _check(trace, "too_small", values, bound, target=target, **bounds)
         bound *= 2
     return _binary(values, target, trace, bound // 2 + 1, n - 1)

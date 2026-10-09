@@ -6,7 +6,7 @@ import difflib
 from pydsa import __version__, progress, settings, topics
 from pydsa.settings import Settings
 from pydsa.ui import render
-from pydsa.ui.console import BackRequested, QuitRequested, clear, console, force_colors_off, info, success
+from pydsa.ui.console import BackRequested, QuitRequested, clear, configure_output, console, force_colors_off, info, success
 from pydsa.ui.menu import Menu, Nav, back_option, exit_option
 from pydsa.ui.screens import settings as settings_screen
 from pydsa.ui.screens import tools
@@ -79,6 +79,7 @@ def run(argv=None):
 
     Ctrl+C, Ctrl+D and the quit shortcut all end the program with the usual goodbye.
     """
+    configure_output()
     args = parse_args(argv)
     notice = settings.load_current()
     progress_notice = progress.load_current()

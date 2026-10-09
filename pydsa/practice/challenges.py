@@ -52,7 +52,17 @@ class Challenge:
                     return False
         if type(value) is bool and type(self.answer) is not bool:
             return False
-        return value == self.answer
+        return _same_answer(value, self.answer)
+
+
+def _same_answer(value, answer):
+    """Compare predictions without treating a boolean as a number, including inside lists."""
+    if type(value) is bool or type(answer) is bool:
+        return type(value) is type(answer) and value == answer
+    if isinstance(answer, list):
+        return (isinstance(value, list) and len(value) == len(answer)
+                and all(_same_answer(item, expected) for item, expected in zip(value, answer)))
+    return value == answer
 
 
 def _challenge(topic, prompt, state, structure, operation, draw, explanation, clone=None):

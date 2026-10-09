@@ -60,6 +60,8 @@ def load():
         return Settings(), f"Couldn't read the settings file ({file}), so the default settings are used."
     if not isinstance(data, dict):
         return Settings(), f"The settings file ({file}) isn't in the right format, so the default settings are used."
+    if "version" in data and (type(data["version"]) is not int or data["version"] != VERSION):
+        return Settings(), "The saved settings version isn't supported, so the default settings are used."
 
     values, invalid = {}, False
     for field in fields(Settings):

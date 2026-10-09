@@ -307,7 +307,7 @@ def test_sorting_steps_mark_moved_values(capsys):
     assert len(events) == 3
     assert any("start" in line and "[3, 2, 1]" in line for line in out.splitlines())
     assert "[2*, 3*, 1]" in out
-    assert "2 came after 3, so the two swapped places." in out
+    assert "3 came after 2, so the two swapped places." in out
     assert "* marks the values that moved" in out
     assert items == [1, 2, 3]
 

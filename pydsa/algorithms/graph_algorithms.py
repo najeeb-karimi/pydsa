@@ -62,17 +62,20 @@ def dijkstra(graph, source, trace=None):
     while not heap.is_empty():
         (distance, u), _ = heap.extract()
         if distance > distances[u]:
-            record(trace, "stale", dict(distances), {u: "checked"}, vertex=u, distance=distance)
+            if trace is not None:
+                record(trace, "stale", dict(distances), {u: "checked"}, vertex=u, distance=distance)
             continue  # An outdated entry: u was already reached by a shorter path
         order.append(u)
-        record(trace, "settle", dict(distances), {u: "settled"}, vertex=u, distance=distance)
+        if trace is not None:
+            record(trace, "settle", dict(distances), {u: "settled"}, vertex=u, distance=distance)
         for v, weight in graph.edges(u):
             if distance + weight < distances[v]:
                 distances[v] = distance + weight
                 previous[v] = u
                 heap.insert((distances[v], v))
-                record(trace, "relax", dict(distances), {v: "moved"},
-                       vertex=v, distance=distances[v], through=u)
+                if trace is not None:
+                    record(trace, "relax", dict(distances), {v: "moved"},
+                           vertex=v, distance=distances[v], through=u)
     return ShortestPaths(source, distances, previous, order)
 
 
@@ -105,20 +108,26 @@ def topological_sort(graph, trace=None):
     queue = deque(v for v in graph.vertices() if in_degree[v] == 0)
     order = []
     if queue:
-        record(trace, "no_incoming", dict(in_degree), {v: "waiting" for v in queue}, vertices=list(queue))
+        if trace is not None:
+            record(trace, "no_incoming", dict(in_degree), {v: "waiting" for v in queue}, vertices=list(queue))
     while queue:
         u = queue.popleft()
         order.append(u)
-        record(trace, "place", dict(in_degree), {u: "visited"}, vertex=u)
+        if trace is not None:
+            record(trace, "place", dict(in_degree), {u: "visited"}, vertex=u)
         for v, _ in graph.edges(u):
             in_degree[v] -= 1
+            if trace is not None:
+                record(trace, "edge_removed", dict(in_degree), {v: "moved"}, u=u, v=v, degree=in_degree[v])
             if in_degree[v] == 0:
                 queue.append(v)
-                record(trace, "ready", dict(in_degree), {v: "waiting"}, vertex=v)
+                if trace is not None:
+                    record(trace, "ready", dict(in_degree), {v: "waiting"}, vertex=v)
 
     if len(order) < len(in_degree):
         remaining = [v for v in graph.vertices() if in_degree[v] > 0]
-        record(trace, "cycle_left", dict(in_degree), {v: "checked" for v in remaining}, vertices=remaining)
+        if trace is not None:
+            record(trace, "cycle_left", dict(in_degree), {v: "checked" for v in remaining}, vertices=remaining)
         raise CycleError(order, remaining)
     return order
 
@@ -138,10 +147,12 @@ def _directed_cycle(graph, trace=None):
     def visit(u):
         on_path.add(u)
         path.append(u)
-        record(trace, "enter", list(path), {u: "on_path"}, vertex=u)
+        if trace is not None:
+            record(trace, "enter", list(path), {u: "on_path"}, vertex=u)
         for v, _ in graph.edges(u):
             if v in on_path:
-                record(trace, "cycle_edge", list(path), {v: "on_path", u: "checked"}, u=u, v=v)
+                if trace is not None:
+                    record(trace, "cycle_edge", list(path), {v: "on_path", u: "checked"}, u=u, v=v)
                 return path[path.index(v):] + [v]
             if v not in finished:
                 cycle = visit(v)
@@ -150,7 +161,8 @@ def _directed_cycle(graph, trace=None):
         on_path.remove(u)
         path.pop()
         finished.add(u)
-        record(trace, "leave", list(path), {u: "done"}, vertex=u)
+        if trace is not None:
+            record(trace, "leave", list(path), {u: "done"}, vertex=u)
         return None
 
     for vertex in graph.vertices():
@@ -170,13 +182,15 @@ def _undirected_cycle(graph, trace=None):
     added = []
     for u, v, _ in edge_list(graph):
         if union_find.connected(position[u], position[v]):
-            record(trace, "cycle_link", list(added), {u: "checked", v: "checked"}, u=u, v=v)
+            if trace is not None:
+                record(trace, "cycle_link", list(added), {u: "checked", v: "checked"}, u=u, v=v)
             return _forest_path(forest, v, u) + [v]
         union_find.union(position[u], position[v])
         forest[u].append(v)
         forest[v].append(u)
         added.append((u, v))
-        record(trace, "join", list(added), {u: "visited", v: "visited"}, u=u, v=v)
+        if trace is not None:
+            record(trace, "join", list(added), {u: "visited", v: "visited"}, u=u, v=v)
     return None
 
 
@@ -220,7 +234,8 @@ def prim(graph, trace=None):
             continue
         trees += 1
         visited.add(start)
-        record(trace, "start_tree", list(chosen), {start: "visited"}, vertex=start)
+        if trace is not None:
+            record(trace, "start_tree", list(chosen), {start: "visited"}, vertex=start)
         heap = MinHeap()
         for v, weight in graph.edges(start):
             if v not in visited:
@@ -229,11 +244,13 @@ def prim(graph, trace=None):
             (weight, u, v), _ = heap.extract()
             if v in visited:
                 skipped.append((u, v, weight))
-                record(trace, "skip", list(chosen), {u: "checked", v: "checked"}, u=u, v=v, weight=weight)
+                if trace is not None:
+                    record(trace, "skip", list(chosen), {u: "checked", v: "checked"}, u=u, v=v, weight=weight)
                 continue
             visited.add(v)
             chosen.append((u, v, weight))
-            record(trace, "accept", list(chosen), {v: "visited"}, u=u, v=v, weight=weight)
+            if trace is not None:
+                record(trace, "accept", list(chosen), {v: "visited"}, u=u, v=v, weight=weight)
             for neighbor, neighbor_weight in graph.edges(v):
                 if neighbor not in visited:
                     heap.insert((neighbor_weight, v, neighbor))
@@ -250,8 +267,10 @@ def kruskal(graph, trace=None):
     for u, v, weight in sorted(edge_list(graph), key=lambda edge: (edge[2], position[edge[0]], position[edge[1]])):
         if union_find.union(position[u], position[v]):
             chosen.append((u, v, weight))
-            record(trace, "accept", list(chosen), {u: "visited", v: "visited"}, u=u, v=v, weight=weight)
+            if trace is not None:
+                record(trace, "accept", list(chosen), {u: "visited", v: "visited"}, u=u, v=v, weight=weight)
         else:
             skipped.append((u, v, weight))
-            record(trace, "skip", list(chosen), {u: "checked", v: "checked"}, u=u, v=v, weight=weight)
+            if trace is not None:
+                record(trace, "skip", list(chosen), {u: "checked", v: "checked"}, u=u, v=v, weight=weight)
     return SpanningForest(chosen, sum(weight for _, _, weight in chosen), len(vertices) - len(chosen), skipped)

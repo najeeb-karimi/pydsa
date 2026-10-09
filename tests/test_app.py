@@ -162,7 +162,7 @@ def test_steps_can_be_watched_one_at_a_time(play, monkeypatch):
     settings.save(Settings(steps="pause"))
 
     out = play("3", "1", "3", "2", "1", "", "a", "0")  # Sorting > the example > Bubble Sort, ascending
-    assert "Step 1: 45 came after 170, so the two swapped places." in out
+    assert "Step 1: 170 came after 45, so the two swapped places." in out
     assert "· Enter: next · a: the rest · s: stop" in out
     assert "List: [45*, 170*, 75, 90, 802, 24, 2, 66]" in out
 

@@ -52,7 +52,7 @@ SEARCHING = ComplexityTable(
         ("Interpolation search", "O(1)", "O(log log n)", "O(n)", "Yes, of numbers"),
         ("Exponential search", "O(1)", "O(log i)", "O(log i)", "Yes"),
     ),
-    "i is the target's position in the sorted data. Interpolation search reaches its average when the numbers are spread out evenly. Every search uses O(1) extra space, but PyDSA searches a sorted copy to keep the original order, and making that copy takes O(n log n) time and O(n) space.",
+    "i is the target's position in the sorted data. Interpolation search reaches its average when the numbers are spread out evenly. Every search uses O(1) extra space, but every PyDSA search except linear search uses a sorted copy to keep the original order, and making that copy takes O(n log n) time and O(n) space.",
 )
 
 GRAPH_ALGORITHMS = ComplexityTable(

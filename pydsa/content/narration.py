@@ -12,11 +12,12 @@ VALUE_KEYS = frozenset({"a", "b", "value", "pivot", "key", "target", "node", "su
 TEMPLATES = {
     # Sorting
     "swap": "{a} came after {b}, so the two swapped places.",
-    "select": "{value} is the next one in order, so it moved to index {index}.",
+    "select": "{value} is the next one in order, so it was placed at index {index}.",
+    "ordered": "This pass needed no swaps, so the list is already in order.",
     "insert": "{value} slid to the left into index {index}, past every value that belongs after it.",
     "in_place": "{value} already came after the values before it, so it stayed at index {index}.",
-    "partition": "The pivot {pivot} landed at index {index}: from {low} on, the smaller values sit before it "
-                 "and the larger ones after it, up to {high}.",
+    "partition": "The pivot {pivot} landed at index {index}: between indexes {low} and {high}, values that "
+                 "belong before it sit to its left, and those that belong after it sit to its right.",
     "sift": "Sifted the value at index {index} down until everything below it followed the heap rule.",
     "take_root": "The root held {value}, the next value in order, so it moved to index {index}, just outside the heap.",
     "gap": "Put every two values that sit {gap} apart in order.",
@@ -58,6 +59,7 @@ TEMPLATES = {
     "home": "{key} hashes to index {index}, where the work starts.",
     "update": "{key} was already there, so only its value changed.",
     "chain": "Added the pair to the end of the chain in bucket {index}.",
+    "chain_probe": "Pair {position} in bucket {index} holds {key}, which isn't {target}, so the search continues along the chain.",
     "found": "Index {index} holds {key}.",
     "miss": "{key} isn't in the table.",
     "remove": "Took {key} out of index {index}.",
@@ -97,7 +99,8 @@ TEMPLATES = {
 
     # Topological sort
     "no_incoming": "No edge points at these vertices, so they can go first: {vertices}.",
-    "place": "Placed {vertex} next in the order and took its edges away.",
+    "place": "Placed {vertex} next in the order.",
+    "edge_removed": "The in-degree of {v} fell to {degree} after removing the edge from {u}.",
     "ready": "Nothing points at {vertex} any more, so it lines up next.",
     "cycle_left": "Edges still point at these vertices, so they sit on a cycle or after one: {vertices}.",
 
@@ -122,7 +125,15 @@ def caption(event, label=repr):
     for. Lists are written as "1, 2, 3".
     """
     template = TEMPLATES[event.kind]
-    return template.format(**{key: _written(key, value, label) for key, value in event.data.items()})
+    sentence = template.format(**{key: _written(key, value, label) for key, value in event.data.items()})
+    if event.kind in {"match", "passed", "too_small", "too_large", "block", "bound"} and "low" in event.data:
+        sentence += f" Active range: low {event.data['low']}, high {event.data['high']}."
+        if "mid" in event.data:
+            sentence += f" Mid: {event.data['mid']}."
+    if "comparisons" in event.data:
+        sentence += (f" Work since the previous step: {event.data['comparisons']} comparisons "
+                     f"and {event.data['writes']} writes.")
+    return sentence
 
 
 def _written(key, value, label):

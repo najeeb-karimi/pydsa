@@ -46,6 +46,15 @@ class BackRequested(Exception):
     """The user typed the back shortcut at a prompt, cancelling what they were doing."""
 
 
+def configure_output():
+    """Keep redirected output readable when the system's default encoding cannot write the UI symbols."""
+    stream = sys.stdout
+    if not stream.isatty() and hasattr(stream, "reconfigure"):
+        encoding = getattr(stream, "encoding", None)
+        if encoding and encoding.lower().replace("-", "") != "utf8":
+            stream.reconfigure(encoding="utf-8")
+
+
 def clear():
     """Clear the terminal when the Clear the Screen setting is on (does nothing when the output isn't a terminal)."""
     if settings.current.clear_screen:

@@ -26,13 +26,16 @@ def play(events, draw, summary=None, label=render.fmt):
 
     draw(number, event) draws one step with the state it left behind. summary(events) shows every step in a
     short form, such as a table; without one, the steps are listed as sentences. At a pause, Enter shows the
-    next step, a shows the rest and s stops.
+    next step, a shows the rest and s stops. Runs over 200 steps show the first and last three captions
+    unless you choose to watch them.
     """
     events = list(events)
     if not events:
         return events
     if _watch(len(events)):
         _one_at_a_time(events, draw)
+    elif len(events) > MANY_STEPS:
+        render.trace_summary(events, label)
     elif summary is not None:
         summary(events)
     else:

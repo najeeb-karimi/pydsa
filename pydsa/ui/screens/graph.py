@@ -6,7 +6,7 @@ from pydsa.core.errors import CycleError, DuplicateError, NegativeWeightError, N
 from pydsa.core.graph import ListGraph, MatrixGraph
 from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_int, error, info, not_found, plural, result, success
-from pydsa.ui.menu import Menu, Nav, back_option, noted, operation_menu
+from pydsa.ui.menu import Menu, Nav, back_option, noted, operation_menu, topic_option
 
 # The matrix graph raises OutOfBoundsError for a missing vertex, the list graph NotFoundError
 MISSING_VERTEX = (OutOfBoundsError, NotFoundError)
@@ -23,7 +23,8 @@ def run():
     """Show the graph intro, let the user pick a representation and run its menu."""
     render.intro(texts.GRAPH_ASCII, "graph")
     return Menu("🧪 Which graph representation do you want?", [
-        [("Adjacency Matrix", matrix_menu), ("Adjacency List", list_menu)],
+        [topic_option("adjacency-matrix-graph", "Adjacency Matrix", matrix_menu),
+         topic_option("adjacency-list-graph", "Adjacency List", list_menu)],
         [back_option()],
     ]).open()
 

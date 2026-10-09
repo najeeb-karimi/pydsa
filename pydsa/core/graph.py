@@ -107,12 +107,14 @@ class MatrixGraph:
             visited[v] = True
             order.append(v)
             path.append(v)
-            record(trace, "visit", _walk(order, path), {v: "visited"}, vertex=v)
+            if trace is not None:
+                record(trace, "visit", _walk(order, path), {v: "visited"}, vertex=v)
             for i in self.neighbors(v):
                 if not visited[i]:
                     visit(i)
             path.pop()
-            record(trace, "back", _walk(order, path), {v: "done"}, vertex=v)
+            if trace is not None:
+                record(trace, "back", _walk(order, path), {v: "done"}, vertex=v)
 
         visit(start_vertex)
         return order
@@ -128,7 +130,8 @@ class MatrixGraph:
         while queue:
             v = queue.popleft()
             order.append(v)
-            record(trace, "visit", _walk(order, queue), {v: "visited"}, vertex=v)
+            if trace is not None:
+                record(trace, "visit", _walk(order, queue), {v: "visited"}, vertex=v)
             # Enqueue every unvisited neighbor of v and mark it as visited
             added = []
             for i in self.neighbors(v):
@@ -137,8 +140,9 @@ class MatrixGraph:
                     visited[i] = True
                     added.append(i)
             if added:
-                record(trace, "enqueue", _walk(order, queue), {i: "waiting" for i in added},
-                       vertex=v, neighbors=added)
+                if trace is not None:
+                    record(trace, "enqueue", _walk(order, queue), {i: "waiting" for i in added},
+                           vertex=v, neighbors=added)
         return order
 
 
@@ -237,12 +241,14 @@ class ListGraph:
             visited.add(v)
             order.append(v)
             path.append(v)
-            record(trace, "visit", _walk(order, path), {v: "visited"}, vertex=v)
+            if trace is not None:
+                record(trace, "visit", _walk(order, path), {v: "visited"}, vertex=v)
             for neighbor in self.neighbors(v):
                 if neighbor not in visited:
                     visit(neighbor)
             path.pop()
-            record(trace, "back", _walk(order, path), {v: "done"}, vertex=v)
+            if trace is not None:
+                record(trace, "back", _walk(order, path), {v: "done"}, vertex=v)
 
         visit(start_vertex)
         return order
@@ -257,7 +263,8 @@ class ListGraph:
         while queue:
             v = queue.popleft()
             order.append(v)
-            record(trace, "visit", _walk(order, queue), {v: "visited"}, vertex=v)
+            if trace is not None:
+                record(trace, "visit", _walk(order, queue), {v: "visited"}, vertex=v)
             added = []
             for neighbor in self.neighbors(v):
                 if neighbor not in visited:
@@ -265,6 +272,7 @@ class ListGraph:
                     visited.add(neighbor)
                     added.append(neighbor)
             if added:
-                record(trace, "enqueue", _walk(order, queue), {vertex: "waiting" for vertex in added},
-                       vertex=v, neighbors=added)
+                if trace is not None:
+                    record(trace, "enqueue", _walk(order, queue), {vertex: "waiting" for vertex in added},
+                           vertex=v, neighbors=added)
         return order

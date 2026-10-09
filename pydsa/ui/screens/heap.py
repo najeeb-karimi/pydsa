@@ -8,7 +8,7 @@ from pydsa.core.heap import MaxHeap, MinHeap
 from pydsa.core.priority_queue import PriorityQueue
 from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_int, ask_list, ask_value, error, info, not_found, plural, result, success
-from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu, topic_option
 from pydsa.ui.render import entry, fmt
 
 
@@ -33,9 +33,9 @@ def run():
     """Show the heap intro, let the user pick a heap or the priority queue and run its menu."""
     render.intro(texts.HEAP_ASCII, "heap")
     return Menu("🧪 Which one do you want?", [
-        [("Min Heap", lambda: heap_menu(MIN)),
-         ("Max Heap", lambda: heap_menu(MAX)),
-         ("Priority Queue (built on a min heap)", queue_menu)],
+        [topic_option(MIN.guide, "Min Heap", lambda: heap_menu(MIN)),
+         topic_option(MAX.guide, "Max Heap", lambda: heap_menu(MAX)),
+         topic_option("priority-queue", "Priority Queue (built on a min heap)", queue_menu)],
         [back_option()],
     ]).open()
 

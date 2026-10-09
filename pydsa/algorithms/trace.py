@@ -34,8 +34,10 @@ def record(trace, kind, snapshot=None, marks=None, **data):
         trace.append(event(kind, snapshot, marks, **data))
 
 
-def tree(node):
-    """Return the subtree at node as nested (key, left, right) tuples, or None for an empty subtree."""
+def tree(node, replacing=None, replacement=None):
+    """Copy a subtree as nested tuples, optionally replacing one node before its link is reconnected."""
     if node is None:
         return None
-    return node.key, tree(node.left), tree(node.right)
+    if node is replacing:
+        return tree(replacement)
+    return node.key, tree(node.left, replacing, replacement), tree(node.right, replacing, replacement)

@@ -7,7 +7,7 @@ from pydsa.core.errors import CapacityError, NotFoundError
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
 from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_int, ask_value, error, info, not_found, plural, success
-from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
+from pydsa.ui.menu import Menu, Nav, back_option, operation_menu, topic_option
 from pydsa.ui.render import fmt
 from pydsa.ui.screens import hash_set
 
@@ -34,9 +34,9 @@ def run():
     """Show the hash table intro, let the user pick a kind of hash table and run its menu."""
     render.intro(texts.HASH_TABLE_ASCII, "hash-table")
     return Menu("🧪 Which kind of hash table do you want?", [
-        [("Separate Chaining (Open Hashing)", lambda: table_menu(CHAINING)),
-         ("Linear Probing (Open Addressing)", lambda: table_menu(PROBING)),
-         ("Hash Set (built on separate chaining)", hash_set.run)],
+        [topic_option(CHAINING.guide, "Separate Chaining (Open Hashing)", lambda: table_menu(CHAINING)),
+         topic_option(PROBING.guide, "Linear Probing (Open Addressing)", lambda: table_menu(PROBING)),
+         topic_option("hash-set", "Hash Set (built on separate chaining)", hash_set.run)],
         [back_option()],
     ]).open()
 

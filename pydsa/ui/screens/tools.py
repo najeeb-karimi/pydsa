@@ -6,7 +6,7 @@ from pydsa import topics
 from pydsa.content import registry
 from pydsa.ui import render
 from pydsa.ui.console import ask, error, not_found, plural, result
-from pydsa.ui.menu import Menu, Nav, back_option
+from pydsa.ui.menu import Menu, Nav, back_option, topic_option
 
 
 def run():
@@ -36,8 +36,8 @@ def browse():
 def pick_guide(category):
     """Let the user read the guides of one category, sub-topics included, until they go back."""
     menu = Menu("📖 Which guide do you want to read?", [
-        [(render.topic_label(topic.id, topic.title if topic.parent is None else f"↳ {topic.title}"),
-          lambda topic=topic: render.guide(topic.id))
+        [topic_option(topic.id, topic.title if topic.parent is None else f"↳ {topic.title}",
+                      lambda topic=topic: render.guide(topic.id))
          for topic in topics.TOPICS if topic.category == category],
         [back_option()],
     ], compact_repeat=True)
