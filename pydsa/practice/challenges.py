@@ -21,6 +21,9 @@ from pydsa.core.queue import Queue
 from pydsa.core.red_black_tree import RedBlackTree
 from pydsa.core.segment_tree import SegmentTree
 from pydsa.core.fenwick_tree import FenwickTree
+from pydsa.core.lru_cache import LRUCache
+from pydsa.core.skip_list import SkipList
+from pydsa.core.bloom_filter import BloomFilter
 from pydsa.core.stack import Stack
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.core.trie import Trie
@@ -91,7 +94,7 @@ SEARCHES = {name.replace("_", "-"): getattr(searching, name) for name in (
 )}
 GRAPH_TOPICS = {"graph", "adjacency-list-graph", "adjacency-matrix-graph", "graph-algorithms",
                 "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"}
-SUPPORTED = frozenset({"segment-tree", "fenwick-tree", "array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
+SUPPORTED = frozenset({"lru-cache", "skip-list", "bloom-filter", "segment-tree", "fenwick-tree", "array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
                        "max-heap", "priority-queue", "trie", "hash-table", "chaining-hash-table",
                        "linear-probing-hash-table", "hash-set", "disjoint-set", "sorting", "searching"}
                       | set(LINKED) | set(SORTS) | set(SEARCHES) | GRAPH_TOPICS)
@@ -101,6 +104,46 @@ def make(topic, rng=None):
     rng = rng or random.Random()
     values = rng.sample(range(1, 30), 5)
     state = {"values": values}
+    if topic == "lru-cache":
+        cache = LRUCache(3)
+        for key in values[:3]:
+            cache.put(key, str(key))
+        target, new_key = rng.choice(values[:3]), values[3]
+        state.update(target=target, new_key=new_key, order=[key for key, _ in cache.items()])
+
+        def access_and_put(cache):
+            cache.get(target)
+            return cache.put(new_key, str(new_key))[0]
+
+        return _challenge(topic, f"After Get({target}) then Put({new_key}, {str(new_key)!r}), which key is evicted?",
+                          state, cache, access_and_put, render.lru_cache,
+                          "Get makes its key most recent, then a new Put evicts the remaining least recent key.")
+    if topic == "skip-list":
+        linked = SkipList(seed=rng.randrange(1000))
+        for value in values:
+            linked.insert(value)
+        target = rng.choice(values)
+        state["target"] = target
+
+        def remove_and_walk(linked):
+            linked.delete(target)
+            return list(linked)
+
+        return _challenge(topic, f"After deleting one occurrence of {target}, what sorted sequence remains?",
+                          state, linked, remove_and_walk, render.skip_list,
+                          "Every key appears in the base lane; deletion removes one matching node from its lanes.")
+    if topic == "bloom-filter":
+        bloom = BloomFilter(rng.choice((8, 16, 32)), 3)
+        words = rng.sample(("apple", "pear", "plum", "kiwi", "fig"), 3)
+        for word in words:
+            bloom.add(word)
+        target = rng.choice((*words, "melon", "absent"))
+        positions = bloom.positions(target)
+        state.update(words=words, target=target, positions=positions, bits=bloom.bits)
+        return _challenge(topic, f"Does Might Contain({target!r}) return true or false? "
+                          f"Its selected indexes are {list(positions)}.", state, bloom,
+                          lambda bloom: bloom.might_contain(target), render.bloom_filter,
+                          "Any selected zero means false; all ones mean true, even if the string was never added.")
     if topic in ("segment-tree", "fenwick-tree"):
         left = rng.randrange(len(values))
         right = rng.randrange(left, len(values))

@@ -14,6 +14,8 @@ from pydsa.core.heap import MinHeap
 from pydsa.core.red_black_tree import RedBlackTree
 from pydsa.core.segment_tree import SegmentTree
 from pydsa.core.fenwick_tree import FenwickTree
+from pydsa.core.skip_list import SkipList
+from pydsa.core.bloom_filter import BloomFilter
 from pydsa.core.tree import AVLTree, BinarySearchTree
 
 MODES = ("random", "sorted", "reversed")
@@ -30,6 +32,7 @@ class Experiment:
     run: Callable[[object], int]
     growth: str
     note: str
+    kind: str = "work"
 
 
 @dataclass(frozen=True)
@@ -38,6 +41,17 @@ class Measurement:
     work: int
     ratio: float
     milliseconds: float
+
+
+@dataclass(frozen=True)
+class RateMeasurement(Measurement):
+    trials: int
+    measured: float
+    expected: float
+
+    @property
+    def false_positives(self):
+        return self.work
 
 
 def ordered_input(n, mode, rng):
@@ -185,6 +199,35 @@ LOG = lambda n: max(math.log2(n), 1)
 SMALL = (16, 32, 64, 128, 256)
 LARGE = (32, 64, 128, 256, 512)
 
+
+def _skip_input(n, mode, rng):
+    linked = SkipList(seed=rng.randrange(2**32))
+    for value in ordered_input(n, mode, rng):
+        linked.insert(value)
+    return linked
+
+
+def _skip_search(linked):
+    trace = []
+    linked.search(len(linked), trace)
+    return sum(event.kind in ("sk_right", "sk_down") for event in trace)
+
+
+BLOOM_BITS, BLOOM_HASHES, BLOOM_TRIALS = 2048, 3, 2000
+
+
+def _bloom_input(n, mode, rng):
+    bloom = BloomFilter(BLOOM_BITS, BLOOM_HASHES)
+    for value in ordered_input(n, mode, rng):
+        bloom.add(f"added:{value}")
+    queries = tuple(f"absent:{i}:{rng.getrandbits(64)}" for i in range(BLOOM_TRIALS))
+    return bloom, queries
+
+
+def _bloom_rate(data):
+    bloom, queries = data
+    return sum(bloom.might_contain(item) for item in queries)
+
 EXPERIMENTS = (
     *(Experiment(name.replace("_", "-"), name.replace("_", "-"), name.replace("_", " ").title(),
                  (lambda n: n * LOG(n)) if name in ("merge_sort", "heap_sort", "quick_sort") else (lambda n: n * n),
@@ -230,6 +273,18 @@ EXPERIMENTS = (
                  "Reads the same inclusive range [n // 4, 3n // 4 - 2] as the tree experiment. "
                  "Work counts array values added, about half of n; input construction is excluded.")
       for topic in ("segment-tree", "fenwick-tree")),
+    Experiment("skip-search", "skip-list", "Skip-list search: missing key", LOG, LARGE,
+               _skip_input, _skip_search, "log2(n)",
+               "Work counts right moves and level drops when searching just beyond the largest key. "
+               "Seeded fair coins choose levels; layouts vary with seeds and insertion order. "
+               "Input construction is excluded; trace snapshots affect elapsed time."),
+    Experiment("bloom-false-positives", "bloom-filter", "Bloom filter: measured false positive rate",
+               lambda n: BLOOM_TRIALS * BloomFilter(BLOOM_BITS, BLOOM_HASHES).estimated_false_positive_rate(n),
+               LARGE, _bloom_input, _bloom_rate, "false positive rate",
+               "Fixed m = 2048 bits and k = 3 hashes. Each row adds n distinct strings and checks "
+               "2000 distinct strings known to be absent. Insertion order does not change the bits; "
+               "construction is excluded. Formula values are approximate, so measured rates need not match exactly.",
+               kind="bloom-rate"),
 )
 
 
@@ -261,5 +316,10 @@ def measure(experiment, mode="random", sizes=None, rng=None):
         start = perf_counter()
         work = experiment.run(data)
         elapsed = (perf_counter() - start) * 1000
-        results.append(Measurement(n, work, work / experiment.expected(n), elapsed))
+        expected = experiment.expected(n)
+        if experiment.kind == "bloom-rate":
+            results.append(RateMeasurement(n, work, work / expected, elapsed, BLOOM_TRIALS,
+                                           work / BLOOM_TRIALS, expected / BLOOM_TRIALS))
+        else:
+            results.append(Measurement(n, work, work / expected, elapsed))
     return results

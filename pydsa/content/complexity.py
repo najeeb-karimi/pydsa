@@ -275,6 +275,32 @@ FENWICK_TREE = ComplexityTable(
 )
 
 TOPIC_TABLES = {
+    "lru-cache": (ComplexityTable(
+        "LRU cache operations", ("Operation", "Expected time", "Worst time", "Extra space"),
+        (("Get", "O(1)", "O(c)", "O(1)"), ("Put", "O(1)", "O(c)", "O(1)"),
+         ("Display", "O(c)", "O(c)", "O(c)")),
+        "c is capacity. The chaining table has 2c + 1 buckets and stores at most c entries. "
+        "List relinking is constant work; colliding keys can require scanning a bucket. "
+        "The cache uses O(c) storage. Trace snapshots and rendering are excluded from Get and Put costs.",
+    ),),
+    "skip-list": (ComplexityTable(
+        "Skip-list operations", ("Operation", "Expected time", "Worst time", "Extra space"),
+        (("Search", "O(log n)", "O(n + L)", "O(L)"), ("Insert", "O(log n)", "O(n + L)", "O(L)"),
+         ("Delete", "O(log n)", "O(n + L)", "O(L)"), ("Display", "O(nL)", "O(nL)", "O(nL)")),
+        "n is the key count and L is the level cap (32 by default). The path keeps L predecessors. "
+        "Expected logarithmic behavior assumes a cap high enough for n; with a fixed small cap, "
+        "search work can grow as O(log n + n / 2^L). Expected node storage is O(n), worst O(nL). "
+        "Trace snapshots and drawing are excluded from Search, Insert and Delete costs.",
+    ),),
+    "bloom-filter": (ComplexityTable(
+        "Bloom-filter operations", ("Operation", "Time", "Extra space"),
+        (("Add", "O(k(s + log k))", "O(s + k + log k)"),
+         ("Might contain", "O(k(s + log k))", "O(s + k + log k)"), ("Display", "O(m)", "O(m)")),
+        "m is bit count, k is hash count and s is UTF-8 input length. Every hash uses SHA-256 over "
+        "a numbered salt and the input; positions are collected before checking bits. "
+        "For fixed k, Add and Might contain are O(s). Bits use O(m) byte storage. "
+        "Trace snapshots and rendering are excluded from operation costs.",
+    ),),
     "segment-tree": (SEGMENT_TREE,),
     "fenwick-tree": (FENWICK_TREE,),
     "array": (ARRAY, SORTING),

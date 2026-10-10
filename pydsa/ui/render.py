@@ -738,6 +738,117 @@ def binary_tree(tree, balance=False):
         note("In parentheses is each node's balance factor: its left height minus its right height.")
 
 
+def lru_snapshot(state, marks=()):
+    """Draw the existing chaining table beside the doubly linked recency order."""
+    buckets, entries, capacity = state
+    table = _table("Key table (bucket → node)", box=box.SQUARE)
+    table.add_column("Bucket", style="muted")
+    table.add_column("Key")
+    table.add_column("Value")
+    for index, bucket in enumerate(buckets):
+        for key, value in bucket:
+            table.add_row(str(index), _marked(fmt(key), key in marks), Text(fmt(value)))
+    chain = Text()
+    for index, (key, value) in enumerate(entries):
+        if index:
+            chain.append(" ↔ ", style="muted")
+        chain.append_text(_marked(f"{fmt(key)}: {fmt(value)}", key in marks))
+    if not entries:
+        chain.append("empty", style="muted")
+    recency = Panel(chain, title="Most → least recent", title_align="left", expand=False)
+    together = Table.grid(padding=(0, 2))
+    together.add_row(table, recency)
+    show(together if _fits(together) else Group(table, Text(), recency))
+    note(f"{len(entries)} of {capacity} entries. The table points to list nodes; the tail is evicted first.")
+
+
+def lru_cache(cache):
+    lru_snapshot(cache.snapshot())
+
+
+def lru_step(number, event):
+    step_caption(number, event)
+    lru_snapshot(event.snapshot, event.marks)
+
+
+def skip_snapshot(state, marks=()):
+    """Align express lanes over base nodes, switching to one lane per wrapped row when wide."""
+    rows, lanes = state
+    labels = {identity: fmt(key) for identity, key, _ in rows}
+    wide = Table.grid(padding=(0, 1))
+    for level in range(len(lanes) - 1, -1, -1):
+        lane = set(lanes[level])
+        cells = [Text(f"L{level + 1}", style="muted"), _marked("HEAD", 0 in marks)]
+        cells.extend(_marked(labels[identity] if identity in lane else "─", identity in marks)
+                     for identity, _, _ in rows)
+        cells.append(Text("END", style="muted"))
+        wide.add_row(*cells)
+    if _fits(wide):
+        show(wide)
+    else:
+        table = _table("Skip-list express lanes", box=box.SQUARE)
+        table.add_column("Level", style="muted")
+        table.add_column("Forward links")
+        for level in range(len(lanes) - 1, -1, -1):
+            text = _marked("HEAD", 0 in marks)
+            for identity in lanes[level]:
+                text.append(" → ", style="muted")
+                text.append_text(_marked(labels[identity], identity in marks))
+            text.append(" → END", style="muted")
+            table.add_row(str(level + 1), text)
+        show(table)
+        note("The lanes are too wide to align here, so each row lists its forward links.")
+
+
+def skip_list(linked):
+    skip_snapshot(linked.snapshot())
+    note(f"Seed {linked.seed}; fair coin, heads promotes and tails stops; maximum {linked.max_level} levels. "
+         "Level 1 holds every key, including duplicates.")
+
+
+def skip_step(number, event):
+    step_caption(number, event)
+    skip_snapshot(event.snapshot, event.marks)
+
+
+def bloom_snapshot(state, marks=()):
+    bits, m, k, additions = state
+    # Fixed-size chunks remain compact even for hundreds of bits in a narrow terminal.
+    table = _table("Bloom-filter bits", box=box.SQUARE)
+    table.add_column("Indexes", style="muted")
+    table.add_column("Bits")
+    chunk = max(4, min(32, console.width - 20))
+    for start in range(0, m, chunk):
+        line = Text()
+        for i in range(start, min(start + chunk, m)):
+            line.append_text(_marked(str(bits[i]), i in marks))
+        table.add_row(f"{start}–{min(start + chunk, m) - 1}", line)
+    show(table)
+    note(f"m = {m} bits; k = {k} salted SHA-256 hashes; {additions} Add calls. A 1 means a bit is set, not that an item is proved present.")
+
+
+def bloom_filter(bloom):
+    bloom_snapshot(bloom.snapshot())
+
+
+def bloom_step(number, event):
+    step_caption(number, event)
+    bloom_snapshot(event.snapshot, event.marks)
+
+
+def bloom_experiment(experiment, rows, mode):
+    table = _table(experiment.name, box=box.SIMPLE_HEAVY)
+    table.add_column("Added", justify="right")
+    table.add_column("False hits", justify="right")
+    table.add_column("Measured", justify="right")
+    table.add_column("Formula", justify="right")
+    for row in rows:
+        table.add_row(str(row.n), f"{row.false_positives}/{row.trials}", f"{row.measured:.1%}", f"{row.expected:.1%}")
+    show(table)
+    note(experiment.note)
+    note("Formula: (1 - exp(-k × n / m))^k. It is an approximation for distinct items and independent uniform hashes; measured rates vary.")
+
+
 def segment_snapshot(state, marks=()):
     """Show every segment's inclusive array range and aggregate, with explicit overlap marks."""
     if state is None:
@@ -1143,7 +1254,10 @@ def sort_comparison(results):
 
 
 def experiment(experiment, rows, mode):
-    """Show work growth with ratios and bars that stay readable in a narrow terminal."""
+    """Show work growth or measured false-positive rates in a narrow terminal."""
+    if experiment.kind == "bloom-rate":
+        bloom_experiment(experiment, rows, mode)
+        return
     table = _table(f"📈 {experiment.name} ({mode})", box=box.SIMPLE_HEAVY)
     for name in ("n", "Work", "Ratio", "ms", "Growth"):
         table.add_column(name, justify="left" if name == "Growth" else "right")

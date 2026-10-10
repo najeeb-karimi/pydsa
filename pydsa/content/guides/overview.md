@@ -19,6 +19,7 @@ In a non-linear data structure, an item can connect to several others.
 - Segment trees save sums, minima or maxima for array ranges; Fenwick trees use binary index jumps for prefix and range sums. Both can update one value at a time.
 - Graphs model any kind of connection, like roads, friendships or dependencies.
 - Hash tables and hash sets use a hash function to find items almost instantly.
+- A skip list uses seeded express lanes for sorted keys, an LRU cache keeps recently used entries, and a Bloom filter rules out absent strings while allowing possible false positives.
 - A disjoint set keeps track of which items belong to the same group.
 
 ## Algorithms

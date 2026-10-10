@@ -17,7 +17,7 @@ from pydsa.core.stack import Stack
 from pydsa.core.trie import Trie
 from pydsa.ui.screens import (
     array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
-    range_trees, searching_algorithms, sorting_algorithms, stack, tree, trie,
+    bloom_filter, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack, tree, trie,
 )
 
 
@@ -39,6 +39,9 @@ def menus():
         yield kind.guide, heap.operations(kind.heap_class("num"), kind)
     yield "priority-queue", heap.queue_operations(PriorityQueue())
     yield "trie", trie.operations(Trie())
+    yield "lru-cache", lru_cache.operations(lru_cache.LRUCache())
+    yield "skip-list", skip_list.operations(skip_list.SkipList())
+    yield "bloom-filter", bloom_filter.operations(bloom_filter.BloomFilter())
     yield "adjacency-matrix-graph", graph.operations(MatrixGraph(2))
     yield "adjacency-list-graph", graph.operations(ListGraph())
     for directed in (True, False):  # Each direction offers different algorithms

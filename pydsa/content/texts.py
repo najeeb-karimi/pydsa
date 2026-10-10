@@ -26,9 +26,9 @@ BANNER = r"""
 WELCOME = "Welcome to PyDSA, where you learn data structures and algorithms by using them. Pick a topic, read its short summary, then build your own data and watch every change as a table or diagram. You move around by typing the number next to an option."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ Explore segment trees for range sum, minimum and maximum, with point updates and covered ranges
-   ★ Watch Fenwick prefix sums, range sums and point updates through binary index jumps
-   ★ Both topics include guides, code views, quizzes, predictions and query-work comparisons"""
+   ★ Explore LRU caches with narrated evictions and skip lists with seeded coin flips and express lanes
+   ★ Try Bloom filters with stable salted hashes and clear explanations of possible false positives
+   ★ New guides, code views, quizzes and predictions, plus skip-list search and Bloom false-positive experiments"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""
@@ -352,6 +352,54 @@ FENWICK_TREE_ASCII = r"""
 |(_,_)     \  `-'    /|  (_,_)\  ||  '  /\  `  | |   | (  .  .-'_/  )|  | \ `'   /           (_(=)_)  |  | \ `'   / \  `-'    / \  `-'    /
 |   |       \       / |  |    |  ||    /  \    | |   |  `-'`-'     / |  |  \    /             (_I_)   |  |  \    /   \       /   \       /
 '---'        `'-..-'  '--'    '--'`---'    `---` '---'    `._____.'  `--'   `'-'              '---'   ''-'   `'-'     `'-..-'     `'-..-'
+
+
+"""
+
+
+LRU_CACHE_ASCII = r"""
+
+  .---.     .-------.      ___    _             _______      ____        _______   .---.  .---.     .-''-.
+  | ,_|     |  _ _   \   .'   |  | |           /   __  \   .'  __ `.    /   __  \  |   |  |_ _|   .'_ _   \
+,-./  )     | ( ' )  |   |   .'  | |          | ,_/  \__) /   '  \  \  | ,_/  \__) |   |  ( ' )  / ( ` )   '
+\  '_ '`)   |(_ o _) /   .'  '_  | |        ,-./  )       |___|  /  |,-./  )       |   '-(_{;}_). (_ o _)  |
+ > (_)  )   | (_,_).' __ '   ( \.-.|        \  '_ '`)        _.-`   |\  '_ '`)     |      (_,_) |  (_,_)___|
+(  .  .-'   |  |\ \  |  |' (`. _` /|         > (_)  )  __ .'   _    | > (_)  )  __ | _ _--.   | '  \   .---.
+ `-'`-'|___ |  | \ `'   /| (_ (_) _)        (  .  .-'_/  )|  _( )_  |(  .  .-'_/  )|( ' ) |   |  \  `-'    /
+  |        \|  |  \    /  \ /  . \ /         `-'`-'     / \ (_ o _) / `-'`-'     / (_{;}_)|   |   \       /
+  `--------`''-'   `'-'    ``-'`-''            `._____.'   '.(_,_).'    `._____.'  '(_,_) '---'    `'-..-'
+
+
+"""
+
+
+SKIP_LIST_ASCII = r"""
+
+   .-'''-. .--.   .--. .-./`) .-------.           .---.    .-./`)    .-'''-. ,---------.
+  / _     \|  | _/  /  \ .-.')\  _(`)_ \          | ,_|    \ .-.')  / _     \\          \
+ (`' )/`--'| (`' ) /   / `-' \| (_ o._)|        ,-./  )    / `-' \ (`' )/`--' `--.  ,---'
+(_ o _).   |(_ ()_)     `-'`"`|  (_,_) /        \  '_ '`)   `-'`"`(_ o _).       |   \
+ (_,_). '. | (_,_)   __ .---. |   '-.-'          > (_)  )   .---.  (_,_). '.     :_ _:
+.---.  \  :|  |\ \  |  ||   | |   |             (  .  .-'   |   | .---.  \  :    (_I_)
+\    `-'  ||  | \ `'   /|   | |   |              `-'`-'|___ |   | \    `-'  |   (_(=)_)
+ \       / |  |  \    / |   | /   )               |        \|   |  \       /     (_I_)
+  `-...-'  `--'   `'-'  '---' `---'               `--------`'---'   `-...-'      '---'
+
+
+"""
+
+
+BLOOM_FILTER_ASCII = r"""
+
+ _______     .---.       ,-----.        ,-----.    ,---.    ,---.         ________ .-./`)   .---. ,---------.    .-''-.  .-------.
+\  ____  \   | ,_|     .'  .-,  '.    .'  .-,  '.  |    \  /    |        |        |\ .-.')  | ,_| \          \ .'_ _   \ |  _ _   \
+| |    \ | ,-./  )    / ,-.|  \ _ \  / ,-.|  \ _ \ |  ,  \/  ,  |        |   .----'/ `-' \,-./  )  `--.  ,---'/ ( ` )   '| ( ' )  |
+| |____/ / \  '_ '`) ;  \  '_ /  | :;  \  '_ /  | :|  |\_   /|  |        |  _|____  `-'`"`\  '_ '`)   |   \  . (_ o _)  ||(_ o _) /
+|   _ _ '.  > (_)  ) |  _`,/ \ _/  ||  _`,/ \ _/  ||  _( )_/ |  |        |_( )_   | .---.  > (_)  )   :_ _:  |  (_,_)___|| (_,_).' __
+|  ( ' )  \(  .  .-' : (  '\_/ \   ;: (  '\_/ \   ;| (_ o _) |  |        (_ o._)__| |   | (  .  .-'   (_I_)  '  \   .---.|  |\ \  |  |
+| (_{;}_) | `-'`-'|___\ `"/  \  ) /  \ `"/  \  ) / |  (_,_)  |  |        |(_,_)     |   |  `-'`-'|___(_(=)_)  \  `-'    /|  | \ `'   /
+|  (_,_)  /  |        \'. \_/``".'    '. \_/``".'  |  |      |  |        |   |      |   |   |        \(_I_)    \       / |  |  \    /
+/_______.'   `--------`  '-----'        '-----'    '--'      '--'        '---'      '---'   `--------`'---'     `'-..-'  ''-'   `'-'
 
 
 """

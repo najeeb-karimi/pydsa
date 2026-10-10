@@ -59,4 +59,7 @@ def test_experiment_tables_fit(width, capsys):
         render.experiment(experiment, experiments.measure(experiment, sizes=(8, 16)), "random")
         out = capsys.readouterr().out
         assert all(cell_len(line) <= width for line in out.splitlines())
-        assert "Ratio" in out and "█" in out and "Milliseconds" in out
+        if experiment.kind == "bloom-rate":
+            assert "Measured" in out and "Formula" in out and "False hits" in out
+        else:
+            assert "Ratio" in out and "█" in out and "Milliseconds" in out

@@ -15,12 +15,15 @@
 - Finding a value by its key, like a word's definition in a dictionary: a Hash Table (`hash-table`).
 - Checking whether you've already seen an item, or removing duplicates: a Hash Set (`hash-set`).
 - Finding every word that starts with a few letters, as autocomplete does: a Trie (`trie`).
+- Ruling out absent strings before an expensive exact lookup, while allowing false positives: a Bloom Filter (`bloom-filter`).
+- Keeping a bounded collection of recently used key-value pairs: an LRU Cache (`lru-cache`).
 
 ## Query changing array ranges
 - Repeated sums, minima or maxima while individual values change: a Segment Tree (`segment-tree`).
 - Repeated prefix or range sums with point changes and compact storage: a Fenwick Tree (`fenwick-tree`).
 
 ## Keep items sorted
+- Sorted keys with randomized express links rather than tree rotations: a Skip List (`skip-list`).
 - A frequently updated sorted collection whose balancing you want to explore: a Red-Black Tree (`red-black-tree`), with recoloring and rotations to keep paths short.
 - A search tree with several keys per node, like a block-based index: a B-Tree (`b-tree`), with a minimum degree you choose.
 - A sorted collection you keep adding to and removing from, with quick searches: an AVL Tree (`avl-tree`), because it stays balanced whatever order the keys arrive in.

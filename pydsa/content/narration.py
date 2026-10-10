@@ -10,6 +10,29 @@ VALUE_KEYS = frozenset({"a", "b", "value", "pivot", "key", "target", "node", "su
                         "child", "parent", "word", "prefix", "char", "root", "top", "item"})
 
 TEMPLATES = {
+    # Caches and probabilistic structures
+    "lru_lookup": "Looked for key {key} in chaining bucket {index}.",
+    "lru_hit": "Key {key} is cached with value {value}.",
+    "lru_miss": "Key {key} is not cached, so the recency order stays unchanged.",
+    "lru_recent": "Moved key {key} to the head as most recently used.",
+    "lru_stays": "Key {key} is already most recent, so its node stays at the head.",
+    "lru_replace": "Replaced the value of key {key} with {value}.",
+    "lru_evict": "Evicted the least recent key {key}, whose value was {value}, to make room.",
+    "lru_put": "Stored key {key} with value {value} at the most recent end.",
+    "sk_right": "At level {level}, moved right from {node} to {key} because it is below the target.",
+    "sk_down": "No further right move fits at level {level}, so the search drops to level {next}.",
+    "sk_found": "Found key {key} at the base lane.",
+    "sk_missing": "Key {key} is absent from the base lane.",
+    "sk_flip": "The seeded coin for key {key} gave {outcome} at level {level}, choosing level {next}.",
+    "sk_cap": "Key {key} reached the cap of {level} levels, so promotion stops.",
+    "sk_link": "Linked key {key} into level {level}.",
+    "sk_unlink": "Unlinked one occurrence of key {key} from level {level}.",
+    "sk_shrink": "The highest lanes are empty now, so the active height shrinks to {level}.",
+    "bf_set": "Salted hash {salt} of {item} selects bit {index}, which is now set to 1.",
+    "bf_added": "Finished adding {item}; every selected bit is set.",
+    "bf_check": "Salted hash {salt} of {item} checks bit {index}, whose set status is {present}.",
+    "bf_absent": "A selected bit is 0, so {item} is definitely absent.",
+    "bf_possible": "All selected bits are 1, so {item} might be present; this can be a false positive.",
     # Range-query trees
     "sg_leaf": "Stored {value} at the leaf covering [{low}, {high}].",
     "sg_combine": "Combined the children of [{low}, {high}] using {operation}, giving {value}.",

@@ -4,7 +4,7 @@ from typing import Callable, NamedTuple
 
 from pydsa.ui.screens import (
     array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
-    range_trees, searching_algorithms, sorting_algorithms, stack, tree, trie,
+    bloom_filter, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack, tree, trie,
 )
 
 CATEGORIES = {
@@ -32,6 +32,7 @@ TOPICS = (
     Topic("queue", "Queue", "linear", queue.run),
     Topic("deque", "Deque", "linear", deque.run),
     Topic("linked-list", "Linked List", "linear", linked_list.run),
+    Topic("skip-list", "Skip List", "linear", skip_list.run),
     *(Topic(kind.guide, kind.name.title(), "linear", lambda kind=kind: linked_list.run_kind(kind), "linked-list")
       for kind in (linked_list.SINGLY, linked_list.DOUBLY, linked_list.SINGLY_CIRCULAR, linked_list.DOUBLY_CIRCULAR)),
 
@@ -56,6 +57,8 @@ TOPICS = (
     Topic("linear-probing-hash-table", "Linear Probing Hash Table", "hashing",
           lambda: hash_table.run_kind(hash_table.PROBING), "hash-table"),
     Topic("hash-set", "Hash Set", "hashing", hash_set.run),
+    Topic("bloom-filter", "Bloom Filter", "hashing", bloom_filter.run),
+    Topic("lru-cache", "LRU Cache", "hashing", lru_cache.run),
     Topic("disjoint-set", "Disjoint Set", "graphs", disjoint_set.run),
 
     # Each algorithm opens the screen that runs it

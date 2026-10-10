@@ -39,6 +39,16 @@ def minimum_tree(edges):
 
 def expected(topic, state):
     values = state.get("values")
+    if topic == "lru-cache":
+        order = list(state["order"])
+        order.remove(state["target"])
+        return order[-1]
+    if topic == "skip-list":
+        remaining = list(values)
+        remaining.remove(state["target"])
+        return sorted(remaining)
+    if topic == "bloom-filter":
+        return all(state["bits"][at] for at in state["positions"])
     if topic in ("segment-tree", "fenwick-tree"):
         values = list(values)
         values[state["index"]] = state["replacement"]

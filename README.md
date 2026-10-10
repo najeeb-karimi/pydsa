@@ -20,6 +20,7 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 - **Queue:** the first item you add is the first one out, like people waiting in line.
 - **Deque:** a queue you can add to and remove from at both ends.
 - **Linked List:** items connected like a chain, in singly (one-way) and doubly (two-way) versions. Each one also comes in a circular version, where the last item links back to the first, so you can walk around the loop.
+- **Skip List:** sorted keys with express lanes above the base list. Watch seeded coin flips choose node heights and searches move right and down.
 
 **Trees & heaps** (keys arranged in branches or by priority):
 - **Tree:** items arranged like a family tree, as a Binary Search Tree (BST) or a self-balancing AVL tree. Trees are drawn from the top down, and you can also walk through them level by level or see their height and size.
@@ -36,6 +37,8 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 
 **Hashing & caches** (keys mapped to storage positions):
 - **Hash Table:** stores key-value pairs for fast lookups, using separate chaining or linear probing to handle keys that land in the same spot. There's also a **Hash Set**, which keeps unique items and lets you combine two sets with union, intersection and difference.
+- **Bloom Filter:** rules out absent words using stable salted hashes and a bit array. Positive results explain false positives; an experiment compares their measured rate with the usual formula.
+- **LRU Cache:** keeps a limited number of key-value pairs. Get and Put mark entries as recently used, and a new entry evicts the least recent one when full.
 
 **Algorithms** (step-by-step recipes for solving common problems):
 - **Sorting:** nine ways to put a list in order: Bubble, Selection, Insertion, Quick, Heap, Shell, Merge, Counting and Radix Sort. Watch every step, or compare how much work each one does on the same list.

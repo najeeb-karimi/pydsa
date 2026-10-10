@@ -13,6 +13,9 @@ from pydsa.core.heap import MinHeap
 from pydsa.core.red_black_tree import RedBlackTree
 from pydsa.core.segment_tree import SegmentTree
 from pydsa.core.fenwick_tree import FenwickTree
+from pydsa.core.lru_cache import LRUCache
+from pydsa.core.skip_list import SkipList
+from pydsa.core.bloom_filter import BloomFilter
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.core.trie import Trie
 
@@ -248,6 +251,26 @@ def test_spanning_trees_record_the_edges_they_take_and_leave():
 def every_run():
     """Yield the events of at least one run of every operation that records its steps."""
     values = [7, 8, 10, 42, 300, 672, 1987, 2004]
+    cache = LRUCache(2)
+    yield traced(cache.put, "A", 1)
+    yield traced(cache.put, "B", 2)
+    yield traced(cache.get, "A")
+    yield traced(cache.get, "A")
+    yield traced(cache.put, "A", 3)
+    yield traced(cache.put, "C", 4)
+    yield _missing(cache.get, "B")
+    linked = SkipList(seed=7, max_level=2)
+    for key in (10, 20, 30):
+        yield traced(linked.insert, key)
+    yield traced(linked.search, 20)
+    yield traced(linked.search, 99)
+    for key in (10, 20, 30):
+        yield traced(linked.delete, key)
+    yield _missing(linked.delete, 9)
+    bloom = BloomFilter(32, 3)
+    yield traced(bloom.add, "apple")
+    yield traced(bloom.might_contain, "apple")
+    yield traced(bloom.might_contain, "absent")
     for tree in (SegmentTree(), FenwickTree()):
         yield traced(tree.build, values)
         yield traced(tree.update, 4, -8)

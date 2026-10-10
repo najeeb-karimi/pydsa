@@ -119,6 +119,27 @@ BANKS = {
 }
 
 BANKS.update({
+    "lru-cache": (
+        ("Which key is evicted from a full LRU cache?", "The least recently used key", ("The smallest key", "The most recently used key", "A random key"), "The list's tail is the entry used least recently."),
+        ("What happens after a successful Get?", "The key becomes most recent", ("The key is deleted", "The capacity doubles", "Every other value changes"), "A hit moves its known node to the head."),
+        ("Does replacing an existing key evict another key?", "No, it reuses the same entry", ("Yes, always", "Only the head is evicted", "The whole cache is cleared"), "Replacement does not increase the number of entries."),
+        ("What does the cache's chaining table map keys to?", "Doubly linked nodes", ("Sorted indexes", "Bloom bits", "Graph edges"), "The known node can be moved without searching the recency list."),
+        ("What does a missing Get do to recency?", "Leaves it unchanged", ("Evicts the tail", "Reverses the list", "Inserts a placeholder"), "Only a successful Get or a Put marks a key recent."),
+    ),
+    "skip-list": (
+        ("Which lane contains every skip-list key?", "Level 1", ("Only the highest lane", "Level 0 in PyDSA", "No lane"), "Higher lanes are subsets of the sorted base lane."),
+        ("What makes a node join another lane in PyDSA?", "Heads on a seeded fair coin", ("A rotation", "A hash collision", "Always being the largest key"), "Promotion repeats until tails or the level cap."),
+        ("How does a skip-list search move?", "Right, then down", ("Only left", "Only upward", "In random directions"), "It takes useful express links before descending to a finer lane."),
+        ("What fraction of nodes is expected to reach level 3?", "About one quarter", ("Every node", "About one half", "About three quarters"), "Reaching level 3 needs two heads in a row."),
+        ("What does Delete remove when duplicate keys exist?", "One occurrence", ("All occurrences", "Every upper lane", "Only the head sentinel"), "Each inserted key has its own node and deletion unlinks one matching node."),
+    ),
+    "bloom-filter": (
+        ("What does a Bloom filter's positive answer mean?", "The item might be present", ("The item is certainly present", "The item is certainly absent", "The filter stores its value"), "Other items can set all the same bits, producing a false positive."),
+        ("What proves that an item is absent?", "At least one checked bit is zero", ("Every checked bit is one", "The array has any zero bit", "The string is long"), "An added item always has all its selected bits set."),
+        ("Can adding items cause a false negative?", "No, adding never clears bits", ("Yes, on every collision", "Only after repeated adds", "Only for empty strings"), "Once added, an item's positions remain set."),
+        ("Why does PyDSA use salted SHA-256 rather than Python's string hash?", "To keep positions stable between runs", ("To prove membership", "To eliminate collisions", "To sort the bits"), "Fixed numbered salts and UTF-8 encoding produce deterministic positions."),
+        ("Why is ordinary deletion unsupported?", "Clearing shared bits could hide another item", ("Strings cannot be hashed", "Bits cannot change", "Hashes always give distinct positions"), "A bit may belong to several added items, so clearing it risks a false negative."),
+    ),
     "segment-tree": (
         ("What does a segment-tree node describe?", "An array range and its aggregate", ("A sorted key and its color", "A hash bucket", "A graph edge"), "Each node summarizes a contiguous array range."),
         ("Which node can answer a whole-array query immediately?", "The root", ("Only the last leaf", "Every leaf must be visited", "An outside node"), "The root stores the aggregate for the whole array."),

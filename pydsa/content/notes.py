@@ -1735,6 +1735,82 @@ add("fenwick-tree", "Range Sum", "Subtracts the prefix before the range from the
         return prefix_sum(right) - prefix_sum(left - 1)
     """, (f"{CORE}.fenwick_tree:FenwickTree.range_sum", f"{CORE}.fenwick_tree:FenwickTree.prefix_sum"))
 
+LRU = f"{CORE}.lru_cache:LRUCache"
+SKIP = f"{CORE}.skip_list:SkipList"
+BLOOM = f"{CORE}.bloom_filter:BloomFilter"
+add("lru-cache", "Get", "Finds a cached value and marks that key most recently used.",
+    ["Look up the key's node in the chaining table.", "Report a miss without changing the list.",
+     "For a hit, unlink the known node and move it to the head."], "Get", """
+    get(key):
+        node = table.lookup(key)
+        move node to the head
+        return node.value
+    """, (f"{LRU}.get", f"{LRU}._recent", f"{LRU}._unlink", f"{LRU}._prepend"))
+add("lru-cache", "Put", "Stores a most-recent entry and evicts the least-recent key if a new key needs room.",
+    ["Look up the key and replace its value if already cached.",
+     "For a new key at capacity, remove the tail from the table and list.",
+     "Link the inserted or updated node at the most recent head."], "Put", """
+    put(key, value):
+        if key exists:
+            replace its value and move its node to the head
+        else:
+            if full: remove tail from table and list
+            put a new node at the head and in the table
+        return the evicted pair, if any
+    """, (f"{LRU}.put", f"{LRU}._recent", f"{LRU}._unlink", f"{LRU}._prepend"))
+display("lru-cache", "Shows the key table and the list from most to least recently used.", rows="Display")
+add("skip-list", "Search", "Moves right and down through sorted lanes to find the first matching key.",
+    ["Start at the highest active lane.", "Move right while the next key is smaller than the target.",
+     "Drop a lane and repeat, then check the next base node for equality."], "Search", """
+    search(key):
+        node = head
+        for level from highest to lowest:
+            while next key < key: move right
+            drop to the next lane
+        return the next base node if its key matches, otherwise None
+    """, (f"{SKIP}.search", f"{SKIP}._path"))
+add("skip-list", "Insert", "Adds a sorted node whose height comes from seeded coin flips.",
+    ["Remember the predecessor in each lane using the search path.",
+     "Start at level 1 and promote on heads until tails or the cap.",
+     "Link the new node after each predecessor, keeping duplicate keys."], "Insert", """
+    insert(key):
+        predecessors = search_path(key)
+        height = 1
+        while below cap and coin gives heads: height += 1
+        link the new node into each of its lanes
+    """, (f"{SKIP}.insert", f"{SKIP}._path", f"{SKIP}._random_level"))
+add("skip-list", "Delete", "Removes one matching node from every lane it belongs to.",
+    ["Remember each lane's predecessor of the target.",
+     "Report a missing key without changing links.",
+     "Unlink the first matching base node from its lanes and remove empty top lanes."], "Delete", """
+    delete(key):
+        predecessors = search_path(key)
+        node = next base node
+        if no match: report missing key
+        for every lane containing node: bypass it
+        shrink empty top lanes
+    """, (f"{SKIP}.delete", f"{SKIP}._path"))
+display("skip-list", "Draws the sorted base lane and all active express lanes.", rows="Display")
+add("bloom-filter", "Add", "Sets the bit positions selected by each salted hash of a string.",
+    ["Encode the string in UTF-8 and hash it separately with every numbered salt.",
+     "Reduce each SHA-256 result modulo the bit count.",
+     "Set each selected bit without clearing any existing bit."], "Add", """
+    add(item):
+        for each numbered salt:
+            position = SHA256(salt + encoded item) modulo m
+            bits[position] = 1
+    """, (f"{BLOOM}.add", f"{BLOOM}.positions"))
+add("bloom-filter", "Might Contain", "Rules out an absent string or reports a possible match with false positives.",
+    ["Compute the same salted hash positions used by Add.",
+     "Return false as soon as a selected bit is 0.",
+     "If all selected bits are 1, return true without claiming definite membership."], "Might contain", """
+    might_contain(item):
+        for position in salted hash positions:
+            if bits[position] == 0: return false
+        return true  # possible membership, not proof
+    """, (f"{BLOOM}.might_contain", f"{BLOOM}.positions"))
+display("bloom-filter", "Shows the bit array and the chosen bit and hash counts.", rows="Display")
+
 _BY_KEY = {(note.topic, note.operation): note for note in NOTES}
 
 
