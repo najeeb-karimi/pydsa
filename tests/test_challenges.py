@@ -40,6 +40,9 @@ def minimum_tree(edges):
 
 def expected(topic, state):
     values = state.get("values")
+    if topic in challenges.STRING_TOPICS:
+        text, pattern = state["text"], state["pattern"]
+        return [i for i in range(len(text) - len(pattern) + 1) if text[i:i + len(pattern)] == pattern]
     if topic == "a-star":
         queue = deque([(state["start"], 0)])
         seen = {state["start"]}

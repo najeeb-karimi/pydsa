@@ -45,6 +45,8 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 - **Searching:** five ways to find an item: Linear, Binary, Jump, Interpolation and Exponential Search. Each search shows which positions it checked.
 - **Graph Algorithms:** find shortest routes with Dijkstra or Bellman-Ford, including negative edges and visible negative cycles. Floyd-Warshall shows an all-pairs matrix after each intermediate vertex and rebuilds chosen paths. A* draws routes through grids with typed or random walls and compares expanded cells with Dijkstra. You can also order dependent tasks (Topological Sort), spot loops (Cycle Detection), and connect every point cheaply (Prim and Kruskal).
 
+- **String Algorithms:** find every occurrence of a pattern with Naive Search, KMP or Rabin-Karp. Watch alignments, prefix-table construction and reused comparisons, or rolling hashes and verified collisions. Type text and pattern, use an example or generate random strings, then compare character checks on the same input.
+
 **Learning Tools** (on the main menu):
 - **Overview:** a friendly introduction to data structures, algorithms and how their speed is measured.
 - **Browse the Guides:** read the guide of any topic or algorithm without opening it first.

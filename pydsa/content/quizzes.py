@@ -195,6 +195,37 @@ BANKS.update({
     ),
 })
 
+BANKS.update({
+    "string-algorithms": (
+        ("What does an exact string search return in PyDSA?", "Every matching start position", ("Only the last match", "Only the text length", "A sorted text"), "All occurrences are reported by zero-based starting index."),
+        ("Where does aa occur in aaaa?", "At indexes 0, 1 and 2", ("Only index 0", "At indexes 1 and 3", "Nowhere"), "Occurrences can overlap, so a match does not skip the next starting position."),
+        ("Where does an empty pattern match?", "At every boundary, including the end", ("Nowhere", "Only before the first character", "Only in empty text"), "An empty sequence fits between any two characters and at either end."),
+        ("What if the pattern is longer than the text?", "There are no matches", ("The text is repeated", "The pattern is shortened", "The first index always matches"), "No alignment has room for the whole pattern."),
+        ("What does the comparison table include for KMP?", "Search and prefix-table character comparisons", ("Only the text length", "Only hash updates", "Only successful matches"), "Preprocessing is real work and is shown separately before the total."),
+    ),
+    "naive-string-search": (
+        ("How far does naive search shift after each alignment?", "One character", ("The pattern length", "Half the text", "A random distance"), "One-character shifts preserve overlapping matches."),
+        ("When can an alignment stop checking characters?", "At its first mismatch", ("Only at the end of the text", "After sorting", "Only after a hash hit"), "A single unequal character already rules out that alignment."),
+        ("What extra preprocessing does naive search require?", "None", ("A prefix table", "A rolling hash", "A sorted pattern"), "It compares the original characters directly."),
+        ("Which input can make naive search repeat much work?", "Long shared prefixes followed by a mismatch", ("An empty pattern only", "A longer pattern with no alignment", "Always-distinct first characters"), "It checks those prefixes again at many starts."),
+        ("How many starts can fit a length-3 pattern in length-5 text?", "Three", ("Two", "Five", "Eight"), "The possible starts are 0, 1 and 2."),
+    ),
+    "kmp": (
+        ("What does a KMP prefix entry store?", "Longest proper prefix that is also a suffix", ("A hash of the text", "The next character code", "The number of full matches"), "The entry measures a reusable border of the pattern prefix ending there."),
+        ("What is the prefix table for abab?", "[0, 0, 1, 2]", ("[1, 2, 3, 4]", "[0, 0, 0, 0]", "[0, 1, 2, 3]"), "The final ab is also the opening ab; a whole prefix cannot count as its own proper prefix."),
+        ("After a mismatch with j matched characters, what does KMP use?", "The entry at j minus one", ("A random starting index", "The largest text character", "The hash modulus"), "That earlier border gives a shorter prefix already known to match."),
+        ("Does KMP move its text cursor backward?", "No", ("After every mismatch", "After every match", "Only for spaces"), "The pattern moves while the text cursor stays in place or advances."),
+        ("Why reuse the final prefix entry after a full match?", "To find overlapping matches", ("To remove duplicates from the text", "To sort results", "To avoid counting preprocessing"), "A suffix of one match can be the prefix of the next."),
+    ),
+    "rabin-karp": (
+        ("Does an equal window hash prove a character match?", "No, it needs verification", ("Always", "Only with modulus 2", "Only for overlapping windows"), "Different strings can have equal hashes."),
+        ("What is a spurious hit?", "Equal hashes but unequal characters", ("A real overlapping match", "An empty pattern", "A prefix-table entry"), "Verification catches a collision before it becomes a reported match."),
+        ("What makes hash collisions easier to demonstrate?", "A small modulus", ("Removing verification", "Sorting the text", "An empty text only"), "Fewer possible hashes make different windows share values more often."),
+        ("What does a rolling update remove first?", "The outgoing character's weighted contribution", ("The whole pattern", "The last match index", "Every text character"), "It reuses the previous hash instead of hashing the whole next window again."),
+        ("Do zero character comparisons mean the algorithm did no work?", "No, hashing still took work", ("Yes", "Only if KMP was also run", "Only for Unicode"), "Hash construction and rolling arithmetic are excluded from the character-comparison table."),
+    ),
+})
+
 # Variant-specific questions replace one foundation question, keeping each bank at five questions.
 VARIANTS = {
     "singly-linked-list": ("linked-list", "How can you move through a singly linked list?", "Forward through next links", ("Backward through previous links", "Only by array index", "Only by hash lookup"), "Each node has a next link, without a previous link."),

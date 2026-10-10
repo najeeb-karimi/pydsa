@@ -1862,6 +1862,48 @@ add("bloom-filter", "Might Contain", "Rules out an absent string or reports a po
     """, (f"{BLOOM}.might_contain", f"{BLOOM}.positions"))
 display("bloom-filter", "Shows the bit array and the chosen bit and hash counts.", rows="Display")
 
+STRING_SEARCH = "pydsa.algorithms.string_search"
+add("string-algorithms", "Naive Search", "Checks every pattern alignment and returns all matching positions, including overlaps.",
+    rows="Naive Search", explained=True, sources=f"{STRING_SEARCH}:naive_search", pseudocode="""
+    for start from zero through text length minus pattern length:
+        compare pattern characters with text at start until a mismatch
+        record start if every character matches
+        show this alignment with matches and the first mismatch marked
+    an empty pattern matches every boundary; a longer pattern has no matches
+    """)
+add("string-algorithms", "KMP", "Builds a prefix table and reuses known characters when shifting the pattern.",
+    rows="KMP", explained=True, sources=(f"{STRING_SEARCH}:prefix_table", f"{STRING_SEARCH}:kmp_search"), pseudocode="""
+    build prefix[i], the longest proper prefix also ending at pattern index i
+    shorten mismatching prefix candidates using earlier prefix entries
+    keep a text cursor i and matched pattern length j
+    if characters match: advance i and j
+    on a mismatch with j > 0: set j = prefix[j - 1], keeping i
+    on a mismatch with j == 0: advance i
+    on a full match: save i - j, then set j = prefix[j - 1] to allow overlaps
+    show every shift and the known prefix characters it keeps
+    """)
+add("string-algorithms", "Rabin-Karp", "Rolls a visible hash across the text and verifies every hit to reject collisions.",
+    rows="Rabin-Karp", explained=True, sources=f"{STRING_SEARCH}:rabin_karp", pseudocode="""
+    hash pattern and the first window using base 256 and the chosen modulus
+    high = base to the power (pattern length minus one), modulo modulus
+    for every window:
+        show window hash and pattern hash
+        if hashes match:
+            compare characters; record a full match, or call this hit spurious on a mismatch
+        next hash = ((hash - outgoing character code * high) * base + incoming code) modulo modulus
+    """)
+add("string-algorithms", "Compare Algorithms", "Compares actual character checks on the same text and pattern, including KMP preprocessing.",
+    ["Run all three searches without retaining step snapshots.",
+     "Show search, prefix-table and total comparisons alongside every algorithm's match positions.",
+     "Keep hash arithmetic separate because fewer character comparisons need not mean less elapsed time."],
+    rows="Compare Algorithms", sources=tuple(f"{STRING_SEARCH}:{name}" for name in ("naive_search", "kmp_search", "rabin_karp")),
+    pseudocode="""
+    for algorithm in naive, KMP, Rabin-Karp:
+        run it on the same text and pattern with fresh comparison counters
+        show matches and search + preprocessing comparison counts
+    """)
+display("string-algorithms", "Draws the text and pattern with visible character indexes and spaces.", rows="Display")
+
 _BY_KEY = {(note.topic, note.operation): note for note in NOTES}
 
 

@@ -117,3 +117,4 @@ def test_the_wheel_includes_every_guide(tmp_path):
                  for name in ("lru_cache", "skip_list", "bloom_filter")}
     assert expected <= names
     assert {"pydsa/algorithms/grid_search.py", "pydsa/ui/screens/grid_search.py"} <= names
+    assert {"pydsa/algorithms/string_search.py", "pydsa/ui/screens/string_algorithms.py"} <= names

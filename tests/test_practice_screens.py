@@ -135,4 +135,4 @@ def test_progress_survives_new_app_sessions(play, ordered_choices):
     play("2", "12", "1", "a", "a", "a", "a", "a", "0", "0", argv=["--topic", "stack"])
     progress.current = progress.Progress()
     out = play("0")
-    assert "1 of 57 topics visited" in out and "quiz average 100%" in out
+    assert "1 of 61 topics visited" in out and "quiz average 100%" in out

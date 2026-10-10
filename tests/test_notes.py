@@ -17,7 +17,8 @@ from pydsa.core.stack import Stack
 from pydsa.core.trie import Trie
 from pydsa.ui.screens import (
     array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
-    bloom_filter, grid_search, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack, tree, trie,
+    bloom_filter, grid_search, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack,
+    string_algorithms, tree, trie,
 )
 
 
@@ -55,6 +56,7 @@ def menus():
     yield "sorting", sorting_algorithms.operations([3, 1, 2])
     yield "sorting", [(sort.name, None) for sort in sorting_algorithms.SORTS]  # The array's Sort menu
     yield "searching", searching_algorithms.operations([3, 1, 2])
+    yield "string-algorithms", string_algorithms.operations("abababa", "aba")
 
 
 def test_every_operation_has_exactly_one_note_and_every_note_is_used():

@@ -6,7 +6,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable
 
-from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting
+from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting, string_search
 from pydsa.core.array import Array
 from pydsa.core.b_tree import BTree
 from pydsa.core.deque import Deque
@@ -94,16 +94,28 @@ SEARCHES = {name.replace("_", "-"): getattr(searching, name) for name in (
 )}
 GRAPH_TOPICS = {"graph", "adjacency-list-graph", "adjacency-matrix-graph", "graph-algorithms",
                 "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal", "bellman-ford", "floyd-warshall"}
+STRING_TOPICS = {"string-algorithms": string_search.naive_search, "naive-string-search": string_search.naive_search,
+                 "kmp": string_search.kmp_search, "rabin-karp": string_search.rabin_karp}
 SUPPORTED = frozenset({"a-star", "lru-cache", "skip-list", "bloom-filter", "segment-tree", "fenwick-tree", "array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
                        "max-heap", "priority-queue", "trie", "hash-table", "chaining-hash-table",
                        "linear-probing-hash-table", "hash-set", "disjoint-set", "sorting", "searching"}
-                      | set(LINKED) | set(SORTS) | set(SEARCHES) | GRAPH_TOPICS)
+                      | set(LINKED) | set(SORTS) | set(SEARCHES) | GRAPH_TOPICS | set(STRING_TOPICS))
 
 
 def make(topic, rng=None):
     rng = rng or random.Random()
     values = rng.sample(range(1, 30), 5)
     state = {"values": values}
+    if topic in STRING_TOPICS:
+        unit = rng.choice(("a", "b", "ab"))
+        pattern = unit * 2
+        text = "".join(rng.choice("ab") for _ in range(rng.randrange(5))) + unit * rng.randint(3, 5)
+        text += "".join(rng.choice("ab") for _ in range(rng.randrange(5)))
+        state = {"text": text, "pattern": pattern}
+        return _challenge(topic, "What are all matching start indexes? Include overlaps, as a list.", state,
+                          (text, pattern), lambda data: STRING_TOPICS[topic](*data),
+                          lambda data: render.string_data(*data),
+                          "Every complete pattern occurrence counts, even when it overlaps another match.")
     if topic == "a-star":
         # Two barriers with independently chosen gaps can force a detour back across the grid.
         first_gap, second_gap = rng.randrange(5), rng.randrange(5)

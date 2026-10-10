@@ -276,7 +276,20 @@ FENWICK_TREE = ComplexityTable(
     "Build passes each block to its parent once. Trace snapshots and rendering are excluded from query and update costs.",
 )
 
+STRING_ALGORITHMS = ComplexityTable(
+    "String algorithms", ("Operation", "Time", "Extra space"),
+    (("Naive Search", "O(nm + n)", "O(r)"), ("KMP", "O(n + m)", "O(m + r)"),
+     ("Rabin-Karp", "Typical O(n + m + mr), worst O(nm + n + m)", "O(r)"),
+     ("Compare Algorithms", "O(nm + n + m)", "O(m + r)"), ("Display", "O(n + m)", "O(n + m)")),
+    "n is text length, m is pattern length and r is the number of matches returned, including overlaps. "
+    "An empty pattern returns n + 1 boundaries. Rabin-Karp verifies every hash hit; true matches cost up to m "
+    "comparisons each, and many collisions can make it as slow as naive search. Typical hash filtering assumes "
+    "few spurious hits; a small modulus deliberately weakens it. Costs assume fixed-size hash arithmetic, "
+    "and exclude optional traces and drawing. KMP includes prefix-table construction.",
+)
+
 TOPIC_TABLES = {
+    **_shared(STRING_ALGORITHMS, "string-algorithms", "naive-string-search", "kmp", "rabin-karp"),
     "a-star": (ComplexityTable(
         "Grid search", ("Operation", "Time", "Extra space"),
         (("Run A*", "O(N log N)", "O(N)"), ("Compare with Dijkstra", "O(N log N)", "O(N)"),

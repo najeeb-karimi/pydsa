@@ -6,6 +6,7 @@ User data always goes into Text objects, so brackets in a value are never read a
 import inspect
 import re
 import textwrap
+import unicodedata
 from math import inf
 
 from rich import box
@@ -1366,6 +1367,87 @@ def grid(grid, start, goal, snapshot=None):
 def grid_step(number, event, board, start, goal):
     step_caption(number, event)
     grid(board, start, goal, event.snapshot)
+
+
+def _string_character(character):
+    """Keep spaces and control/combining characters visible without changing their indexes."""
+    if character == " ":
+        return "·"
+    if not character.isprintable() or unicodedata.combining(character):
+        return ascii(character)[1:-1]
+    return character
+
+
+def string_alignment(text, pattern, start=0, marks=None):
+    """Draw the pattern under the text in fixed-width cells, splitting long alignments by index."""
+    marks = marks or {}
+    extent = max(len(text), start + len(pattern))
+    if not extent:
+        show(Text("Text: ''\nPattern: ''"))
+        return
+    labels = [_string_character(char) for char in text + pattern]
+    width = max([len(str(extent - 1)), *(cell_len(label) for label in labels)]) + 1
+    per_line = max(1, (console.width - 8) // width)
+    if extent > per_line:
+        show(Text("Alignment split by character index to fit the terminal.", style="muted"))
+    for low in range(0, extent, per_line):
+        high = min(extent, low + per_line)
+        lines = []
+        for name in ("Index", "Text", "Pattern", "Marks"):
+            line = Text(f"{name:<8}")
+            for i in range(low, high):
+                j = i - start
+                mark = marks.get(j) if 0 <= j < len(pattern) else None
+                if name == "Index":
+                    label = str(i)
+                elif name == "Text":
+                    label = _string_character(text[i]) if i < len(text) else ""
+                elif name == "Pattern":
+                    label = _string_character(pattern[j]) if 0 <= j < len(pattern) else ""
+                else:
+                    label = "=" if mark == "matched" else "!" if mark == "mismatch" else ""
+                style = "changed" if mark and name in ("Text", "Pattern") else "muted" if name == "Index" else ""
+                line.append(label + " " * (width - cell_len(label)), style)
+            lines.append(line)
+        show(Group(*lines))
+    note("= matching character · ! mismatch · · space. Indexes count Python characters; no case folding is applied.")
+
+
+def string_data(text, pattern):
+    string_alignment(text, pattern)
+    note(f"Text length: {len(text)}; pattern length: {len(pattern)}. Empty patterns match every boundary.")
+
+
+def string_step(number, event):
+    step_caption(number, event)
+    if event.kind in ("ss_prefix_entry", "ss_prefix_fallback"):
+        pattern, prefix = event.snapshot
+        table = _table("KMP prefix table", box=box.SQUARE)
+        for heading in ("Index", "Character", "LPS"):
+            table.add_column(heading)
+        # Only completed entries are displayed; zeros in unfinished slots are not final answers.
+        last = event.data["index"] if event.kind == "ss_prefix_entry" else event.data["index"] - 1
+        for i in range(last + 1):
+            table.add_row(str(i), _string_character(pattern[i]), _marked(str(prefix[i]), event.marks.get(i)))
+        show(table)
+    else:
+        text, pattern, start = event.snapshot
+        marks = event.marks
+        if event.kind == "ss_match":
+            marks = dict.fromkeys(range(len(pattern)), "matched")
+        string_alignment(text, pattern, start, marks)
+
+
+def string_comparison(rows, modulus):
+    table = _table("Character comparisons", box=box.SQUARE)
+    for heading in ("Algorithm", "Search", "Prefix", "Total"):
+        table.add_column(heading)
+    for name, matches, stats in rows:
+        table.add_row(name, str(stats.comparisons), str(stats.preprocessing), str(stats.total))
+    show(table)
+    for name, matches, stats in rows:
+        note(f"{name}: match positions {matches}.")
+    note(f"Rabin-Karp modulus: {modulus}. Search counts character equality checks; Prefix counts KMP table comparisons. Hash arithmetic is excluded, so fewer comparisons do not guarantee less elapsed time.")
 
 
 def spanning_forest(forest):

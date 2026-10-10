@@ -10,6 +10,18 @@ VALUE_KEYS = frozenset({"a", "b", "value", "pivot", "key", "target", "node", "su
                         "child", "parent", "word", "prefix", "char", "root", "top", "item"})
 
 TEMPLATES = {
+    "ss_empty": "The empty pattern matches all {count} boundaries, including the end of the text.",
+    "ss_long": "The pattern has {size} characters but the text has {length}, so no alignment can match.",
+    "ss_naive": "At shift {start}, checked {checks} characters; a full match is {found}.",
+    "ss_prefix_entry": "Prefix entry {index} is {length}: {reason}.",
+    "ss_prefix_fallback": "At pattern index {index}, a mismatch shortens the candidate prefix from {old} to {length} using the saved table.",
+    "ss_compare": "Compared text index {index} with pattern index {position}; they match: {equal}.",
+    "ss_match": "Found a complete match starting at text index {start}.",
+    "ss_kmp_shift": "Shifted the pattern start from {start} to {next}, keeping {kept} known prefix characters and avoiding those repeated comparisons.",
+    "ss_hash_window": "Window {start}: hash {window}, pattern hash {pattern_hash}, base {base}, modulus {modulus}.",
+    "ss_hash_hit": "Verified the hash hit at {start} with {checks} character comparisons; it is a real match.",
+    "ss_collision": "The hash hit at {start} is spurious: verification found a mismatch after {checks} character comparisons.",
+    "ss_roll": "Rolled to window {start}: (({old} - {outgoing} × {high}) × {base} + {incoming}) modulo {modulus} = {window}.",
     "bellman_pass": "Pass {number} checked {checks} edges and improved {improvements} vertex distances.",
     "bellman_cycle": "An extra relaxation pass still improved a distance; the negative cycle is {cycle}.",
     "floyd_pass": "Allowing intermediate vertex {vertex} checked {checks} pairs and improved {improvements} distances.",

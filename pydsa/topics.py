@@ -4,7 +4,8 @@ from typing import Callable, NamedTuple
 
 from pydsa.ui.screens import (
     array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
-    bloom_filter, grid_search, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack, tree, trie,
+    bloom_filter, grid_search, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack,
+    string_algorithms, tree, trie,
 )
 
 CATEGORIES = {
@@ -78,6 +79,9 @@ TOPICS = (
         ("floyd-warshall", "Floyd-Warshall"),
     )),
     Topic("a-star", "A* on a Grid", "algorithms", grid_search.run, "graph-algorithms"),
+    Topic("string-algorithms", "String Algorithms", "algorithms", string_algorithms.run),
+    *(Topic(search.guide, search.name, "algorithms", string_algorithms.run, "string-algorithms")
+      for search in string_algorithms.SEARCHES),
 )
 
 

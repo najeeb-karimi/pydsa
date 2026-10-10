@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from time import perf_counter
 from typing import Callable
 
-from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting
+from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting, string_search
 from pydsa.core.graph import ListGraph
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.b_tree import BTree
@@ -258,6 +258,21 @@ def _grid_input(n, mode, rng):
     return grid_search.Grid(n, n)
 
 
+def _string_input(n, mode, rng):
+    ordered_input(n, mode, rng)  # Validate the mode; all modes keep this repeated-prefix workload.
+    return "a" * n, "a" * (max(2, n // 4) - 1) + "b"
+
+
+def _string_work(algorithm):
+    def run(data):
+        stats = string_search.SearchStats()
+        algorithm(*data, stats=stats)
+        if algorithm is string_search.rabin_karp:
+            return stats.total + stats.hash_characters + stats.windows
+        return stats.total
+    return run
+
+
 EXPERIMENTS = (
     *(Experiment(name.replace("_", "-"), name.replace("_", "-"), name.replace("_", " ").title(),
                  (lambda n: n * LOG(n)) if name in ("merge_sort", "heap_sort", "quick_sort") else (lambda n: n * n),
@@ -333,6 +348,17 @@ EXPERIMENTS = (
       for topic_id, name, heuristic, expected, growth in (
           ("a-star", "A*", grid_search.manhattan, lambda n: n, "n"),
           ("dijkstra", "Dijkstra", None, lambda n: n * n, "n²"))),
+    *(Experiment(f"{topic}-work", topic, f"{name}: repeated prefix, missing match", expected,
+                 (32, 64, 128, 256), _string_input, _string_work(algorithm), growth,
+                 "n is text length; the pattern length is about n / 4. Text is all a and pattern ends in b. "
+                 "Input-order choices keep the same workload; construction is excluded. " +
+                 ("Work counts character comparisons, including KMP preprocessing." if topic != "rabin-karp" else
+                  "Work counts characters read for hashing, window hash checks and verification comparisons. "
+                  "Modulus 101 rejects these windows; collisions on other inputs can erase the benefit."))
+      for topic, name, algorithm, expected, growth in (
+          ("naive-string-search", "Naive search", string_search.naive_search, lambda n: n * n, "n²"),
+          ("kmp", "KMP", string_search.kmp_search, lambda n: n, "n"),
+          ("rabin-karp", "Rabin-Karp", string_search.rabin_karp, lambda n: n, "n"))),
 )
 
 
@@ -342,6 +368,7 @@ def for_topic(topic):
         "tree": {"bst", "avl-tree"}, "min-heap": {"heap"}, "max-heap": {"heap"},
         "priority-queue": {"heap"}, "hash-table": {"linear-probing-hash-table"},
         "graph-algorithms": {"bellman-ford", "floyd-warshall", "a-star"},
+        "string-algorithms": {"naive-string-search", "kmp", "rabin-karp"},
     }
     allowed = {topic, *families.get(topic, ())}
     if "sorting" in allowed:
