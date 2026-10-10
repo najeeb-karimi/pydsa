@@ -1,6 +1,7 @@
 """Prediction answers checked against simple independent models across random seeds."""
 
 import itertools
+from collections import deque
 import random
 
 import pytest
@@ -39,6 +40,18 @@ def minimum_tree(edges):
 
 def expected(topic, state):
     values = state.get("values")
+    if topic == "a-star":
+        queue = deque([(state["start"], 0)])
+        seen = {state["start"]}
+        while queue:
+            (row, column), distance = queue.popleft()
+            if (row, column) == state["goal"]:
+                return distance
+            for cell in ((row - 1, column), (row + 1, column), (row, column - 1), (row, column + 1)):
+                if (0 <= cell[0] < state["rows"] and 0 <= cell[1] < state["columns"]
+                        and cell not in state["walls"] and cell not in seen):
+                    seen.add(cell)
+                    queue.append((cell, distance + 1))
     if topic == "lru-cache":
         order = list(state["order"])
         order.remove(state["target"])

@@ -10,6 +10,13 @@ VALUE_KEYS = frozenset({"a", "b", "value", "pivot", "key", "target", "node", "su
                         "child", "parent", "word", "prefix", "char", "root", "top", "item"})
 
 TEMPLATES = {
+    "bellman_pass": "Pass {number} checked {checks} edges and improved {improvements} vertex distances.",
+    "bellman_cycle": "An extra relaxation pass still improved a distance; the negative cycle is {cycle}.",
+    "floyd_pass": "Allowing intermediate vertex {vertex} checked {checks} pairs and improved {improvements} distances.",
+    "floyd_cycle": "Negative diagonal entries at {vertices} reveal negative cycles.",
+    "grid_expand": "Expanded cell {cell}: distance {distance}, remaining estimate {estimate}, with {opened} cells open.",
+    "grid_goal": "Reached the goal at {cell} in {distance} moves.",
+    "grid_unreachable": "The frontier is empty, so goal {goal} cannot be reached.",
     # Caches and probabilistic structures
     "lru_lookup": "Looked for key {key} in chaining bucket {index}.",
     "lru_hit": "Key {key} is cached with value {value}.",

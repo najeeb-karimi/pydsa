@@ -33,8 +33,18 @@ class NegativeWeightError(PyDSAError, ValueError):
     """A graph algorithm that needs non-negative weights found a negative one."""
 
     def __init__(self, u, v, weight):
-        super().__init__(f"The edge from {u} to {v} has the negative weight {weight}.")
+        super().__init__(f"The edge from {u} to {v} has the negative weight {weight}. Try Bellman-Ford for graphs with negative weights.")
         self.edge = (u, v, weight)
+
+
+class NegativeCycleError(PyDSAError):
+    """Shortest paths are undefined because a reachable cycle has negative total weight."""
+
+    def __init__(self, cycle=(), *, distances=None, negative_vertices=()):
+        super().__init__("The graph has a negative-weight cycle.")
+        self.cycle = list(cycle)
+        self.distances = distances
+        self.negative_vertices = list(negative_vertices)
 
 
 class CycleError(PyDSAError):

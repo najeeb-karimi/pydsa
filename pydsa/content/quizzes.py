@@ -171,6 +171,30 @@ BANKS.update({
 })
 
 
+BANKS.update({
+    "bellman-ford": (
+        ("Which weights can Bellman-Ford accept?", "Negative and non-negative weights", ("Only positive weights", "Only zero weights", "No edge weights"), "Repeated relaxation handles negative edges unless a reachable negative cycle prevents a minimum."),
+        ("How many ordinary passes can Bellman-Ford need?", "At most V minus one", ("Exactly one", "V squared", "One per possible path"), "A simple path visits at most V vertices and uses at most V minus one edges."),
+        ("What does a pass with no improvements allow?", "Stopping early", ("Reversing all edges", "Deleting the source", "Declaring every vertex unreachable"), "No further pass can improve a distance when a complete pass changed nothing."),
+        ("What does an improvement in the extra pass mean?", "A negative cycle is reachable from the source", ("Every edge is negative", "A positive cycle exists", "The source is missing"), "Without a reachable negative cycle, V minus one passes cover the shortest simple paths."),
+        ("Does a disconnected negative cycle affect this source?", "No, unless the source can reach it", ("Always", "Only if it has three vertices", "Only in a matrix graph"), "Relaxation cannot enter a region whose distance stays infinity."),
+    ),
+    "floyd-warshall": (
+        ("What does Floyd-Warshall calculate?", "Shortest distances between every pair", ("Only one source distance", "A spanning tree", "A topological ordering"), "A row and column identify each source and target pair."),
+        ("What does the outer vertex k represent?", "An allowed intermediate stop", ("The edge count", "The largest distance", "A wall"), "Each pass considers routes through the next intermediate vertex."),
+        ("Which two distances form a candidate through k?", "Distance from u to k plus k to v", ("u to v minus k to v", "Only the direct edge", "The diagonal alone"), "The candidate connects the route into k with the route out of k."),
+        ("Which matrix entry reveals a negative cycle?", "A negative diagonal entry", ("Any infinity entry", "Any positive entry", "A zero diagonal"), "A negative route from a vertex back to itself can be repeated indefinitely."),
+        ("What information reconstructs a path in PyDSA?", "The next hop toward each target", ("Only the vertex count", "A sorted edge list", "Only diagonal entries"), "Follow next hops until the chosen target is reached."),
+    ),
+    "a-star": (
+        ("What is A*'s priority?", "Distance traveled plus estimated distance remaining", ("Distance traveled only", "Wall count only", "Arrival time only"), "Priority combines the known route cost with a safe estimate of what remains."),
+        ("What is Manhattan distance on this grid?", "Absolute row difference plus absolute column difference", ("Only row difference", "Number of walls", "Diagonal distance rounded down"), "Four-direction moves must cover both coordinate differences."),
+        ("Which heuristic turns A* into Dijkstra?", "Zero everywhere", ("Twice the actual distance", "The wall count", "A negative estimate"), "With no estimate, priority equals distance traveled."),
+        ("What does an empty frontier before reaching the goal mean?", "The goal is unreachable", ("The path has zero moves", "Every wall should be removed", "The grid is sorted"), "No discovered route has an unexplored next cell."),
+        ("Does A* always expand strictly fewer cells than Dijkstra?", "No, walls and ties affect the saving", ("Yes, on every grid", "Only if start equals goal", "It never expands cells"), "A good estimate can save work, but strict savings are not guaranteed."),
+    ),
+})
+
 # Variant-specific questions replace one foundation question, keeping each bank at five questions.
 VARIANTS = {
     "singly-linked-list": ("linked-list", "How can you move through a singly linked list?", "Forward through next links", ("Backward through previous links", "Only by array index", "Only by hash lookup"), "Each node has a next link, without a previous link."),

@@ -6,7 +6,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable
 
-from pydsa.algorithms import graph_algorithms, searching, sorting
+from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting
 from pydsa.core.array import Array
 from pydsa.core.b_tree import BTree
 from pydsa.core.deque import Deque
@@ -93,8 +93,8 @@ SEARCHES = {name.replace("_", "-"): getattr(searching, name) for name in (
     "linear_search", "binary_search", "jump_search", "interpolation_search", "exponential_search",
 )}
 GRAPH_TOPICS = {"graph", "adjacency-list-graph", "adjacency-matrix-graph", "graph-algorithms",
-                "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"}
-SUPPORTED = frozenset({"lru-cache", "skip-list", "bloom-filter", "segment-tree", "fenwick-tree", "array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
+                "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal", "bellman-ford", "floyd-warshall"}
+SUPPORTED = frozenset({"a-star", "lru-cache", "skip-list", "bloom-filter", "segment-tree", "fenwick-tree", "array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
                        "max-heap", "priority-queue", "trie", "hash-table", "chaining-hash-table",
                        "linear-probing-hash-table", "hash-set", "disjoint-set", "sorting", "searching"}
                       | set(LINKED) | set(SORTS) | set(SEARCHES) | GRAPH_TOPICS)
@@ -104,6 +104,17 @@ def make(topic, rng=None):
     rng = rng or random.Random()
     values = rng.sample(range(1, 30), 5)
     state = {"values": values}
+    if topic == "a-star":
+        # Two barriers with independently chosen gaps can force a detour back across the grid.
+        first_gap, second_gap = rng.randrange(5), rng.randrange(5)
+        walls = {(row, column) for row, gap in ((1, first_gap), (3, second_gap))
+                 for column in range(5) if column != gap}
+        board, start, goal = grid_search.Grid(5, 5, walls), (0, 0), (4, 4)
+        state = {"rows": 5, "columns": 5, "walls": walls, "start": start, "goal": goal}
+        return _challenge(topic, "How many moves does a shortest path from S to G need?", state, board,
+                          lambda g: len(grid_search.a_star(g, start, goal).path) - 1,
+                          lambda g: render.grid(g, start, goal),
+                          "Every move costs one; find a shortest open route without crossing walls.")
     if topic == "lru-cache":
         cache = LRUCache(3)
         for key in values[:3]:
@@ -314,6 +325,8 @@ def _graph(topic, rng):
             graph.add_vertex(v)
     edges = [(i, i + 1, rng.randint(1, 9)) for i in range(4)]
     edges += [(0, 2, rng.randint(1, 9)), (1, 4, rng.randint(1, 9))]
+    if topic in ("bellman-ford", "floyd-warshall"):
+        edges[1] = (1, 2, -rng.randint(1, 5))  # A directed acyclic graph permits negative weights safely.
     if topic == "cycle-detection" and rng.choice((True, False)):
         edges.append((4, 0, 1))
     for u, v, weight in edges:
@@ -331,6 +344,14 @@ def _graph(topic, rng):
         algorithm = graph_algorithms.prim if topic == "prim" else graph_algorithms.kruskal
         operation = lambda g: algorithm(g).total
         explanation = "The spanning tree connects every vertex without cycles at minimum total weight."
+    elif topic == "bellman-ford":
+        prompt = "What is the shortest distance from 0 to 4?"
+        operation = lambda g: graph_algorithms.bellman_ford(g, 0).distances[4]
+        explanation = "Relax all edges and include the negative edge when it makes a route cheaper."
+    elif topic == "floyd-warshall":
+        prompt = "What is the all-pairs matrix entry from 0 to 4?"
+        operation = lambda g: graph_algorithms.floyd_warshall(g).distances[0][4]
+        explanation = "Allow every intermediate vertex and compare the total costs, including negative edges."
     else:
         prompt, operation = "What is the shortest distance from 0 to 4?", lambda g: graph_algorithms.dijkstra(g, 0).distances[4]
         explanation = "Compare the total weights of possible routes; the fewest edges need not give the shortest distance."

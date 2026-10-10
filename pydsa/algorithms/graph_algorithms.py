@@ -11,7 +11,7 @@ from typing import NamedTuple
 
 from pydsa.algorithms.trace import record
 from pydsa.core.disjoint_set import DisjointSet
-from pydsa.core.errors import CycleError, NegativeWeightError
+from pydsa.core.errors import CycleError, NegativeCycleError, NegativeWeightError, NotFoundError
 from pydsa.core.heap import MinHeap
 
 
@@ -36,7 +36,7 @@ def _require_undirected(graph, name):
 # ---------------------------------------------------------------------------
 
 class ShortestPaths(NamedTuple):
-    """The result of Dijkstra's algorithm from one source vertex."""
+    """Shortest paths from one source; order is used only by Dijkstra."""
 
     source: int
     distances: dict  # Vertex -> length of the shortest path, or inf if it can't be reached
@@ -87,6 +87,97 @@ def shortest_path(paths, target):
     while path[-1] != paths.source:
         path.append(paths.previous[path[-1]])
     return path[::-1]
+
+
+def bellman_ford(graph, source, trace=None):
+    """Relax every directed arc for at most V-1 passes, then check for a reachable negative cycle.
+
+    Only vertices() and edges(v) are required. Undirected edges must expose both directions.
+    NegativeCycleError carries a closed cycle in edge order; unreachable cycles are ignored.
+    """
+    vertices = list(graph.vertices())
+    if source not in vertices:
+        raise NotFoundError(source)
+    edges = [(u, v, weight) for u in vertices for v, weight in graph.edges(u)]
+    distances = dict.fromkeys(vertices, inf)
+    previous = dict.fromkeys(vertices)
+    distances[source] = 0
+    for number in range(1, len(vertices)):
+        changed = {}
+        for u, v, weight in edges:
+            if distances[u] != inf and distances[u] + weight < distances[v]:
+                distances[v], previous[v] = distances[u] + weight, u
+                changed[v] = "moved"
+        if trace is not None:
+            record(trace, "bellman_pass", dict(distances), changed,
+                   number=number, improvements=len(changed), checks=len(edges))
+        if not changed:
+            break
+    # A full extra pass both detects the cycle and gives a predecessor inside it.
+    last = None
+    for u, v, weight in edges:
+        if distances[u] != inf and distances[u] + weight < distances[v]:
+            distances[v], previous[v], last = distances[u] + weight, u, v
+    if last is not None:
+        for _ in vertices:
+            last = previous[last]
+        cycle, cursor = [last], previous[last]
+        while cursor != last:
+            cycle.append(cursor)
+            cursor = previous[cursor]
+        cycle.append(last)
+        cycle.reverse()
+        if trace is not None:
+            record(trace, "bellman_cycle", dict(distances), {v: "moved" for v in cycle}, cycle=cycle)
+        raise NegativeCycleError(cycle, distances=distances)
+    return ShortestPaths(source, distances, previous, [])
+
+
+class AllPairsPaths(NamedTuple):
+    """All-pairs distances and the next vertex to take on each finite route."""
+
+    distances: dict
+    next_hop: dict
+
+
+def floyd_warshall(graph, trace=None):
+    """Consider each vertex as an intermediate stop; reject negative diagonals after the last pass."""
+    vertices = list(graph.vertices())
+    distances = {u: {v: 0 if u == v else inf for v in vertices} for u in vertices}
+    next_hop = {u: dict.fromkeys(vertices) for u in vertices}
+    for u in vertices:
+        next_hop[u][u] = u
+        for v, weight in graph.edges(u):
+            if weight < distances[u][v]:
+                distances[u][v], next_hop[u][v] = weight, v
+    for k in vertices:
+        changed = {}
+        for u in vertices:
+            for v in vertices:
+                candidate = distances[u][k] + distances[k][v]
+                if candidate < distances[u][v]:
+                    distances[u][v], next_hop[u][v] = candidate, next_hop[u][k]
+                    changed[u, v] = "moved"
+        if trace is not None:
+            record(trace, "floyd_pass", {u: dict(row) for u, row in distances.items()}, changed,
+                   vertex=k, improvements=len(changed), checks=len(vertices) ** 2)
+    negative = [v for v in vertices if distances[v][v] < 0]
+    if negative:
+        if trace is not None:
+            record(trace, "floyd_cycle", {u: dict(row) for u, row in distances.items()},
+                   {(v, v): "moved" for v in negative}, vertices=negative)
+        raise NegativeCycleError(distances=distances, negative_vertices=negative)
+    return AllPairsPaths(distances, next_hop)
+
+
+def all_pairs_path(paths, source, target):
+    """Reconstruct one route, or return None when the target is unreachable."""
+    if paths.distances[source][target] == inf:
+        return None
+    route = [source]
+    while route[-1] != target:
+        route.append(paths.next_hop[route[-1]][target])
+    return route
 
 
 # ---------------------------------------------------------------------------

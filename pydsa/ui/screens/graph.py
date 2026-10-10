@@ -2,7 +2,7 @@
 
 from pydsa.algorithms import graph_algorithms
 from pydsa.content import texts
-from pydsa.core.errors import CycleError, DuplicateError, NegativeWeightError, NotFoundError, OutOfBoundsError
+from pydsa.core.errors import CycleError, DuplicateError, NegativeCycleError, NegativeWeightError, NotFoundError, OutOfBoundsError
 from pydsa.core.graph import ListGraph, MatrixGraph
 from pydsa.ui import random_data, render, stepper
 from pydsa.ui.console import ask_int, error, info, not_found, plural, result, success
@@ -218,7 +218,15 @@ def algorithm_options(graph):
             ("Minimum Spanning Tree (Prim)", lambda: spanning_tree(graph, "Prim")),
             ("Minimum Spanning Tree (Kruskal)", lambda: spanning_tree(graph, "Kruskal")),
         ]
+    options += [("Bellman-Ford", lambda: bellman_ford(graph)),
+                ("Floyd-Warshall", lambda: floyd_warshall(graph)), ("A* on a Grid", open_grid)]
     return options
+
+
+def open_grid():
+    from pydsa.ui.screens import grid_search
+    outcome = grid_search.run()
+    return None if outcome is Nav.BACK else outcome
 
 
 def pick_algorithm(graph):
@@ -227,8 +235,9 @@ def pick_algorithm(graph):
         info("Minimum spanning trees need an undirected graph, so they aren't offered for this one.")
     else:
         info("A topological sort needs a directed graph, so it isn't offered for this one.")
-    Menu("🧮 Which graph algorithm do you want to run?", [noted("graph-algorithms", algorithm_options(graph)),
-                                                        [back_option()]]).select()
+    outcome = Menu("🧮 Which graph algorithm do you want to run?", [noted("graph-algorithms", algorithm_options(graph)),
+                                                           [back_option()]]).select()
+    return None if outcome is Nav.BACK else outcome
 
 
 def shortest_paths(graph):
@@ -243,12 +252,69 @@ def shortest_paths(graph):
     except NegativeWeightError as problem:
         u, v, weight = problem.edge
         error(f"Dijkstra's algorithm can't handle negative weights, but the edge {edge_name(graph, u, v)} weighs {weight}.")
+        info("Try Bellman-Ford for graphs with negative weights.")
         return
     stepper.play(trace, lambda number, event: render.vertex_step(number, event, "🧭 Distances so far", "Distance"))
     routes = {vertex: graph_algorithms.shortest_path(paths, vertex) for vertex in graph.vertices()}
     reachable = sum(route is not None for route in routes.values()) - 1
     success(f"Found the shortest paths from vertex {source} to {plural(reachable, 'other vertex', 'other vertices')}.")
     render.shortest_paths(paths, routes)
+
+
+def play_tables(trace, draw):
+    """Keep every pass visible in the all-at-once view as well as the paused view."""
+    def all_passes(events):
+        for number, event in enumerate(events, 1):
+            draw(number, event)
+    stepper.play(trace, draw, summary=all_passes)
+
+
+def bellman_ford(graph):
+    render.ascii_art(texts.BELLMAN_FORD_ASCII)
+    render.explanation("bellman-ford")
+    source, trace = ask_vertex("🔢 Which vertex should the paths start from?"), []
+    draw = lambda number, event: render.vertex_step(number, event,
+        "Negative cycle" if event.kind == "bellman_cycle" else "Relaxation pass", "Distance")
+    try:
+        paths = graph_algorithms.bellman_ford(graph, source, trace)
+    except NotFoundError:
+        missing_vertex(graph, source)
+        return
+    except NegativeCycleError as problem:
+        play_tables(trace, draw)
+        error("A reachable negative cycle makes shortest distances undefined.")
+        result("Negative cycle: " + " → ".join(str(v) for v in problem.cycle))
+        return
+    play_tables(trace, draw)
+    render.shortest_paths(paths, {v: graph_algorithms.shortest_path(paths, v) for v in graph.vertices()})
+
+
+def floyd_warshall(graph):
+    render.ascii_art(texts.FLOYD_WARSHALL_ASCII)
+    render.explanation("floyd-warshall")
+    if not graph.vertices():
+        info("The graph has no vertices yet.")
+        return
+    trace = []
+    try:
+        paths = graph_algorithms.floyd_warshall(graph, trace)
+    except NegativeCycleError as problem:
+        play_tables(trace, render.floyd_step)
+        error("Negative diagonal entries reveal negative cycles; shortest paths through them are undefined.")
+        info("Negative diagonal vertices: " + ", ".join(str(v) for v in problem.negative_vertices) + ".")
+        return
+    play_tables(trace, render.floyd_step)
+    source = ask_vertex("🔢 Reconstruct a path from which vertex?")
+    target = ask_vertex("🔢 To which vertex?")
+    for vertex in (source, target):
+        if vertex not in paths.distances:
+            missing_vertex(graph, vertex)
+            return
+    route = graph_algorithms.all_pairs_path(paths, source, target)
+    if route is None:
+        result(f"Vertex {target} is unreachable from {source}.")
+    else:
+        result(f"Distance: {paths.distances[source][target]}; path: " + " → ".join(str(v) for v in route))
 
 
 def topological_sort(graph):

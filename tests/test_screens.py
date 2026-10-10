@@ -476,11 +476,11 @@ def test_graph_algorithms(play):
     out = play(
         "5", "3", "1",  # Algorithms > Graph Algorithms > the directed example
         "2", "0",  # Dijkstra from vertex 0
-        "3", "4", "5",  # Topological sort, cycle detection, display
+        "3", "4", "8",  # Topological sort, cycle detection, display
         "2", "9",  # A missing vertex
-        "7", "2",  # New Graph: the undirected example
+        "10", "2",  # New Graph: the undirected example
         "3", "4", "5",  # Cycle detection, Prim and Kruskal
-        "9", "0",
+        "12", "0",
     )
     assert "Found the shortest paths from vertex 0 to 4 other vertices." in out
     assert "0 → 2 → 1 → 3 → 4" in out

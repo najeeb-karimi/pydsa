@@ -116,3 +116,4 @@ def test_the_wheel_includes_every_guide(tmp_path):
     expected |= {f"pydsa/{folder}/{name}.py" for folder in ("core", "ui/screens")
                  for name in ("lru_cache", "skip_list", "bloom_filter")}
     assert expected <= names
+    assert {"pydsa/algorithms/grid_search.py", "pydsa/ui/screens/grid_search.py"} <= names

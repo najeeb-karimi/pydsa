@@ -1296,8 +1296,76 @@ def shortest_paths(paths, routes):
         else:
             table.add_row(str(vertex), str(paths.distances[vertex]), " → ".join(str(step) for step in route))
     show(table)
-    order = ", ".join(str(vertex) for vertex in paths.order)
-    note(f"Every path starts at vertex {paths.source}. The distances became final in this order: {order}.")
+    caption = f"Every path starts at vertex {paths.source}."
+    if paths.order:
+        order = ", ".join(str(vertex) for vertex in paths.order)
+        caption += f" The distances became final in this order: {order}."
+    note(caption)
+
+
+def distance_matrix(distances, marks=None, *, negative_diagonal=False):
+    """Draw all pairs, falling back to a pair table when the matrix is too wide."""
+    marks = marks or {}
+    table = _table("All-pairs distances", box=box.SQUARE)
+    table.add_column("From / To")
+    vertices = list(distances)
+    for vertex in vertices:
+        table.add_column(str(vertex), justify="right")
+    def value(u, v):
+        distance = distances[u][v]
+        return _marked("∞" if distance == float("inf") else str(distance), marks.get((u, v)))
+    for u in vertices:
+        table.add_row(str(u), *(value(u, v) for v in vertices))
+    if not _fits(table):
+        table = _table("All-pairs distances", box=box.SQUARE)
+        for column in ("From", "To", "Distance"):
+            table.add_column(column)
+        for u in vertices:
+            for v in vertices:
+                table.add_row(str(u), str(v), value(u, v))
+    show(table)
+    if marks:
+        message = "Highlighted diagonal entries are negative" if negative_diagonal else "Highlighted cells improved in this pass"
+        note(message + "; * marks them when colors are off.")
+
+
+def floyd_step(number, event):
+    step_caption(number, event)
+    distance_matrix(event.snapshot, event.marks, negative_diagonal=event.kind == "floyd_cycle")
+
+
+def grid(grid, start, goal, snapshot=None):
+    """Draw a grid with symbolic open/closed/path markers that also work without colors."""
+    opened, closed, path = snapshot or ((), (), ())
+    path = set(path)
+    lines = []
+    for row in range(grid.rows):
+        line = Text()
+        for column in range(grid.columns):
+            cell = row, column
+            symbol, style = ".", "muted"
+            if cell in grid.walls:
+                symbol = "#"
+            elif cell in path:
+                symbol, style = "*", "changed"
+            elif cell in opened:
+                symbol, style = "o", "info"
+            elif cell in closed:
+                symbol, style = "x", "muted"
+            if cell == start:
+                symbol, style = "S", "success"
+            if cell == goal:
+                symbol, style = "G" if goal != start else "B", "result"
+            line.append(symbol, style)
+        lines.append(line)
+    # The interactive screen caps dimensions at 10; Rich wraps wider caller-provided grids.
+    show(Group(*lines))
+    note("S start · G goal · B both · # wall · . unseen · o open · x closed · * current path")
+
+
+def grid_step(number, event, board, start, goal):
+    step_caption(number, event)
+    grid(board, start, goal, event.snapshot)
 
 
 def spanning_forest(forest):

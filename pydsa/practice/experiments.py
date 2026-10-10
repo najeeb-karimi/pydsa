@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from time import perf_counter
 from typing import Callable
 
-from pydsa.algorithms import searching, sorting
+from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting
+from pydsa.core.graph import ListGraph
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.b_tree import BTree
 from pydsa.core.hash_table import LinearProbingHashTable
@@ -228,6 +229,35 @@ def _bloom_rate(data):
     bloom, queries = data
     return sum(bloom.might_contain(item) for item in queries)
 
+
+def _graph_input(n, mode, rng):
+    ordered_input(n, mode, rng)
+    graph = ListGraph()
+    # Reverse adapter order makes each Bellman-Ford pass advance one edge.
+    for vertex in reversed(range(n)):
+        graph.add_vertex(vertex)
+    for vertex in range(n - 1):
+        graph.add_edge(vertex, vertex + 1, 1)
+    return graph
+
+
+def _bellman_work(graph):
+    trace = []
+    graph_algorithms.bellman_ford(graph, 0, trace)
+    return sum(event.data["checks"] for event in trace)
+
+
+def _floyd_work(graph):
+    trace = []
+    graph_algorithms.floyd_warshall(graph, trace)
+    return sum(event.data["checks"] for event in trace)
+
+
+def _grid_input(n, mode, rng):
+    ordered_input(n, mode, rng)
+    return grid_search.Grid(n, n)
+
+
 EXPERIMENTS = (
     *(Experiment(name.replace("_", "-"), name.replace("_", "-"), name.replace("_", " ").title(),
                  (lambda n: n * LOG(n)) if name in ("merge_sort", "heap_sort", "quick_sort") else (lambda n: n * n),
@@ -285,6 +315,24 @@ EXPERIMENTS = (
                "2000 distinct strings known to be absent. Insertion order does not change the bits; "
                "construction is excluded. Formula values are approximate, so measured rates need not match exactly.",
                kind="bloom-rate"),
+    Experiment("bellman-passes", "bellman-ford", "Bellman-Ford: reverse-ordered chain", lambda n: n * n,
+               (4, 8, 16, 32, 64), _graph_input, _bellman_work, "n²",
+               "n vertices and n - 1 edges are scanned in reverse vertex order, requiring n - 1 passes. "
+               "Work counts relaxation edge checks, excluding the final cycle check and setup. Trace snapshots affect timing. "
+               "Input-order choices keep this deliberately difficult graph order fixed."),
+    Experiment("floyd-pairs", "floyd-warshall", "Floyd-Warshall: every pair for each intermediate", lambda n: n ** 3,
+               (4, 8, 16, 32), _graph_input, _floyd_work, "n³",
+               "n vertices. Work counts every candidate pair checked in each of n passes, even if a route is unreachable. "
+               "Graph construction is excluded; matrix snapshots affect timing. Input-order choices keep the same chain."),
+    *(Experiment(f"grid-{topic_id}", "a-star", f"Open square grid: {name}", expected, (4, 8, 16, 32),
+                 _grid_input, lambda board, heuristic=heuristic: len(grid_search.a_star(
+                     board, (0, 0), (board.rows - 1, board.columns - 1), heuristic=heuristic).expanded), growth,
+                 "n is side length, so there are n² cells. Start and goal are opposite corners with no walls. "
+                 "Work counts expanded cells including the goal; heap operations and construction are excluded. "
+                 "Compare Manhattan A* with a zero heuristic on this same grid; walls can change the benefit.")
+      for topic_id, name, heuristic, expected, growth in (
+          ("a-star", "A*", grid_search.manhattan, lambda n: n, "n"),
+          ("dijkstra", "Dijkstra", None, lambda n: n * n, "n²"))),
 )
 
 
@@ -293,6 +341,7 @@ def for_topic(topic):
         "array": {"sorting", "searching"}, "sorting": {"sorting"}, "searching": {"searching"},
         "tree": {"bst", "avl-tree"}, "min-heap": {"heap"}, "max-heap": {"heap"},
         "priority-queue": {"heap"}, "hash-table": {"linear-probing-hash-table"},
+        "graph-algorithms": {"bellman-ford", "floyd-warshall", "a-star"},
     }
     allowed = {topic, *families.get(topic, ())}
     if "sorting" in allowed:

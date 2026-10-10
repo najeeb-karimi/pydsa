@@ -26,9 +26,9 @@ BANNER = r"""
 WELCOME = "Welcome to PyDSA, where you learn data structures and algorithms by using them. Pick a topic, read its short summary, then build your own data and watch every change as a table or diagram. You move around by typing the number next to an option."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ Explore LRU caches with narrated evictions and skip lists with seeded coin flips and express lanes
-   ★ Try Bloom filters with stable salted hashes and clear explanations of possible false positives
-   ★ New guides, code views, quizzes and predictions, plus skip-list search and Bloom false-positive experiments"""
+   ★ Find routes with negative weights using Bellman-Ford and see reachable negative cycles as closed routes
+   ★ Watch Floyd-Warshall improve an all-pairs matrix and reconstruct a chosen path
+   ★ Explore A* grids with typed or random walls, a Dijkstra comparison, guides, code views and practice"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""
@@ -401,5 +401,47 @@ BLOOM_FILTER_ASCII = r"""
 |  (_,_)  /  |        \'. \_/``".'    '. \_/``".'  |  |      |  |        |   |      |   |   |        \(_I_)    \       / |  |  \    /
 /_______.'   `--------`  '-----'        '-----'    '--'      '--'        '---'      '---'   `--------`'---'     `'-..-'  ''-'   `'-'
 
+
+"""
+
+
+BELLMAN_FORD_ASCII = r"""
+ _______       .-''-.    .---.     .---.     ,---.    ,---.   ____    ,---.   .--.               ________     ,-----.    .-------.     ______
+\  ____  \   .'_ _   \   | ,_|     | ,_|     |    \  /    | .'  __ `. |    \  |  |              |        |  .'  .-,  '.  |  _ _   \   |    _ `''.
+| |    \ |  / ( ` )   ',-./  )   ,-./  )     |  ,  \/  ,  |/   '  \  \|  ,  \ |  |              |   .----' / ,-.|  \ _ \ | ( ' )  |   | _ | ) _  \
+| |____/ / . (_ o _)  |\  '_ '`) \  '_ '`)   |  |\_   /|  ||___|  /  ||  |\_ \|  |  _ _    _ _  |  _|____ ;  \  '_ /  | :|(_ o _) /   |( ''_'  ) |
+|   _ _ '. |  (_,_)___| > (_)  )  > (_)  )   |  _( )_/ |  |   _.-`   ||  _( )_\  | ( ' )--( ' ) |_( )_   ||  _`,/ \ _/  || (_,_).' __ | . (_) `. |
+|  ( ' )  \'  \   .---.(  .  .-' (  .  .-'   | (_ o _) |  |.'   _    || (_ o _)  |(_{;}_)(_{;}_)(_ o._)__|: (  '\_/ \   ;|  |\ \  |  ||(_    ._) '
+| (_{;}_) | \  `-'    / `-'`-'|___`-'`-'|___ |  (_,_)  |  ||  _( )_  ||  (_,_)\  | (_,_)--(_,_) |(_,_)     \ `"/  \  ) / |  | \ `'   /|  (_.\.' /
+|  (_,_)  /  \       /   |        \|        \|  |      |  |\ (_ o _) /|  |    |  |              |   |       '. \_/``".'  |  |  \    / |       .'
+/_______.'    `'-..-'    `--------``--------`'--'      '--' '.(_,_).' '--'    '--'              '---'         '-----'    ''-'   `'-'  '-----'`
+
+"""
+
+
+FLOYD_WARSHALL_ASCII = r"""
+ ________   .---.       ,-----.       ____     __  ______                   .--.      .--.   ____    .-------.       .-'''-. .---.  .---.    ____      .---.     .---.
+|        |  | ,_|     .'  .-,  '.     \   \   /  /|    _ `''.               |  |_     |  | .'  __ `. |  _ _   \     / _     \|   |  |_ _|  .'  __ `.   | ,_|     | ,_|
+|   .----',-./  )    / ,-.|  \ _ \     \  _. /  ' | _ | ) _  \              | _( )_   |  |/   '  \  \| ( ' )  |    (`' )/`--'|   |  ( ' ) /   '  \  \,-./  )   ,-./  )
+|  _|____ \  '_ '`) ;  \  '_ /  | :     _( )_ .'  |( ''_'  ) |  _ _    _ _  |(_ o _)  |  ||___|  /  ||(_ o _) /   (_ o _).   |   '-(_{;}_)|___|  /  |\  '_ '`) \  '_ '`)
+|_( )_   | > (_)  ) |  _`,/ \ _/  | ___(_ o _)'   | . (_) `. | ( ' )--( ' ) | (_,_) \ |  |   _.-`   || (_,_).' __  (_,_). '. |      (_,_)    _.-`   | > (_)  )  > (_)  )
+(_ o._)__|(  .  .-' : (  '\_/ \   ;|   |(_,_)'    |(_    ._) '(_{;}_)(_{;}_)|  |/    \|  |.'   _    ||  |\ \  |  |.---.  \  :| _ _--.   | .'   _    |(  .  .-' (  .  .-'
+|(_,_)     `-'`-'|___\ `"/  \  ) / |   `-'  /     |  (_.\.' /  (_,_)--(_,_) |  '  /\  `  ||  _( )_  ||  | \ `'   /\    `-'  ||( ' ) |   | |  _( )_  | `-'`-'|___`-'`-'|___
+|   |       |        \'. \_/``".'   \      /      |       .'                |    /  \    |\ (_ o _) /|  |  \    /  \       / (_{;}_)|   | \ (_ o _) /  |        \|        \
+'---'       `--------`  '-----'      `-..-'       '-----'`                  `---'    `---` '.(_,_).' ''-'   `'-'    `-...-'  '(_,_) '---'  '.(_,_).'   `--------``--------`
+
+"""
+
+
+A_STAR_ASCII = r"""
+   ____               .-'''-. ,---------.    ____    .-------.
+ .'  __ `.           / _     \\          \ .'  __ `. |  _ _   \
+/   '  \  \         (`' )/`--' `--.  ,---'/   '  \  \| ( ' )  |
+|___|  /  |        (_ o _).       |   \   |___|  /  ||(_ o _) /
+   _.-`   |         (_,_). '.     :_ _:      _.-`   || (_,_).' __
+.'   _    |        .---.  \  :    (_I_)   .'   _    ||  |\ \  |  |
+|  _( )_  |        \    `-'  |   (_(=)_)  |  _( )_  ||  | \ `'   /
+\ (_ o _) /         \       /     (_I_)   \ (_ o _) /|  |  \    /
+ '.(_,_).'           `-...-'      '---'    '.(_,_).' ''-'   `'-'
 
 """

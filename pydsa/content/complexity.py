@@ -65,8 +65,10 @@ GRAPH_ALGORITHMS = ComplexityTable(
         ("Cycle detection, undirected (disjoint set)", "O(V + E · α(V))", "O(V)"),
         ("Minimum spanning tree (Prim, min heap)", "O(E log V)", "O(V + E)"),
         ("Minimum spanning tree (Kruskal, disjoint set)", "O(E log E)", "O(V + E)"),
+        ("Bellman-Ford", "O(V + VE)", "O(V + E)"),
+        ("Floyd-Warshall", "O(V³)", "O(V²)"),
     ),
-    "V is the number of vertices and E the number of edges. The times assume an adjacency list; with an adjacency matrix, listing a vertex's edges takes O(V), so V + E grows to V². Dijkstra's algorithm needs non-negative weights, and minimum spanning trees need an undirected graph.",
+    "V is the number of vertices and E the number of edges. Times assume an adjacency list; with a matrix, reading all edges adds O(V²). Bellman-Ford copies the directed arcs once, then relaxes them; a negative undirected edge forms a negative two-way cycle. Dijkstra needs non-negative weights; minimum spanning trees need an undirected graph. Optional trace snapshots and drawing are excluded.",
 )
 
 STACK = ComplexityTable(
@@ -275,6 +277,14 @@ FENWICK_TREE = ComplexityTable(
 )
 
 TOPIC_TABLES = {
+    "a-star": (ComplexityTable(
+        "Grid search", ("Operation", "Time", "Extra space"),
+        (("Run A*", "O(N log N)", "O(N)"), ("Compare with Dijkstra", "O(N log N)", "O(N)"),
+         ("Display", "O(N)", "O(N)")),
+        "N is rows times columns. Cells have at most four unit-cost neighbors. Manhattan is consistent; "
+        "each cell is expanded at most once. A binary heap orders the frontier. "
+        "Both runs in the comparison use the same walls and endpoints. Trace snapshots and drawing are excluded.",
+    ),),
     "lru-cache": (ComplexityTable(
         "LRU cache operations", ("Operation", "Expected time", "Worst time", "Extra space"),
         (("Get", "O(1)", "O(c)", "O(1)"), ("Put", "O(1)", "O(c)", "O(1)"),
@@ -324,7 +334,8 @@ TOPIC_TABLES = {
               "shell-sort", "merge-sort", "counting-sort", "radix-sort"),
     **_shared(SEARCHING, "searching", "linear-search", "binary-search", "jump-search", "interpolation-search",
               "exponential-search"),
-    **_shared(GRAPH_ALGORITHMS, "graph-algorithms", "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"),
+    **_shared(GRAPH_ALGORITHMS, "graph-algorithms", "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal",
+              "bellman-ford", "floyd-warshall"),
 }
 
 # The columns that belong to a topic in a table it shares with other kinds, such as Singly in the linked list table

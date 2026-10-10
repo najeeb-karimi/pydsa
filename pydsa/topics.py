@@ -4,7 +4,7 @@ from typing import Callable, NamedTuple
 
 from pydsa.ui.screens import (
     array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
-    bloom_filter, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack, tree, trie,
+    bloom_filter, grid_search, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack, tree, trie,
 )
 
 CATEGORIES = {
@@ -74,7 +74,10 @@ TOPICS = (
         ("cycle-detection", "Cycle Detection"),
         ("prim", "Minimum Spanning Tree (Prim)"),
         ("kruskal", "Minimum Spanning Tree (Kruskal)"),
+        ("bellman-ford", "Bellman-Ford"),
+        ("floyd-warshall", "Floyd-Warshall"),
     )),
+    Topic("a-star", "A* on a Grid", "algorithms", grid_search.run, "graph-algorithms"),
 )
 
 

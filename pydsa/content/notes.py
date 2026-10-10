@@ -1609,6 +1609,57 @@ add("graph-algorithms", "Minimum Spanning Tree (Kruskal)",
     """)
 display("graph-algorithms", "Draws the graph as an adjacency list.")
 
+add("graph-algorithms", "Bellman-Ford", "Finds single-source shortest paths with negative weights or shows a reachable negative cycle.",
+    rows="Bellman-Ford", explained=True, sources=(f"{GRAPH_ALGORITHMS}:bellman_ford", f"{GRAPH_ALGORITHMS}:shortest_path"),
+    pseudocode="""
+    distance[source] = 0; other distances = infinity
+    repeat up to vertex count minus one times:
+        relax every edge, remembering the previous vertex when it improves
+        show the distance table; stop if nothing improved
+    relax every edge once more
+    if anything improved:
+        follow predecessors vertex count times to enter a cycle
+        follow them until the cycle closes, then reverse it and report it
+    otherwise rebuild routes by following previous vertices to the source
+    """)
+add("graph-algorithms", "Floyd-Warshall", "Finds distances between every pair and reconstructs a chosen path unless a negative diagonal reveals a cycle.",
+    rows="Floyd-Warshall", explained=True,
+    sources=(f"{GRAPH_ALGORITHMS}:floyd_warshall", f"{GRAPH_ALGORITHMS}:all_pairs_path"), pseudocode="""
+    distance = edge weights, zero on the diagonal, infinity for missing routes
+    for every intermediate vertex k:
+        for every pair u, v:
+            if distance[u,k] + distance[k,v] < distance[u,v]:
+                replace distance[u,v]; next[u,v] = next[u,k]
+        show the matrix and mark improved cells
+    if any diagonal is negative: report negative cycles
+    otherwise reconstruct a route by following next[current,target]
+    """)
+add("graph-algorithms", "A* on a Grid", "Opens a unit-cost grid with walls and endpoints for A* and a Dijkstra comparison.",
+    ["Choose an example, typed walls or random walls.", "Choose start and goal in open cells."],
+    sources="pydsa.algorithms.grid_search:a_star", pseudocode="""
+    choose a grid, its walls, start and goal
+    run A* with Manhattan distance or compare it with a zero heuristic
+    """)
+add("a-star", "Run A*", "Finds a shortest grid path using Manhattan distance to guide the frontier.",
+    rows="Run A*", explained=True, sources="pydsa.algorithms.grid_search:a_star", pseudocode="""
+    put start on the heap with priority distance + Manhattan estimate
+    while the heap has cells:
+        take the lowest priority current cell; skip stale entries
+        close current; if it is the goal, rebuild the path and stop
+        improve unit-cost neighbors and add them to the open heap
+        show open cells, closed cells and the route to current
+    report an unreachable goal if the heap becomes empty
+    """)
+add("a-star", "Compare with Dijkstra", "Compares path lengths and expansion counts on the same grid with Manhattan and zero estimates.",
+    ["Run A* using Manhattan distance.", "Run the same search using a zero estimate.",
+     "Compare the shortest lengths and the number of expanded cells, including the goal."],
+    rows="Compare with Dijkstra", sources="pydsa.algorithms.grid_search:a_star", pseudocode="""
+    informed = a_star(grid, start, goal)
+    uninformed = a_star(grid, start, goal, heuristic=None)
+    show both path lengths and expansion counts
+    """)
+display("a-star", "Draws the grid walls, start and goal.", rows="Display")
+
 
 for topic, source, insertion, deletion in (
     ("red-black-tree", "pydsa.core.red_black_tree:RedBlackTree",

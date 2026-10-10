@@ -3,7 +3,7 @@
 import pytest
 import random
 
-from pydsa.algorithms import graph_algorithms, searching, sorting
+from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting
 from pydsa.content import narration
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.b_tree import BTree
@@ -251,6 +251,14 @@ def test_spanning_trees_record_the_edges_they_take_and_leave():
 def every_run():
     """Yield the events of at least one run of every operation that records its steps."""
     values = [7, 8, 10, 42, 300, 672, 1987, 2004]
+    graph = example_graph(True)
+    yield traced(graph_algorithms.bellman_ford, graph, 0)
+    yield traced(graph_algorithms.floyd_warshall, graph)
+    graph.add_edge(4, 0, -20)
+    yield _missing(graph_algorithms.bellman_ford, graph, 0)
+    yield _missing(graph_algorithms.floyd_warshall, graph)
+    yield traced(grid_search.a_star, grid_search.Grid(3, 3), (0, 0), (2, 2))
+    yield traced(grid_search.a_star, grid_search.Grid(3, 3, {(1, 0), (1, 1), (1, 2)}), (0, 0), (2, 2))
     cache = LRUCache(2)
     yield traced(cache.put, "A", 1)
     yield traced(cache.put, "B", 2)

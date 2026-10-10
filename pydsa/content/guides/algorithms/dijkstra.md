@@ -29,7 +29,7 @@ Water flowing through a network of pipes from a single tap. It reaches the neare
 - You only need the path to one faraway target on a huge map. Variants such as A* search, which head toward the target, are faster.
 
 ## In PyDSA
-- You choose the source vertex. PyDSA refuses to run on a graph with a negative weight and tells you which edge has it.
+- You choose the source vertex. PyDSA refuses to run on a graph with a negative weight, tells you which edge has it, and suggests Bellman-Ford.
 - The result is a table of every vertex with its distance and path, marking the vertices that can't be reached.
 - The note under the table lists the order in which the distances became final, which is the order the heap handed out the vertices.
 - The heap is PyDSA's own min heap. A vertex reached again by a shorter path is simply added again, and its outdated entry is skipped later.

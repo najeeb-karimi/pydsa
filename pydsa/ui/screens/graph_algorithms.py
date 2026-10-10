@@ -10,7 +10,8 @@ from pydsa.ui.console import info
 from pydsa.ui.menu import Menu, Nav, back_option, operation_menu
 from pydsa.ui.screens import graph as graph_screen
 
-GUIDES = ["dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"]
+GUIDES = ["dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal",
+          "bellman-ford", "floyd-warshall", "a-star"]
 
 
 def run():
@@ -21,7 +22,8 @@ def run():
     graph = Menu("🛠️ Which example graph do you want to use?", [
         [("The directed example graph (Dijkstra, Topological Sort, Cycle Detection)", lambda: example(True)),
          ("The undirected example graph (Dijkstra, Cycle Detection, Prim, Kruskal)", lambda: example(False)),
-         ("A random graph", lambda: graph_screen.fill_random(graph_screen.new_list_graph))],
+         ("A random graph", lambda: graph_screen.fill_random(graph_screen.new_list_graph)),
+         ("A directed example with negative weights", negative_example)],
         [back_option()],
     ]).open()
     if graph is Nav.BACK:
@@ -42,4 +44,12 @@ def operations(graph):
 def example(directed):
     graph = ListGraph(directed)
     graph_screen.load_example(graph)
+    return graph
+
+
+def negative_example():
+    graph = graph_screen.new_list_graph(5, True)
+    for edge in ((0, 1, 4), (0, 2, 5), (1, 2, -2), (2, 3, 3), (3, 4, 1)):
+        graph.add_edge(*edge)
+    graph_screen.show(graph)
     return graph

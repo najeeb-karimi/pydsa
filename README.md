@@ -43,7 +43,7 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 **Algorithms** (step-by-step recipes for solving common problems):
 - **Sorting:** nine ways to put a list in order: Bubble, Selection, Insertion, Quick, Heap, Shell, Merge, Counting and Radix Sort. Watch every step, or compare how much work each one does on the same list.
 - **Searching:** five ways to find an item: Linear, Binary, Jump, Interpolation and Exponential Search. Each search shows which positions it checked.
-- **Graph Algorithms:** find the shortest routes (Dijkstra), put tasks in an order that respects what depends on what (Topological Sort), spot loops (Cycle Detection), and connect every point as cheaply as possible (Prim and Kruskal).
+- **Graph Algorithms:** find shortest routes with Dijkstra or Bellman-Ford, including negative edges and visible negative cycles. Floyd-Warshall shows an all-pairs matrix after each intermediate vertex and rebuilds chosen paths. A* draws routes through grids with typed or random walls and compares expanded cells with Dijkstra. You can also order dependent tasks (Topological Sort), spot loops (Cycle Detection), and connect every point cheaply (Prim and Kruskal).
 
 **Learning Tools** (on the main menu):
 - **Overview:** a friendly introduction to data structures, algorithms and how their speed is measured.
