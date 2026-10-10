@@ -257,7 +257,26 @@ def _shared(table, *topic_ids):
 
 
 # The tables shown with each topic's summary and guide, by topic ID
+SEGMENT_TREE = ComplexityTable(
+    "Segment tree operations", ("Operation", "Time", "Extra space"),
+    (("Build from array", "O(n)", "O(n)"), ("Range query", "O(log n)", "O(log n)"),
+     ("Point update", "O(log n)", "O(log n)"), ("Display", "O(n)", "O(n)")),
+    "n is the array length. The tree stores O(n) nodes. A fully covered root answers in O(1). "
+    "Query and update space includes the recursion or ancestor path. Trace snapshots and rendering are excluded.",
+)
+
+FENWICK_TREE = ComplexityTable(
+    "Fenwick tree operations", ("Operation", "Time", "Extra space"),
+    (("Build from array", "O(n)", "O(n)"), ("Prefix sum", "O(log n)", "O(1)"),
+     ("Range sum", "O(log n)", "O(1)"), ("Point update", "O(log n)", "O(1)"),
+     ("Display", "O(n)", "O(n)")),
+    "n is the array length. The structure stores O(n) values and block sums. "
+    "Build passes each block to its parent once. Trace snapshots and rendering are excluded from query and update costs.",
+)
+
 TOPIC_TABLES = {
+    "segment-tree": (SEGMENT_TREE,),
+    "fenwick-tree": (FENWICK_TREE,),
     "array": (ARRAY, SORTING),
     "red-black-tree": (RED_BLACK_TREE,),
     "b-tree": (B_TREE,),

@@ -19,6 +19,8 @@ from pydsa.core.linked_list import DoublyCircularLinkedList, DoublyLinkedList, S
 from pydsa.core.priority_queue import PriorityQueue
 from pydsa.core.queue import Queue
 from pydsa.core.red_black_tree import RedBlackTree
+from pydsa.core.segment_tree import SegmentTree
+from pydsa.core.fenwick_tree import FenwickTree
 from pydsa.core.stack import Stack
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.core.trie import Trie
@@ -89,7 +91,7 @@ SEARCHES = {name.replace("_", "-"): getattr(searching, name) for name in (
 )}
 GRAPH_TOPICS = {"graph", "adjacency-list-graph", "adjacency-matrix-graph", "graph-algorithms",
                 "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal"}
-SUPPORTED = frozenset({"array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
+SUPPORTED = frozenset({"segment-tree", "fenwick-tree", "array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
                        "max-heap", "priority-queue", "trie", "hash-table", "chaining-hash-table",
                        "linear-probing-hash-table", "hash-set", "disjoint-set", "sorting", "searching"}
                       | set(LINKED) | set(SORTS) | set(SEARCHES) | GRAPH_TOPICS)
@@ -99,6 +101,23 @@ def make(topic, rng=None):
     rng = rng or random.Random()
     values = rng.sample(range(1, 30), 5)
     state = {"values": values}
+    if topic in ("segment-tree", "fenwick-tree"):
+        left = rng.randrange(len(values))
+        right = rng.randrange(left, len(values))
+        position, replacement = rng.randrange(len(values)), rng.randrange(-10, 30)
+        operation = rng.choice(("sum", "min", "max")) if topic == "segment-tree" else "sum"
+        tree = SegmentTree(values, operation) if topic == "segment-tree" else FenwickTree(values)
+        state.update(left=left, right=right, index=position, replacement=replacement, operation=operation)
+
+        def replace_and_query(tree):
+            tree.update(position, replacement)
+            return tree.query(left, right) if topic == "segment-tree" else tree.range_sum(left, right)
+
+        return _challenge(topic,
+                          f"After replacing index {position} with {replacement}, what is the {operation} of "
+                          f"the inclusive range [{left}, {right}]?", state, tree, replace_and_query,
+                          render.segment_tree if topic == "segment-tree" else render.fenwick_tree,
+                          "Replace the value first, then use every position from the range start through its end.")
     if topic == "array":
         array = Array(5, int, 0)
         for i, value in enumerate(values):

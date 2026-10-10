@@ -39,6 +39,10 @@ def minimum_tree(edges):
 
 def expected(topic, state):
     values = state.get("values")
+    if topic in ("segment-tree", "fenwick-tree"):
+        values = list(values)
+        values[state["index"]] = state["replacement"]
+        return {"sum": sum, "min": min, "max": max}[state["operation"]](values[state["left"]:state["right"] + 1])
     if topic == "array":
         return values[state["index"]]
     if topic in ("red-black-tree", "b-tree"):

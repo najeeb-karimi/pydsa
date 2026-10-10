@@ -12,6 +12,8 @@ from pydsa.core.b_tree import BTree
 from pydsa.core.hash_table import LinearProbingHashTable
 from pydsa.core.heap import MinHeap
 from pydsa.core.red_black_tree import RedBlackTree
+from pydsa.core.segment_tree import SegmentTree
+from pydsa.core.fenwick_tree import FenwickTree
 from pydsa.core.tree import AVLTree, BinarySearchTree
 
 MODES = ("random", "sorted", "reversed")
@@ -152,6 +154,33 @@ def _compressed_run(data):
     return _find_run(data)
 
 
+def _range_input(tree_class=None):
+    def make(n, mode, rng):
+        values = ordered_input(n, mode, rng)
+        # A growing range with an unaligned end avoids the whole-root shortcut.
+        return (tree_class(values) if tree_class else values), n // 4, 3 * n // 4 - 2
+    return make
+
+
+def _range_work(data):
+    tree, left, right = data
+    trace = []
+    if isinstance(tree, SegmentTree):
+        tree.query(left, right, trace)
+        return sum(event.kind in ("sg_inside", "sg_partial", "sg_outside") for event in trace)
+    tree.range_sum(left, right, trace)
+    return sum(event.kind == "fw_take" for event in trace)
+
+
+def _direct_sum(data):
+    values, left, right = data
+    total, work = 0, 0
+    for i in range(left, right + 1):
+        total += values[i]
+        work += 1
+    return work
+
+
 LOG = lambda n: max(math.log2(n), 1)
 SMALL = (16, 32, 64, 128, 256)
 LARGE = (32, 64, 128, 256, 512)
@@ -188,6 +217,19 @@ EXPERIMENTS = (
                "log2(n)", "Balanced unions create rank trees. Work counts parent hops from a deepest element."),
     Experiment("compressed-find", "disjoint-set", "Find after path compression", lambda n: 1, LARGE,
                _unions, _compressed_run, "1", "One earlier find compresses the path. Work counts the next find's parent hops, not the setup work."),
+    *(Experiment(f"{topic}-query", topic, f"{name}: range sum", LOG, LARGE,
+                 _range_input(tree_class), _range_work, "log2(n)",
+                 "The inclusive range is [n // 4, 3n // 4 - 2], about half the array. Work counts " +
+                 ("visited nodes, including outside nodes." if tree_class is SegmentTree else
+                  "blocks added in the two prefix queries; subtraction is excluded.") +
+                 " Compare with this topic's direct range sum. Construction is excluded; trace snapshots affect elapsed time.")
+      for topic, name, tree_class in (("segment-tree", "Segment tree", SegmentTree),
+                                     ("fenwick-tree", "Fenwick tree", FenwickTree))),
+    *(Experiment(f"{topic}-direct-sum", topic, "Direct range sum: read every value", lambda n: n, LARGE,
+                 _range_input(), _direct_sum, "n",
+                 "Reads the same inclusive range [n // 4, 3n // 4 - 2] as the tree experiment. "
+                 "Work counts array values added, about half of n; input construction is excluded.")
+      for topic in ("segment-tree", "fenwick-tree")),
 )
 
 

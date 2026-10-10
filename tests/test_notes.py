@@ -17,7 +17,7 @@ from pydsa.core.stack import Stack
 from pydsa.core.trie import Trie
 from pydsa.ui.screens import (
     array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
-    searching_algorithms, sorting_algorithms, stack, tree, trie,
+    range_trees, searching_algorithms, sorting_algorithms, stack, tree, trie,
 )
 
 
@@ -33,6 +33,8 @@ def menus():
         yield kind.guide, tree.operations(kind.tree_class("num"))
     for kind in (balanced_trees.RED_BLACK, balanced_trees.B_TREE):
         yield kind.guide, balanced_trees.operations(kind.tree_class(), kind)
+    for kind, cls in ((range_trees.SEGMENT, range_trees.SegmentTree), (range_trees.FENWICK, range_trees.FenwickTree)):
+        yield kind.guide, range_trees.operations(cls([1, 2, 3]), kind)
     for kind in (heap.MIN, heap.MAX):
         yield kind.guide, heap.operations(kind.heap_class("num"), kind)
     yield "priority-queue", heap.queue_operations(PriorityQueue())

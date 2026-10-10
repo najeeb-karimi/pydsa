@@ -119,6 +119,20 @@ BANKS = {
 }
 
 BANKS.update({
+    "segment-tree": (
+        ("What does a segment-tree node describe?", "An array range and its aggregate", ("A sorted key and its color", "A hash bucket", "A graph edge"), "Each node summarizes a contiguous array range."),
+        ("Which node can answer a whole-array query immediately?", "The root", ("Only the last leaf", "Every leaf must be visited", "An outside node"), "The root stores the aggregate for the whole array."),
+        ("What should a query do with a partly overlapping node?", "Query both children", ("Use its whole answer", "Ignore it entirely", "Replace its value"), "Only the covered parts of its children may contribute."),
+        ("After replacing one value, which nodes must be recomputed?", "Its leaf and ancestors", ("Every node in the tree", "Only unrelated leaves", "No nodes"), "Only those ranges contain the changed array position."),
+        ("Which range operations can you choose in PyDSA?", "Sum, minimum or maximum", ("Only sorting", "Only a prefix count", "Word completion"), "The chosen operation is used consistently when building, updating and querying."),
+    ),
+    "fenwick-tree": (
+        ("What determines the length of internal block i?", "Its lowest set bit, i & -i", ("The array's largest value", "Its number of children", "The hash of i"), "The lowest set bit gives the number of values summed by that block."),
+        ("What jump does a prefix query make?", "Subtract the lowest set bit", ("Add the lowest set bit", "Always add one", "Double the sum"), "Removing that bit moves to the next non-overlapping block before the current one."),
+        ("How does a Fenwick tree find a range sum?", "Subtract two prefix sums", ("Subtract two prefix minima", "Sort the array first", "Read only one endpoint"), "Sum through the end, then subtract the prefix before the start."),
+        ("Which indexes does PyDSA use for its internal Fenwick blocks?", "One-based indexes", ("Zero-based indexes", "Negative indexes only", "Sorted keys"), "Public array positions start at 0, while the block table starts at 1."),
+        ("What is added to affected blocks during a point replacement?", "The new value minus the old value", ("The entire new value every time", "The index", "The block's length"), "Adding the difference replaces the contribution without counting the old value twice."),
+    ),
     "red-black-tree": (
         ("What color must a nonempty Red-Black tree's root have?", "Black", ("Red", "Either color", "No color"), "Fix-up finishes by making the root black."),
         ("Which child is forbidden under a red node?", "A red child", ("A black child", "An absent child", "A smaller key"), "Two consecutive red nodes break a balancing rule."),

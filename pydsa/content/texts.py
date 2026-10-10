@@ -26,9 +26,9 @@ BANNER = r"""
 WELCOME = "Welcome to PyDSA, where you learn data structures and algorithms by using them. Pick a topic, read its short summary, then build your own data and watch every change as a table or diagram. You move around by typing the number next to an option."
 
 CHANGELOG = """📝 Changelog for this release:
-   ★ Explore Red-Black trees with recoloring and rotations, and B-trees with splits, borrowing and merges
-   ★ New tree topics include guides, narrated steps, code views, quizzes, predictions and experiments
-   ★ Browse structures in Linear structures, Trees & heaps, Graphs & sets, and Hashing & caches"""
+   ★ Explore segment trees for range sum, minimum and maximum, with point updates and covered ranges
+   ★ Watch Fenwick prefix sums, range sums and point updates through binary index jumps
+   ★ Both topics include guides, code views, quizzes, predictions and query-work comparisons"""
 
 SOURCE_CODE = """🌐 All the source code & future updates are available in this GitHub repo:
    ★ https://github.com/najeeb-karimi/pydsa"""
@@ -322,4 +322,36 @@ B_TREE_ASCII = r"""
 | (_{;}_) |           (_(=)_)  |  | \ `'   / \  `-'    / \  `-'    /
 |  (_,_)  /            (_I_)   |  |  \    /   \       /   \       /
 /_______.'             '---'   ''-'   `'-'     `'-..-'     `'-..-'
+"""
+
+
+SEGMENT_TREE_ASCII = r"""
+
+   .-'''-.     .-''-.    .-_'''-.   ,---.    ,---.    .-''-.  ,---.   .--.,---------.         ,---------. .-------.        .-''-.      .-''-.
+  / _     \  .'_ _   \  '_( )_   \  |    \  /    |  .'_ _   \ |    \  |  |\          \        \          \|  _ _   \     .'_ _   \   .'_ _   \
+ (`' )/`--' / ( ` )   '|(_ o _)|  ' |  ,  \/  ,  | / ( ` )   '|  ,  \ |  | `--.  ,---'         `--.  ,---'| ( ' )  |    / ( ` )   ' / ( ` )   '
+(_ o _).   . (_ o _)  |. (_,_)/___| |  |\_   /|  |. (_ o _)  ||  |\_ \|  |    |   \               |   \   |(_ o _) /   . (_ o _)  |. (_ o _)  |
+ (_,_). '. |  (_,_)___||  |  .-----.|  _( )_/ |  ||  (_,_)___||  _( )_\  |    :_ _:               :_ _:   | (_,_).' __ |  (_,_)___||  (_,_)___|
+.---.  \  :'  \   .---.'  \  '-   .'| (_ o _) |  |'  \   .---.| (_ o _)  |    (_I_)               (_I_)   |  |\ \  |  |'  \   .---.'  \   .---.
+\    `-'  | \  `-'    / \  `-'`   | |  (_,_)  |  | \  `-'    /|  (_,_)\  |   (_(=)_)             (_(=)_)  |  | \ `'   / \  `-'    / \  `-'    /
+ \       /   \       /   \        / |  |      |  |  \       / |  |    |  |    (_I_)               (_I_)   |  |  \    /   \       /   \       /
+  `-...-'     `'-..-'     `'-...-'  '--'      '--'   `'-..-'  '--'    '--'    '---'               '---'   ''-'   `'-'     `'-..-'     `'-..-'
+
+
+"""
+
+
+FENWICK_TREE_ASCII = r"""
+
+ ________     .-''-.  ,---.   .--..--.      .--..-./`)     _______   .--.   .--.          ,---------. .-------.        .-''-.      .-''-.
+|        |  .'_ _   \ |    \  |  ||  |_     |  |\ .-.')   /   __  \  |  | _/  /           \          \|  _ _   \     .'_ _   \   .'_ _   \
+|   .----' / ( ` )   '|  ,  \ |  || _( )_   |  |/ `-' \  | ,_/  \__) | (`' ) /             `--.  ,---'| ( ' )  |    / ( ` )   ' / ( ` )   '
+|  _|____ . (_ o _)  ||  |\_ \|  ||(_ o _)  |  | `-'`"`,-./  )       |(_ ()_)                 |   \   |(_ o _) /   . (_ o _)  |. (_ o _)  |
+|_( )_   ||  (_,_)___||  _( )_\  || (_,_) \ |  | .---. \  '_ '`)     | (_,_)   __             :_ _:   | (_,_).' __ |  (_,_)___||  (_,_)___|
+(_ o._)__|'  \   .---.| (_ o _)  ||  |/    \|  | |   |  > (_)  )  __ |  |\ \  |  |            (_I_)   |  |\ \  |  |'  \   .---.'  \   .---.
+|(_,_)     \  `-'    /|  (_,_)\  ||  '  /\  `  | |   | (  .  .-'_/  )|  | \ `'   /           (_(=)_)  |  | \ `'   / \  `-'    / \  `-'    /
+|   |       \       / |  |    |  ||    /  \    | |   |  `-'`-'     / |  |  \    /             (_I_)   |  |  \    /   \       /   \       /
+'---'        `'-..-'  '--'    '--'`---'    `---` '---'    `._____.'  `--'   `'-'              '---'   ''-'   `'-'     `'-..-'     `'-..-'
+
+
 """

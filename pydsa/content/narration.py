@@ -10,6 +10,22 @@ VALUE_KEYS = frozenset({"a", "b", "value", "pivot", "key", "target", "node", "su
                         "child", "parent", "word", "prefix", "char", "root", "top", "item"})
 
 TEMPLATES = {
+    # Range-query trees
+    "sg_leaf": "Stored {value} at the leaf covering [{low}, {high}].",
+    "sg_combine": "Combined the children of [{low}, {high}] using {operation}, giving {value}.",
+    "sg_outside": "The node [{low}, {high}] is outside the query, so it contributes nothing.",
+    "sg_inside": "The node [{low}, {high}] is fully inside the query, so its saved answer {value} is used.",
+    "sg_partial": "The node [{low}, {high}] partly overlaps the query, so both children are checked.",
+    "sg_result": "The {operation} for [{left}, {right}] is {value}.",
+    "sg_descend": "Index {index} lies in [{low}, {high}], so the update follows its child range.",
+    "fw_block": "Block {i} ({binary}) now holds {value}; its lowest set bit is {bit} ({bit_binary}).",
+    "fw_build_jump": "Passed {value} to block {next}: {binary} + {bit_binary} = {next_binary}.",
+    "fw_take": "Added block {i} ({binary}), worth {value}, bringing the prefix total to {total}.",
+    "fw_query_jump": "Removed the lowest set bit: {binary} - {bit_binary} = {next_binary}, moving from {i} to {next}.",
+    "fw_prefix": "The prefix ending at public index {end} has sum {total}.",
+    "fw_range": "The sum for [{left}, {right}] is {a} minus {b}, giving {total}.",
+    "fw_add": "Added the difference {delta} to block {i} ({binary}), which now holds {value}.",
+    "fw_update_jump": "Added the lowest set bit: {binary} + {bit_binary} = {next_binary}, moving from {i} to {next}.",
     # Sorting
     "swap": "{a} came after {b}, so the two swapped places.",
     "select": "{value} is the next one in order, so it was placed at index {index}.",

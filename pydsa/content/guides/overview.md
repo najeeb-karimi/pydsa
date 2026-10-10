@@ -16,6 +16,7 @@ In a non-linear data structure, an item can connect to several others.
 - Trees arrange items in a hierarchy. Binary search trees keep keys sorted; AVL and Red-Black trees also keep themselves balanced. B-trees hold several keys per node and keep their leaves at the same depth.
 - Heaps keep the smallest or largest item on top, which makes them ideal for priority queues.
 - A trie stores words letter by letter, so words with the same beginning share their nodes.
+- Segment trees save sums, minima or maxima for array ranges; Fenwick trees use binary index jumps for prefix and range sums. Both can update one value at a time.
 - Graphs model any kind of connection, like roads, friendships or dependencies.
 - Hash tables and hash sets use a hash function to find items almost instantly.
 - A disjoint set keeps track of which items belong to the same group.

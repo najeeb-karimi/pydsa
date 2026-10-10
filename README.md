@@ -25,6 +25,8 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 - **Tree:** items arranged like a family tree, as a Binary Search Tree (BST) or a self-balancing AVL tree. Trees are drawn from the top down, and you can also walk through them level by level or see their height and size.
 - **Red-Black Tree:** a balanced search tree with red and black nodes. Watch recoloring and rotations after insertions and deletions; R/B markers keep colors readable in plain output.
 - **B-Tree:** a search tree with several keys per node. Choose its minimum degree, then watch full nodes split or deletion borrow keys and merge siblings.
+- **Segment Tree:** stores sums, minima or maxima for array ranges. Watch queries select covered nodes and point updates refresh a leaf and its ancestors.
+- **Fenwick Tree:** stores block sums for prefix and range queries. Binary index jumps show the lowest set bit being removed during queries and added during point updates.
 - **Heap & Priority Queue:** a min heap always keeps the smallest item on top, and a max heap the largest. You can watch every swap as items move up or down the tree. The priority queue is built on a heap and always serves the most important item first.
 - **Trie:** stores words letter by letter, so words that start the same way share their first letters. It can finish words for you (autocomplete).
 

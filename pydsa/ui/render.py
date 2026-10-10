@@ -738,6 +738,62 @@ def binary_tree(tree, balance=False):
         note("In parentheses is each node's balance factor: its left height minus its right height.")
 
 
+def segment_snapshot(state, marks=()):
+    """Show every segment's inclusive array range and aggregate, with explicit overlap marks."""
+    if state is None:
+        info("The tree is empty.")
+        return
+
+    def label(node):
+        value = "pending" if node[2] is None else fmt(node[2])
+        text = f"[{node[0]}, {node[1]}] {value}"
+        mark = marks.get((node[0], node[1])) if marks else None
+        if mark:
+            text += f" ({mark})"
+        return _marked(text, mark)
+
+    _tree(state, lambda node: (node[3], node[4]), label)
+
+
+def segment_tree(tree):
+    from pydsa.core.segment_tree import snapshot
+    array(tree.items)
+    segment_snapshot(snapshot(tree.root))
+    note(f"Each node shows [start, end] and its {tree.operation}; both ends are included.")
+
+
+def segment_step(number, event):
+    step_caption(number, event)
+    segment_snapshot(event.snapshot, event.marks)
+
+
+def fenwick_snapshot(state, marks=()):
+    """Draw one-based blocks beside the zero-based array ranges they sum."""
+    values, blocks = state
+    array(values)
+    table = _table("Fenwick blocks (one-based)", box=box.SQUARE)
+    table.add_column("i / binary", style="code")
+    table.add_column("Array range")
+    table.add_column("Low bit")
+    table.add_column("Sum", justify="right")
+    width = max(1, (len(values) + 1).bit_length())
+    for i in range(1, len(blocks)):
+        bit = i & -i
+        table.add_row(_marked(f"{i} / {i:0{width}b}", i in marks),
+                      f"[{i - bit}, {i - 1}]", f"{bit:0{width}b}", Text(fmt(blocks[i])))
+    show(table)
+
+
+def fenwick_tree(tree):
+    fenwick_snapshot((tree.items, tree.blocks))
+    note("Block i covers i & -i values. Prefix queries subtract that bit; updates add it. Array indexes start at 0.")
+
+
+def fenwick_step(number, event):
+    step_caption(number, event)
+    fenwick_snapshot(event.snapshot, event.marks)
+
+
 def traversal(name, keys):
     """Show the keys visited by a tree traversal."""
     result(f"{name} traversal: {', '.join(fmt(key) for key in keys) or 'the tree is empty'}")

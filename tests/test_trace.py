@@ -11,6 +11,8 @@ from pydsa.core.graph import ListGraph
 from pydsa.core.hash_table import ChainingHashTable, LinearProbingHashTable
 from pydsa.core.heap import MinHeap
 from pydsa.core.red_black_tree import RedBlackTree
+from pydsa.core.segment_tree import SegmentTree
+from pydsa.core.fenwick_tree import FenwickTree
 from pydsa.core.tree import AVLTree, BinarySearchTree
 from pydsa.core.trie import Trie
 
@@ -246,6 +248,14 @@ def test_spanning_trees_record_the_edges_they_take_and_leave():
 def every_run():
     """Yield the events of at least one run of every operation that records its steps."""
     values = [7, 8, 10, 42, 300, 672, 1987, 2004]
+    for tree in (SegmentTree(), FenwickTree()):
+        yield traced(tree.build, values)
+        yield traced(tree.update, 4, -8)
+        if isinstance(tree, SegmentTree):
+            yield traced(tree.query, 2, 4)
+        else:
+            yield traced(tree.prefix_sum, 6)
+            yield traced(tree.range_sum, 2, 4)
     for seed in range(8):
         rng = random.Random(seed)
         keys = list(range(24))

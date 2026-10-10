@@ -4,7 +4,7 @@ from typing import Callable, NamedTuple
 
 from pydsa.ui.screens import (
     array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
-    searching_algorithms, sorting_algorithms, stack, tree, trie,
+    range_trees, searching_algorithms, sorting_algorithms, stack, tree, trie,
 )
 
 CATEGORIES = {
@@ -45,6 +45,8 @@ TOPICS = (
     Topic("max-heap", "Max Heap", "trees", lambda: heap.run_kind(heap.MAX), "heap"),
     Topic("priority-queue", "Priority Queue", "trees", heap.run_queue, "heap"),
     Topic("trie", "Trie", "trees", trie.run),
+    Topic("segment-tree", "Segment Tree", "trees", range_trees.run_segment),
+    Topic("fenwick-tree", "Fenwick Tree", "trees", range_trees.run_fenwick),
     Topic("graph", "Graph", "graphs", graph.run),
     Topic("adjacency-matrix-graph", "Adjacency Matrix Graph", "graphs", graph.run_matrix, "graph"),
     Topic("adjacency-list-graph", "Adjacency List Graph", "graphs", graph.run_list, "graph"),

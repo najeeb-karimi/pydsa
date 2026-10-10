@@ -1664,6 +1664,77 @@ for topic, source, insertion, deletion in (
     display(topic, "Draws the current tree with its node colors or grouped keys.")
 
 
+for topic, source in (("segment-tree", f"{CORE}.segment_tree:SegmentTree"),
+                      ("fenwick-tree", f"{CORE}.fenwick_tree:FenwickTree")):
+    segment = topic == "segment-tree"
+    add(topic, "Build from Array", "Replaces the data and builds saved answers from an array of numbers.",
+        (["Split the full range until each leaf covers one index.",
+          "Combine child answers from the bottom up using the chosen operation."] if segment else
+         ["Start each one-based block with its corresponding array value.",
+          "Pass each completed block to its parent by adding its lowest set bit."]),
+        "Build from array",
+        ("""
+        build(values):
+            split ranges recursively into individual leaves
+            combine each pair of children into its parent
+        """ if segment else """
+        build(values):
+            blocks = [0] + copy(values)
+            for i from 1 through length:
+                parent = i + (i & -i)
+                if parent <= length: blocks[parent] += blocks[i]
+        """), f"{source}.build")
+    add(topic, "Point Update", "Replaces one array value and refreshes the saved answers containing it.",
+        (["Walk down to the leaf covering the chosen index.",
+          "Replace its value and recompute each ancestor."] if segment else
+         ["Compute the replacement value minus the old value.",
+          "Add that difference to each block reached by adding the lowest set bit."]),
+        "Point update",
+        ("""
+        update(index, value):
+            follow the range containing index to its leaf
+            replace the leaf with value
+            recompute the ancestors up to the root
+        """ if segment else """
+        update(index, value):
+            delta = value - items[index]
+            items[index] = value
+            i = index + 1
+            while i <= length:
+                blocks[i] += delta
+                i += i & -i
+        """), f"{source}.update")
+    display(topic, "Draws the array and the saved range answers.", rows="Display")
+
+add("segment-tree", "Range Query", "Combines saved answers for the parts inside an inclusive range.",
+    ["Skip nodes outside the query range.", "Use the saved answer for a node fully inside.",
+     "For partial overlap, query both children and combine their answers."], "Range query", """
+    query(node, left, right):
+        if outside: return no contribution
+        if fully inside: return node.value
+        a = query(node.left, left, right)
+        b = query(node.right, left, right)
+        return combine the contributions that exist
+    """, f"{CORE}.segment_tree:SegmentTree.query")
+add("fenwick-tree", "Prefix Sum", "Adds non-overlapping blocks from the prefix end back to the beginning.",
+    ["Convert the public prefix end to its one-based internal index.",
+     "Add the current block, then remove the lowest set bit from its index.",
+     "Stop at index 0 and return the sum."], "Prefix sum", """
+    prefix_sum(end):
+        i = end + 1
+        total = 0
+        while i > 0:
+            total += blocks[i]
+            i -= i & -i
+        return total
+    """, f"{CORE}.fenwick_tree:FenwickTree.prefix_sum")
+add("fenwick-tree", "Range Sum", "Subtracts the prefix before the range from the prefix at its inclusive end.",
+    ["Sum the prefix through the right endpoint.", "Sum the prefix before the left endpoint.",
+     "Subtract the second result from the first."], "Range sum", """
+    range_sum(left, right):
+        return prefix_sum(right) - prefix_sum(left - 1)
+    """, (f"{CORE}.fenwick_tree:FenwickTree.range_sum", f"{CORE}.fenwick_tree:FenwickTree.prefix_sum"))
+
 _BY_KEY = {(note.topic, note.operation): note for note in NOTES}
 
 
