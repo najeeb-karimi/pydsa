@@ -203,6 +203,25 @@ TEMPLATES = {
 }
 
 
+TEMPLATES.update({
+    "dp_call": "Called F({n}); its result may need two smaller Fibonacci calls.",
+    "dp_return": "Returned F({n}) = {value} after computing this state.",
+    "dp_cache": "Reused the saved F({n}) = {value}, avoiding another recursive branch.",
+    "dp_start": "Initialized {algorithm}: {base}.",
+    "dp_cell": "Filled row {row}, column {column} with {value}: {reason}.",
+    "dp_take": "{decision} item {item} while tracing back from capacity {capacity}.",
+    "dp_lcs_rebuild": "Follow {direction} at ({row}, {column}); rebuilt subsequence so far: {sequence}.",
+    "dp_coin_rebuild": "Take coin {coin} from amount {amount}; remaining amount is {remaining}.",
+    "rec_move": "Move {move}: take disk {disk} from {source} to {target}.",
+    "rec_call": "Entered a permutation branch at depth {depth}, choosing the next unused position.",
+    "rec_permutation": "Completed permutation {count}.",
+    "rec_return": "Finished the branch at depth {depth}; return to its caller to explore other choices.",
+    "rec_place": "Placed a queen at row {row}, column {column}; continue with the next row.",
+    "rec_remove": "Removed the queen at row {row}, column {column} to explore another branch.",
+    "rec_reject": "Rejected row {row}, column {column}: a queen already shares its column or diagonal.",
+    "rec_solution": "Found solution {count}; every row has one nonattacking queen.",
+})
+
 def caption(event, label=repr):
     """Return the sentence for a step; label writes the values it mentions, such as keys or queue entries.
 

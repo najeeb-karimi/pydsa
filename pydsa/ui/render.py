@@ -68,6 +68,121 @@ def _fits(table):
     return Measurement.get(console, console.options.update(width=10_000), table).maximum <= console.width
 
 
+def dp_items(weights, values, capacity):
+    table = _table("Knapsack items")
+    for title in ("Index", "Weight", "Value"):
+        table.add_column(title)
+    for i, (weight, value) in enumerate(zip(weights, values)):
+        table.add_row(str(i), str(weight), str(value))
+    show(table)
+    note(f"Capacity: {capacity}. Each item can be chosen at most once.")
+
+
+def dp_table(snapshot, marks=()):
+    """Draw all states and arrows, switching to wrapped row listings on narrow terminals."""
+    values, rows, columns = snapshot["table"], snapshot["rows"], snapshot["columns"]
+    arrows = snapshot.get("arrows")
+
+    def entry(i, j):
+        value = values[i][j]
+        text = "?" if value is None else str(value)
+        if arrows:
+            text += arrows[i][j]
+        return text + ("*" if (i, j) in marks else "")
+
+    table = _table("DP states")
+    table.add_column("Row")
+    for j, label in enumerate(columns):
+        table.add_column(Text(f"{j}:{label!r}"))
+    for i, row in enumerate(values):
+        table.add_row(Text(f"{i}:{rows[i]!r}"), *(Text(entry(i, j)) for j in range(len(row))))
+    if _fits(table):
+        show(table)
+    else:
+        show(Text("DP states · compact rows (column index:value)"))
+        note("Columns: " + ", ".join(f"{j}:{label!r}" for j, label in enumerate(columns)))
+        for i, row in enumerate(values):
+            note(f"Row {i}:{rows[i]!r} · " + "  ".join(f"{j}:{entry(i, j)}" for j in range(len(row))))
+    note("* marks the current cell; ? means unfilled or unreachable. ↖ takes a match; ↑ moves up; ← moves left.")
+
+
+def dp_step(number, event):
+    step_caption(number, event)
+    if event.snapshot:
+        dp_table(event.snapshot, event.marks)
+
+
+def fibonacci_comparison(rows):
+    table = _table("Fibonacci call counts")
+    for title in ("Method", "Value", "Calls", "States"):
+        table.add_column(title)
+    for row in rows:
+        table.add_row(*(Text(str(value)) for value in row))
+    show(table)
+
+
+def recursion_tree(events, title, kind):
+    """Only called for bounded small examples; Rich wraps branches to the terminal width."""
+    root = Tree(Text(title), guide_style="muted")
+    nodes = {}
+    for event in events:
+        if event.kind != kind:
+            continue
+        parent = nodes.get(event.data["parent"], root)
+        nodes[event.data["identifier"]] = parent.add(Text(event.data["label"]))
+    show(root)
+
+
+def hanoi_pegs(pegs):
+    """Draw disk stacks from top to bottom, with a wrapped fallback for large disks."""
+    table = _table("Tower of Hanoi · top disk first")
+    for peg in "ABC":
+        table.add_column(peg, justify="center")
+    height = max(map(len, pegs), default=0)
+    for level in range(height, 0, -1):
+        table.add_row(*(Text("=" * peg[level - 1] + f" {peg[level - 1]}") if len(peg) >= level else Text("|") for peg in pegs))
+    if not height:
+        table.add_row("|", "|", "|")
+    if _fits(table):
+        show(table)
+    else:
+        show(Text("Tower of Hanoi · compact pegs"))
+        for name, peg in zip("ABC", pegs):
+            note(f"{name} top → bottom: " + repr(tuple(reversed(peg))))
+
+
+def queens_board(n, columns, marks=()):
+    table = _table("N-Queens board")
+    table.add_column("Row")
+    for column in range(n):
+        table.add_column(str(column))
+    for row in range(n):
+        entries = [("Q" if row < len(columns) and columns[row] == column else ".") +
+                   ("*" if (row, column) in marks else "") for column in range(n)]
+        table.add_row(str(row), *entries)
+    if _fits(table):
+        show(table)
+    else:
+        show(Text("N-Queens board · compact rows"))
+        note("Columns: " + " ".join(map(str, range(n))))
+        for row in range(n):
+            note(f"{row}: " + " ".join(("Q" if row < len(columns) and columns[row] == column else ".") +
+                                        ("*" if (row, column) in marks else "") for column in range(n)))
+    if n == 0:
+        note("Empty board: one empty solution.")
+    note("Q = queen; . = empty; * = current placement, removal or rejected square.")
+
+
+def backtracking_step(number, event):
+    step_caption(number, event)
+    if event.kind == "rec_move":
+        hanoi_pegs(event.snapshot)
+    elif event.kind in ("rec_place", "rec_remove", "rec_reject", "rec_solution"):
+        queens_board(*event.snapshot, event.marks)
+    else:
+        show(Text("Current permutation prefix: " + repr(event.snapshot)))
+
+
 # ---------------------------------------------------------------------------
 # Intro, guides and explanations
 # ---------------------------------------------------------------------------

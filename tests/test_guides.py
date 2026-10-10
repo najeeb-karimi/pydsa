@@ -115,6 +115,9 @@ def test_the_wheel_includes_every_guide(tmp_path):
     expected |= {"pydsa/core/segment_tree.py", "pydsa/core/fenwick_tree.py", "pydsa/ui/screens/range_trees.py"}
     expected |= {f"pydsa/{folder}/{name}.py" for folder in ("core", "ui/screens")
                  for name in ("lru_cache", "skip_list", "bloom_filter")}
+    expected |= {f"pydsa/{folder}/{module}.py" for folder in ("algorithms", "ui/screens")
+                 for module in ("dynamic_programming", "backtracking")}
+
     assert expected <= names
     assert {"pydsa/algorithms/grid_search.py", "pydsa/ui/screens/grid_search.py"} <= names
     assert {"pydsa/algorithms/string_search.py", "pydsa/ui/screens/string_algorithms.py"} <= names

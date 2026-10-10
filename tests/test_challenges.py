@@ -1,6 +1,7 @@
 """Prediction answers checked against simple independent models across random seeds."""
 
 import itertools
+import math
 from collections import deque
 import random
 
@@ -40,6 +41,38 @@ def minimum_tree(edges):
 
 def expected(topic, state):
     values = state.get("values")
+    if topic in ("dynamic-programming", "fibonacci"):
+        a, b = 0, 1
+        for _ in range(state["n"]):
+            a, b = b, a + b
+        return a
+    if topic == "knapsack":
+        return max(sum(state["values"][i] for i in range(4) if mask & (1 << i))
+                   for mask in range(16) if sum(state["weights"][i] for i in range(4) if mask & (1 << i)) <= state["capacity"])
+    if topic == "longest-common-subsequence":
+        first, second = state["first"], state["second"]
+        candidates = ("".join(first[i] for i in range(len(first)) if mask & (1 << i)) for mask in range(1 << len(first)))
+        def contained(text):
+            remaining = iter(second)
+            return all(any(character == candidate for candidate in remaining) for character in text)
+        return max(map(len, filter(contained, candidates)))
+    if topic == "coin-change":
+        queue, seen = deque([(0, 0)]), {0}
+        while queue:
+            amount, count = queue.popleft()
+            if amount == state["target"]:
+                return count
+            for coin in state["coins"]:
+                if amount + coin <= state["target"] and amount + coin not in seen:
+                    seen.add(amount + coin)
+                    queue.append((amount + coin, count + 1))
+    if topic in ("recursion-backtracking", "tower-of-hanoi"):
+        return 2 ** state["n"] - 1
+    if topic == "permutations":
+        return math.factorial(len(state["items"]))
+    if topic == "n-queens":
+        return sum(all(abs(a - b) != j - i for i, a in enumerate(board) for j, b in enumerate(board) if i < j)
+                   for board in itertools.permutations(range(state["n"])))
     if topic in challenges.STRING_TOPICS:
         text, pattern = state["text"], state["pattern"]
         return [i for i in range(len(text) - len(pattern) + 1) if text[i:i + len(pattern)] == pattern]

@@ -1904,6 +1904,108 @@ add("string-algorithms", "Compare Algorithms", "Compares actual character checks
     """)
 display("string-algorithms", "Draws the text and pattern with visible character indexes and spaces.", rows="Display")
 
+DP = "pydsa.algorithms.dynamic_programming"
+BACKTRACKING = "pydsa.algorithms.backtracking"
+add("fibonacci", "Plain Recursion", "Computes Fibonacci by making both smaller calls at every non-base state.",
+    rows="Plain Recursion", explained=True, sources=(f"{DP}:fibonacci_recursive", f"{DP}:_fibonacci"), pseudocode="""
+    fibonacci(n):
+        count this call
+        if n < 2: return n
+        return fibonacci(n - 1) + fibonacci(n - 2)
+    """)
+add("fibonacci", "Memoization", "Saves each Fibonacci result and reuses it on later calls.",
+    rows="Memoization", explained=True, sources=(f"{DP}:fibonacci_memoized", f"{DP}:_fibonacci"), pseudocode="""
+    fibonacci(n):
+        count this call, even when the cache has n
+        if n is cached: return cached result
+        value = n if n < 2, otherwise fibonacci(n - 1) + fibonacci(n - 2)
+        cache n with value; return value
+    """)
+add("fibonacci", "Table", "Fills Fibonacci entries from left to right using the preceding two values.",
+    rows="Table", explained=True, sources=f"{DP}:fibonacci_table", pseudocode="""
+    count one call
+    for i from 0 through n:
+        table[i] = i if i < 2, otherwise table[i - 1] + table[i - 2]
+    return table[n]
+    """)
+add("fibonacci", "Compare Call Counts", "Runs all three methods on the same index with fresh work counters.",
+    ["Count function entries, including cache hits, and separately count computed states.",
+     "Show identical answers beside their call and state counts."], rows="Compare Call Counts",
+    sources=tuple(f"{DP}:{name}" for name in ("fibonacci_recursive", "fibonacci_memoized", "fibonacci_table")),
+    pseudocode="""
+    for method in recursion, memoization, table:
+        reset counters; run method on n without snapshots
+        display result, calls and computed states
+    """)
+add("knapsack", "Solve", "Fills the item-by-capacity table and traces back which items were chosen.",
+    rows="Solve", explained=True, sources=f"{DP}:knapsack", pseudocode="""
+    initialize zero-item and zero-capacity entries to zero
+    for each item i and positive capacity c:
+        skip = previous row at c
+        take = item value + previous row at c - weight, if it fits
+        table[i][c] = max(skip, take)
+    walk rows backward; take an item only if the value differs from the previous row
+    subtract its weight from c when taken; reverse chosen indexes
+    """)
+add("longest-common-subsequence", "Solve", "Builds lengths and direction arrows, then follows them to rebuild a common subsequence.",
+    rows="Solve", explained=True, sources=f"{DP}:longest_common_subsequence", pseudocode="""
+    initialize empty-prefix lengths to zero
+    for each pair of prefix ends:
+        if characters match: diagonal length + 1; mark diagonal
+        otherwise keep the larger upper or left length; ties choose up
+    follow arrows backward from the final cell
+    collect characters only on diagonal moves; reverse the collected letters
+    """)
+add("coin-change", "Fewest Coins", "Solves each smaller amount before choosing the last coin of a minimum combination.",
+    rows="Fewest Coins", explained=True, sources=f"{DP}:minimum_coins", pseudocode="""
+    sort distinct positive denominations
+    minimum[0] = 0; other amounts start unreachable
+    for amount from 1 through target:
+        try each last coin with a reachable amount - coin
+        keep the smallest preceding count + 1 and remember that coin
+    subtract remembered coins from target to rebuild an optimum
+    return unreachable if the target has no count
+    """)
+add("coin-change", "Count Ways", "Counts unordered coin combinations by adding ways without and with each denomination.",
+    rows="Count Ways", explained=True, sources=f"{DP}:coin_change_ways", pseudocode="""
+    sort distinct positive denominations
+    zero amount has one empty combination; positive amounts with no coins have none
+    for each denomination coin and positive amount:
+        ways = previous row at amount
+        if coin fits: add this row at amount - coin, allowing reuse
+    return final row at target
+    """)
+add("tower-of-hanoi", "Solve", "Moves the tower from A to C without putting a larger disk above a smaller one.",
+    rows="Solve", explained=True, sources=f"{BACKTRACKING}:hanoi", pseudocode="""
+    move(n, source, target, spare):
+        if n == 0: return
+        move(n - 1, source, spare, target)
+        move the top disk from source to target; draw all pegs
+        move(n - 1, spare, target, source)
+    """)
+add("permutations", "Solve", "Tries every unused input position, recording complete permutations and undoing each choice.",
+    rows="Solve", explained=True, sources=f"{BACKTRACKING}:permutations", pseudocode="""
+    visit(prefix):
+        record this call in the recursion tree
+        if prefix has all items: record a permutation
+        otherwise for every unused input position:
+            mark it used; append its item; visit(prefix)
+            remove its item; mark it unused
+    """)
+add("n-queens", "Solve", "Explores nonattacking queen placements row by row and undoes each placement after its branch.",
+    rows="Solve", explained=True, sources=f"{BACKTRACKING}:n_queens", pseudocode="""
+    visit(row):
+        if all rows are filled: record a solution; return
+        for each column:
+            reject occupied columns or diagonals
+            place queen; mark column and diagonals; draw board
+            visit(row + 1)
+            remove queen and marks; draw board
+    """)
+for topic in ("fibonacci", "knapsack", "longest-common-subsequence", "coin-change", "tower-of-hanoi", "permutations", "n-queens"):
+    display(topic, "Shows the current input without solving it.", rows="Display")
+
+
 _BY_KEY = {(note.topic, note.operation): note for note in NOTES}
 
 

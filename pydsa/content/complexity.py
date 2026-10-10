@@ -288,7 +288,41 @@ STRING_ALGORITHMS = ComplexityTable(
     "and exclude optional traces and drawing. KMP includes prefix-table construction.",
 )
 
+FIBONACCI = ComplexityTable("Fibonacci methods", ("Operation", "Time", "Extra space"), (
+    ("Plain Recursion", "O(φ^n)", "O(n)"), ("Memoization", "O(n)", "O(n)"),
+    ("Table", "O(n)", "O(n)"), ("Compare Call Counts", "O(φ^n)", "O(n)"), ("Display", "O(1)", "O(1)")),
+    "n is the index; φ is about 1.618. Counts include cache-hit calls; the table method has one function call. "
+    "Arithmetic on growing integers, trace snapshots and rendering are excluded from these unit-cost bounds.")
+KNAPSACK = ComplexityTable("0/1 knapsack", ("Operation", "Time", "Extra space"), (
+    ("Solve", "O((n + 1)(C + 1))", "O((n + 1)(C + 1))"), ("Display", "O(n)", "O(n)")),
+    "n is item count and C is integer capacity. A full table supports reconstruction. "
+    "This is pseudo-polynomial in capacity; positive weights and nonnegative values are required. Traces and rendering are excluded.")
+LCS = ComplexityTable("Longest common subsequence", ("Operation", "Time", "Extra space"), (
+    ("Solve", "O((m + 1)(n + 1))", "O((m + 1)(n + 1))"), ("Display", "O(m + n)", "O(m + n)")),
+    "m and n are string lengths. Full length and direction tables support traceback, including empty prefixes. Traces and rendering are excluded.")
+COIN_CHANGE = ComplexityTable("Unlimited coin change", ("Operation", "Time", "Extra space"), (
+    ("Fewest Coins", "O(k log k + kA + A)", "O(k + A)"),
+    ("Count Ways", "O(k log k + (k + 1)(A + 1))", "O((k + 1)(A + 1))"),
+    ("Display", "O(k log k)", "O(k)")),
+    "k is the input denomination count and A is target amount. Denominations are sorted and deduplicated. "
+    "Ways count unordered combinations. Large-integer arithmetic, traces and rendering are excluded.")
+HANOI = ComplexityTable("Tower of Hanoi", ("Operation", "Time", "Extra space"), (
+    ("Solve", "O(2^n)", "O(2^n + n)"), ("Display", "O(n)", "O(n)")),
+    "n is disk count. The returned move list retains 2^n - 1 moves; the recursion stack alone uses linear space. Trace snapshots and rendering are excluded.")
+PERMUTATIONS = ComplexityTable("Permutations", ("Operation", "Time", "Extra space"), (
+    ("Solve", "O((n + 1)n!)", "O((n + 1)n!)"), ("Display", "O(n)", "O(n)")),
+    "n is item count. Every permutation is retained as a tuple; the search scans input positions at each node. "
+    "Equal input values still represent separate positions. Trace snapshots and rendering are excluded.")
+QUEENS = ComplexityTable("N-Queens", ("Operation", "Time", "Extra space"), (
+    ("Solve", "O(n · n!)", "O(n + sn)"), ("Display", "O(n²)", "O(n²)")),
+    "n is board side length and s is solution count. This upper bound includes scanning n columns per search node; "
+    "column and diagonal sets prune branches. Returned solutions are retained; traces and rendering are excluded.")
+
 TOPIC_TABLES = {
+    "dynamic-programming": (FIBONACCI, KNAPSACK, LCS, COIN_CHANGE), "fibonacci": (FIBONACCI,),
+    "knapsack": (KNAPSACK,), "longest-common-subsequence": (LCS,), "coin-change": (COIN_CHANGE,),
+    "recursion-backtracking": (HANOI, PERMUTATIONS, QUEENS), "tower-of-hanoi": (HANOI,),
+    "permutations": (PERMUTATIONS,), "n-queens": (QUEENS,),
     **_shared(STRING_ALGORITHMS, "string-algorithms", "naive-string-search", "kmp", "rabin-karp"),
     "a-star": (ComplexityTable(
         "Grid search", ("Operation", "Time", "Extra space"),

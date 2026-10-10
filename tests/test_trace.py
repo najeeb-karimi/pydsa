@@ -3,7 +3,7 @@
 import pytest
 import random
 
-from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting, string_search
+from pydsa.algorithms import backtracking, dynamic_programming, graph_algorithms, grid_search, searching, sorting, string_search
 from pydsa.content import narration
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.b_tree import BTree
@@ -384,7 +384,19 @@ def _missing(operation, *arguments):
     return trace
 
 
-ALL_EVENTS = [event for events in every_run() for event in events]
+def phase6_runs():
+    for function in (dynamic_programming.fibonacci_recursive, dynamic_programming.fibonacci_memoized, dynamic_programming.fibonacci_table):
+        yield traced(function, 5)
+    yield traced(dynamic_programming.knapsack, [1, 3, 4], [2, 4, 5], 4)
+    yield traced(dynamic_programming.longest_common_subsequence, "ABCBDAB", "BDCABA")
+    yield traced(dynamic_programming.minimum_coins, [1, 3, 4], 6)
+    yield traced(dynamic_programming.coin_change_ways, [1, 3, 4], 6)
+    yield traced(backtracking.hanoi, 3)
+    yield traced(backtracking.permutations, [1, 2, 3])
+    yield traced(backtracking.n_queens, 4)
+
+
+ALL_EVENTS = [event for events in (*every_run(), *phase6_runs()) for event in events]
 
 
 def test_every_step_has_a_caption_that_reads_as_a_sentence():

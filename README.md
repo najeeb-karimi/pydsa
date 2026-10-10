@@ -46,6 +46,8 @@ New to Python or the terminal? Follow the step-by-step [Installation](#-installa
 - **Graph Algorithms:** find shortest routes with Dijkstra or Bellman-Ford, including negative edges and visible negative cycles. Floyd-Warshall shows an all-pairs matrix after each intermediate vertex and rebuilds chosen paths. A* draws routes through grids with typed or random walls and compares expanded cells with Dijkstra. You can also order dependent tasks (Topological Sort), spot loops (Cycle Detection), and connect every point cheaply (Prim and Kruskal).
 
 - **String Algorithms:** find every occurrence of a pattern with Naive Search, KMP or Rabin-Karp. Watch alignments, prefix-table construction and reused comparisons, or rolling hashes and verified collisions. Type text and pattern, use an example or generate random strings, then compare character checks on the same input.
+- **Dynamic Programming:** compare Fibonacci recursion, memoization and tabulation by actual call counts. Fill 0/1 knapsack, longest common subsequence and coin-change tables step by step, then trace chosen items, subsequence characters or minimum coins. Coin change also counts unordered combinations.
+- **Recursion & Backtracking:** move Tower of Hanoi disks with every peg state recorded, follow permutation recursion trees, and watch N-Queens placements and backtracks while counting solutions. Typed, example and random inputs stay small enough to explore.
 
 **Learning Tools** (on the main menu):
 - **Overview:** a friendly introduction to data structures, algorithms and how their speed is measured.
@@ -178,7 +180,7 @@ While typing a value, the shortcuts start with `:`, so you can still enter a rea
 In quizzes, type `a`, `b`, `c` or `d` to answer; use `:b` to leave because `b` is an answer choice. Help and quit still work with `h` and `q`.
 
 ### ✍️ Typing Values
-- **Examples, random values or your own data:** every topic lets you start with a preloaded example, fill it with random values of the size you choose, or create your own, so you can explore before typing anything.
+- **Examples, random values or your own data:** every topic lets you start with a preloaded example, generate random inputs, or create your own, so you can explore before typing anything.
 - **Data types:** when you add an item, PyDSA may ask whether it's a `str` (text), an `int` (whole number) or a `float` (decimal number). Text is shown in quotes, so `'7'` is the text 7 and `7` is the number.
 - **Lists:** when PyDSA asks for several values at once, such as a list to sort, separate them with commas: `5, 3, 8, 1`.
 
@@ -192,7 +194,7 @@ Each quiz explains every answer and ends with a score. You can retry missed ques
 
 Predictions show new practice data, so they do not change the structure you were working with. Enter a number, a word, `true` or `false`, or a list such as `[1, 2, 3]`. Put quotes around words in a list, such as `['car', 'card']`. Correct predictions add to your solved count.
 
-Experiments count comparisons and writes, search probes, heap swaps, tree nodes visited, hash probes or parent hops. A steady **work ÷ expected(n)** ratio suggests that the measured work follows the chosen growth pattern. Input sizes are capped to keep runs short. Elapsed milliseconds are secondary: machine speed and tracing affect them, and input construction is excluded. For binary search, the work count covers probes only; preparing the sorted copy still takes work.
+Experiments count comparisons and writes, search probes, heap swaps, tree nodes visited, hash probes, parent hops, recursive calls, table cells, disk moves or candidate queen squares. A steady **work ÷ expected(n)** ratio suggests that the measured work follows the chosen growth pattern. Input sizes are capped to keep runs short. Elapsed milliseconds are secondary: machine speed and tracing affect them, and input construction is excluded. For binary search, the work count covers probes only; preparing the sorted copy still takes work.
 
 The main menu shows how many topics you have visited, and topic lists mark visits with `✓`. Progress is saved in `progress.json` beside your settings, under `~/.pydsa` or the folder named by `PYDSA_HOME`. Settings offers **Reset Progress**, with confirmation. Restoring settings defaults keeps your progress.
 
@@ -236,7 +238,7 @@ pytest
 ## 🗂️ Project Structure
 All the code is inside the `pydsa` folder:
 - `core/`: the data structures themselves.
-- `algorithms/`: the sorting, searching and graph algorithms.
+- `algorithms/`: sorting, searching, graphs, string search, dynamic programming and recursive algorithms.
 - `practice/`: quiz sessions, predictions checked against core operations, and bounded work-count experiments.
 - `ui/`: everything you see and type in the terminal, such as menus, prompts and output.
 - `content/`: the guides and the glossary (Markdown files in `content/guides`), the notes shown before every operation, the sentence for every kind of step, the ASCII art titles and the complexity tables.

@@ -5,7 +5,7 @@ from typing import Callable, NamedTuple
 from pydsa.ui.screens import (
     array, balanced_trees, deque, disjoint_set, graph, graph_algorithms, hash_set, hash_table, heap, linked_list, queue,
     bloom_filter, grid_search, lru_cache, range_trees, searching_algorithms, skip_list, sorting_algorithms, stack,
-    string_algorithms, tree, trie,
+    backtracking, dynamic_programming, string_algorithms, tree, trie,
 )
 
 CATEGORIES = {
@@ -82,6 +82,12 @@ TOPICS = (
     Topic("string-algorithms", "String Algorithms", "algorithms", string_algorithms.run),
     *(Topic(search.guide, search.name, "algorithms", string_algorithms.run, "string-algorithms")
       for search in string_algorithms.SEARCHES),
+    Topic("dynamic-programming", "Dynamic Programming", "algorithms", dynamic_programming.run),
+    *(Topic(kind.guide, kind.name, "algorithms", lambda kind=kind: dynamic_programming.run_kind(kind), "dynamic-programming")
+      for kind in dynamic_programming.KINDS),
+    Topic("recursion-backtracking", "Recursion & Backtracking", "algorithms", backtracking.run),
+    *(Topic(kind.guide, kind.name, "algorithms", lambda kind=kind: backtracking.run_kind(kind), "recursion-backtracking")
+      for kind in backtracking.KINDS),
 )
 
 

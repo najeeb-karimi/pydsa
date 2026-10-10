@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from time import perf_counter
 from typing import Callable
 
-from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting, string_search
+from pydsa.algorithms import backtracking, dynamic_programming, graph_algorithms, grid_search, searching, sorting, string_search
 from pydsa.core.graph import ListGraph
 from pydsa.core.disjoint_set import DisjointSet
 from pydsa.core.b_tree import BTree
@@ -362,6 +362,61 @@ EXPERIMENTS = (
 )
 
 
+def _dp_work(function, field):
+    def run(arguments):
+        stats = dynamic_programming.DPStats()
+        function(*arguments, stats=stats)
+        return getattr(stats, field)
+    return run
+
+
+def _recursive_work(function, field):
+    def run(data):
+        stats = backtracking.RecursionStats()
+        function(data, stats=stats)
+        return getattr(stats, field)
+    return run
+
+
+EXPERIMENTS += (
+    *(Experiment(f"fibonacci-{identifier}", "fibonacci", f"Fibonacci: {name}", expected, sizes,
+                 lambda n, mode, rng: (n,), _dp_work(function, field), growth,
+                 "n is the Fibonacci index. Input order does not change it; no trace snapshots are built. " +
+                 ("Work counts table entries, including both base states." if field == "cells" else
+                  "Work counts actual function entries, including memo cache hits; arithmetic is excluded."))
+      for identifier, name, function, field, expected, sizes, growth in (
+          ("recursive", "plain recursive calls", dynamic_programming.fibonacci_recursive, "calls", lambda n: ((1 + math.sqrt(5)) / 2) ** n, (4, 8, 12, 16), "φ^n"),
+          ("memoized", "memoized calls", dynamic_programming.fibonacci_memoized, "calls", lambda n: n, (8, 16, 32, 64, 128, 256), "n"),
+          ("table", "table entries", dynamic_programming.fibonacci_table, "cells", lambda n: n, (8, 16, 32, 64, 128, 256), "n"))),
+    Experiment("knapsack-cells", "knapsack", "Knapsack: growing items and capacity", lambda n: n * n,
+               (4, 8, 16, 32, 64), lambda n, mode, rng: ([1] * n, [1] * n, n),
+               _dp_work(dynamic_programming.knapsack, "cells"), "n²",
+               "n is both item count and capacity. Work counts non-base table cells filled; initialization and traceback are excluded. Input order is fixed; no snapshots are built."),
+    Experiment("lcs-cells", "longest-common-subsequence", "LCS: two growing strings", lambda n: n * n,
+               (4, 8, 16, 32, 64, 128), lambda n, mode, rng: ("AB" * (n // 2) + "A" * (n % 2), "BA" * (n // 2) + "B" * (n % 2)),
+               _dp_work(dynamic_programming.longest_common_subsequence, "cells"), "n²",
+               "n is the length of each string. Work counts non-base table cells; initialization and traceback are excluded. Input order keeps the same alternating strings; no snapshots are built."),
+    *(Experiment(f"coin-{identifier}", "coin-change", f"Coin change: {name}", lambda n: n * n,
+                 (4, 8, 16, 32, 64), lambda n, mode, rng: (list(range(1, n + 1)), n),
+                 _dp_work(function, "cells"), "n²",
+                 "n is both denomination count and target. Denominations are 1 through n. " + description +
+                 " Setup, reconstruction and rendering are excluded. Input order does not change this workload; no snapshots are built.")
+      for identifier, name, function, description in (
+          ("minimum", "last-coin checks", dynamic_programming.minimum_coins, "Work counts every denomination tested at every positive amount, even when it does not fit."),
+          ("ways", "combination cells", dynamic_programming.coin_change_ways, "Work counts non-base table cells filled."))),
+    Experiment("hanoi-moves", "tower-of-hanoi", "Hanoi: actual disk moves", lambda n: 2 ** n,
+               (2, 4, 6, 8, 10), lambda n, mode, rng: n, _recursive_work(backtracking.hanoi, "moves"), "2^n",
+               "n is disk count. Work counts actual moves from A to C, exactly 2^n - 1. Input order does not change the puzzle; no trace snapshots are built. Move-list allocation still affects time."),
+    Experiment("permutation-calls", "permutations", "Permutations: recursive calls", math.factorial,
+               (2, 3, 4, 5, 6), lambda n, mode, rng: ordered_input(n, mode, rng),
+               _recursive_work(backtracking.permutations, "calls"), "n!",
+               "n is distinct item count. Work counts actual recursive entries, including internal branches, not tuple-copying costs. No trace snapshots are built; all returned permutations are retained."),
+    Experiment("queens-checks", "n-queens", "N-Queens: candidate square checks", lambda n: n * math.factorial(n),
+               (2, 3, 4, 5, 6, 7, 8), lambda n, mode, rng: n, _recursive_work(backtracking.n_queens, "choices"), "n · n!",
+               "n is board side length. Work counts candidate squares tested, including rejected squares. The comparison is an upper growth bound; pruning changes ratios. Input order does not change the board; no snapshots are built."),
+)
+
+
 def for_topic(topic):
     families = {
         "array": {"sorting", "searching"}, "sorting": {"sorting"}, "searching": {"searching"},
@@ -369,6 +424,8 @@ def for_topic(topic):
         "priority-queue": {"heap"}, "hash-table": {"linear-probing-hash-table"},
         "graph-algorithms": {"bellman-ford", "floyd-warshall", "a-star"},
         "string-algorithms": {"naive-string-search", "kmp", "rabin-karp"},
+        "dynamic-programming": {"fibonacci", "knapsack", "longest-common-subsequence", "coin-change"},
+        "recursion-backtracking": {"tower-of-hanoi", "permutations", "n-queens"},
     }
     allowed = {topic, *families.get(topic, ())}
     if "sorting" in allowed:

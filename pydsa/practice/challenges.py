@@ -6,7 +6,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable
 
-from pydsa.algorithms import graph_algorithms, grid_search, searching, sorting, string_search
+from pydsa.algorithms import backtracking, dynamic_programming, graph_algorithms, grid_search, searching, sorting, string_search
 from pydsa.core.array import Array
 from pydsa.core.b_tree import BTree
 from pydsa.core.deque import Deque
@@ -96,14 +96,18 @@ GRAPH_TOPICS = {"graph", "adjacency-list-graph", "adjacency-matrix-graph", "grap
                 "dijkstra", "topological-sort", "cycle-detection", "prim", "kruskal", "bellman-ford", "floyd-warshall"}
 STRING_TOPICS = {"string-algorithms": string_search.naive_search, "naive-string-search": string_search.naive_search,
                  "kmp": string_search.kmp_search, "rabin-karp": string_search.rabin_karp}
+RECURSIVE_TOPICS = {"dynamic-programming", "fibonacci", "knapsack", "longest-common-subsequence", "coin-change",
+                    "recursion-backtracking", "tower-of-hanoi", "permutations", "n-queens"}
 SUPPORTED = frozenset({"a-star", "lru-cache", "skip-list", "bloom-filter", "segment-tree", "fenwick-tree", "array", "stack", "queue", "deque", "tree", "bst", "avl-tree", "red-black-tree", "b-tree", "heap", "min-heap",
                        "max-heap", "priority-queue", "trie", "hash-table", "chaining-hash-table",
                        "linear-probing-hash-table", "hash-set", "disjoint-set", "sorting", "searching"}
-                      | set(LINKED) | set(SORTS) | set(SEARCHES) | GRAPH_TOPICS | set(STRING_TOPICS))
+                      | set(LINKED) | set(SORTS) | set(SEARCHES) | GRAPH_TOPICS | set(STRING_TOPICS) | RECURSIVE_TOPICS)
 
 
 def make(topic, rng=None):
     rng = rng or random.Random()
+    if topic in RECURSIVE_TOPICS:
+        return _recursive(topic, rng)
     values = rng.sample(range(1, 30), 5)
     state = {"values": values}
     if topic in STRING_TOPICS:
@@ -327,6 +331,53 @@ def make(topic, rng=None):
     if topic in GRAPH_TOPICS:
         return _graph(topic, rng)
     raise KeyError(f"No prediction challenge for {topic!r}")
+
+
+def _recursive(topic, rng):
+    if topic in ("dynamic-programming", "fibonacci"):
+        state = {"n": rng.randint(2, 9)}
+        prompt, operation = "What is F(n), using F(0) = 0 and F(1) = 1?", lambda s: dynamic_programming.fibonacci_table(s["n"])
+        explanation = "Add the two preceding Fibonacci values at each index."
+    elif topic == "knapsack":
+        state = {"weights": [rng.randint(1, 5) for _ in range(4)], "values": [rng.randint(1, 9) for _ in range(4)],
+                 "capacity": rng.randint(4, 9)}
+        prompt = "What is the largest total value that fits? Each item can be taken once."
+        operation = lambda s: dynamic_programming.knapsack(s["weights"], s["values"], s["capacity"]).value
+        explanation = "Compare subsets under the capacity; the largest single item need not give the best subset."
+    elif topic == "longest-common-subsequence":
+        state = {"first": "".join(rng.choice("ABC") for _ in range(5)), "second": "".join(rng.choice("ABC") for _ in range(5))}
+        prompt, operation = "What is the length of a longest common subsequence?", lambda s: len(dynamic_programming.longest_common_subsequence(s["first"], s["second"]).sequence)
+        explanation = "Preserve order in both strings; gaps are allowed."
+    elif topic == "coin-change":
+        state = {"coins": [1, *rng.sample(range(2, 6), 2)], "target": rng.randint(3, 9)}
+        prompt, operation = "What is the fewest number of coins? Supplies are unlimited.", lambda s: dynamic_programming.minimum_coins(s["coins"], s["target"]).count
+        explanation = "Try every last denomination; a greedy largest-coin-first answer can be worse."
+    elif topic in ("recursion-backtracking", "tower-of-hanoi"):
+        state = {"n": rng.randint(1, 5)}
+        prompt, operation = "How many moves does this Hanoi tower need from A to C?", lambda s: len(backtracking.hanoi(s["n"]))
+        explanation = "Moving the smaller tower twice and the largest disk once gives 2^n - 1 moves."
+    elif topic == "permutations":
+        state = {"items": rng.sample(range(1, 10), rng.randint(2, 4))}
+        prompt, operation = "How many permutations do these distinct items have?", lambda s: len(backtracking.permutations(s["items"]))
+        explanation = "Choose each position once; the count is the factorial of the number of items."
+    else:
+        state = {"n": rng.randint(1, 5)}
+        prompt, operation = "How many N-Queens solutions does this board size have? Include symmetric solutions.", lambda s: len(backtracking.n_queens(s["n"]))
+        explanation = "Count all placements with one queen per row and no shared columns or diagonals."
+
+    def draw(s):
+        if topic == "knapsack":
+            render.dp_items(s["weights"], s["values"], s["capacity"])
+        elif topic in ("recursion-backtracking", "tower-of-hanoi"):
+            render.hanoi_pegs((tuple(range(s["n"], 0, -1)), (), ()))
+        elif topic == "n-queens":
+            render.queens_board(s["n"], ())
+        else:
+            from pydsa.ui.console import info
+            for key, value in s.items():
+                info(f"{key}: {value!r}.")
+
+    return _challenge(topic, prompt, state, state, operation, draw, explanation)
 
 
 def _graph(topic, rng):
