@@ -151,6 +151,39 @@ def test_disconnected_cycles_and_negative_self_loops():
     assert caught.value.cycle == [0, 0]
 
 
+@pytest.mark.parametrize("edges", [[(None, None, -1)], [(None, "start", 1), ("start", None, -2)]])
+def test_bellman_ford_detects_negative_cycles_with_none_vertex(edges):
+    graph = ListGraph()
+    for vertex in dict.fromkeys(v for edge in edges for v in edge[:2]):
+        graph.add_vertex(vertex)
+    for edge in edges:
+        graph.add_edge(*edge)
+    trace = []
+    with pytest.raises(NegativeCycleError) as caught:
+        algorithms.bellman_ford(graph, edges[0][0], trace)
+    cycle = caught.value.cycle
+    assert cycle[0] == cycle[-1] and None in cycle
+    assert path_cost(graph, cycle) < 0
+    assert trace[-1].kind == "bellman_cycle" and trace[-1].data["cycle"] == cycle
+    graph.add_vertex("isolated")
+    assert algorithms.bellman_ford(graph, "isolated").distances[None] == inf
+
+
+@pytest.mark.parametrize("representation", [ListGraph, MatrixGraph])
+@pytest.mark.parametrize("weight", [10 ** 400, -(10 ** 400)], ids=["positive", "negative"])
+def test_floyd_warshall_preserves_large_integer_weights(representation, weight):
+    graph = make_graph(4, [(0, 1, weight), (1, 2, 7)], representation)
+    trace = []
+    paths = algorithms.floyd_warshall(graph, trace)
+    for source in graph.vertices():
+        assert paths.distances[source] == algorithms.bellman_ford(graph, source).distances
+    assert paths.distances[0][2] == weight + 7
+    assert algorithms.all_pairs_path(paths, 0, 2) == [0, 1, 2]
+    assert algorithms.all_pairs_path(paths, 0, 3) is None
+    assert trace[-1].snapshot == paths.distances
+    assert sum(event.data["checks"] for event in trace) == 4 ** 3
+
+
 def test_pass_snapshots_and_highlights_match_restricted_paths():
     graph = make_graph(4, [(0, 1, 3), (1, 2, -2), (2, 3, 1), (0, 3, 8)])
     events = []

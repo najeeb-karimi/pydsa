@@ -7,7 +7,7 @@ are written the way the rest of PyDSA writes them.
 
 # The data keys that hold a value from the structure, which is written with the caller's label function
 VALUE_KEYS = frozenset({"a", "b", "value", "pivot", "key", "target", "node", "successor",
-                        "child", "parent", "word", "prefix", "char", "root", "top", "item"})
+                        "child", "parent", "word", "prefix", "char", "root", "top", "item", "sequence"})
 
 TEMPLATES = {
     "ss_empty": "The empty pattern matches all {count} boundaries, including the end of the text.",

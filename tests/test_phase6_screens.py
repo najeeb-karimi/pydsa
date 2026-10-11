@@ -184,6 +184,21 @@ def test_large_compact_states_and_unicode_controls_fit(width, capsys):
     assert "\x1b[" not in out and all(cell_len(line) <= width for line in out.splitlines())
 
 
+@pytest.mark.parametrize("width", [45, 90])
+def test_lcs_rebuild_captions_escape_control_characters(width, capsys):
+    console.width, console.no_color = width, True
+    text = "\t\x1b[2J\n[red]"
+    trace = []
+    assert dp.longest_common_subsequence(text, text, trace).sequence == text
+    for number, event in enumerate(trace, 1):
+        if event.kind == "dp_lcs_rebuild":
+            render.dp_step(number, event)
+    out = capsys.readouterr().out
+    assert "\\t" in out and "\\x1b" in out and "\\n" in out and "[red]" in out
+    assert "\x1b" not in out and "\t" not in out
+    assert all(cell_len(line) <= width for line in out.splitlines())
+
+
 def test_work_growth_counts_actual_operations():
     by_id = {e.id: e for e in experiments.EXPERIMENTS}
     sizes = (4, 8, 12, 16)

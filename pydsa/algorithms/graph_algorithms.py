@@ -114,11 +114,12 @@ def bellman_ford(graph, source, trace=None):
         if not changed:
             break
     # A full extra pass both detects the cycle and gives a predecessor inside it.
-    last = None
+    unchanged = object()  # None is a valid vertex label.
+    last = unchanged
     for u, v, weight in edges:
         if distances[u] != inf and distances[u] + weight < distances[v]:
             distances[v], previous[v], last = distances[u] + weight, u, v
-    if last is not None:
+    if last is not unchanged:
         for _ in vertices:
             last = previous[last]
         cycle, cursor = [last], previous[last]
@@ -154,6 +155,8 @@ def floyd_warshall(graph, trace=None):
         changed = {}
         for u in vertices:
             for v in vertices:
+                if distances[u][k] == inf or distances[k][v] == inf:
+                    continue  # No route through k; keep finite integer arithmetic exact.
                 candidate = distances[u][k] + distances[k][v]
                 if candidate < distances[u][v]:
                     distances[u][v], next_hop[u][v] = candidate, next_hop[u][k]
