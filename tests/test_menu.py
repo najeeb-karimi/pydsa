@@ -16,7 +16,7 @@ def test_options_are_numbered_with_zero_last(monkeypatch, capsys):
     feed(monkeypatch, "2")
     menu = Menu("Title?", [[("One", lambda: 1), ("Two", lambda: 2)], [back_option()]])
     assert menu.select() == 2
-    assert capsys.readouterr().out == "\nTitle?\n  1) One\n  2) Two\n\n  0) Go Back\nh help · b back · q quit\n"
+    assert capsys.readouterr().out == "\nTitle?\n  1) One\n  2) Two\n\n  0) Go Back\nh help · b back · q quit\n\n"
 
 
 def test_codes_are_right_aligned(capsys, monkeypatch):
@@ -65,7 +65,7 @@ def test_operation_menu_layout_and_navigation(monkeypatch, capsys):
     feed(monkeypatch, "1", "2", "3", "1", "0")  # Read the Guide, Push, Show the Code > Push, Exit
     assert menu.run() is Nav.EXIT
     out = capsys.readouterr().out
-    assert ("⚔️ What do you want to do with the thing?\n  1) Read the Guide\n  2) Push\n  3) Show the Code\n\n"
+    assert ("⚔️  What do you want to do with the thing?\n  1) Read the Guide\n  2) Push\n  3) Show the Code\n\n"
             "  4) New Thing\n  5) Main Menu\n  6) Practice\n  0) Exit\n") in out
     assert "📖 Stack" in out
     assert "💡 Push: Puts an item on top of the stack. · Cost: Time O(1) · Extra space O(1)\npushed\n" in out

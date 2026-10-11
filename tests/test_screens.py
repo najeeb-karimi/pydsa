@@ -31,7 +31,7 @@ def test_array(play):
         "2", "1", "hi", "1",
         "12", "0",  # Main Menu, then exit
     )
-    assert "⏱️ Array operations" in out
+    assert "⏱️  Array operations" in out
     assert "'abc' isn't a valid int." in out
     assert "Index 9 is out of bounds. Valid indexes are 0 to 4." in out
     assert "Inserted 7 at index 0." in out

@@ -70,6 +70,7 @@ def _one_at_a_time(events, draw):
         if number == total:
             return
         console.print(Text(f"Step {number} of {total} · Enter: next · a: the rest · s: stop", style="muted"))
+        console.print()
         answer = input(PROMPT).strip().lower()
         if answer == ":q":
             raise QuitRequested

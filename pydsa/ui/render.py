@@ -24,7 +24,7 @@ from rich.tree import Tree
 
 from pydsa import __version__, progress, settings
 from pydsa.content import complexity, narration, notes, registry, texts
-from pydsa.ui.console import console, info, page, plural, result
+from pydsa.ui.console import console, info, page, plural, result, spaced_label
 
 STRIKE = chr(0x0336)  # Combining long stroke overlay
 
@@ -59,7 +59,8 @@ def note(text):
 
 
 def _table(title=None, **options):
-    return Table(title=title, title_justify="left", title_style="title", header_style="muted", **options)
+    return Table(title=spaced_label(title) if title else title, title_justify="left", title_style="title",
+                 header_style="muted", **options)
 
 
 def _fits(table):
@@ -257,14 +258,15 @@ def topic_list(topics, categories):
 
 def _markdown_panel(text, title):
     """Return Markdown text from a guide in a panel, with its glossary links in bold."""
-    return Panel(Markdown(registry.markdown(text), hyperlinks=False), title=title, title_align="left",
+    return Panel(Markdown(registry.markdown(text), hyperlinks=False), title=spaced_label(title), title_align="left",
                  border_style="info", padding=(0, 1))
 
 
 def _sections(parsed, icons):
     """Return a guide's summary and sections as one Markdown text, with an icon before each heading."""
     parts = [f"> {parsed.summary}"]
-    parts += [f"## {icons.get(heading, '🔹')} {heading}\n\n{body}" for heading, body in parsed.sections]
+    parts += [f"## {spaced_label(icons.get(heading, '🔹') + ' ' + heading)}\n\n{body}"
+              for heading, body in parsed.sections]
     return "\n\n".join(parts)
 
 
@@ -362,7 +364,7 @@ def operation_note(note):
     cost_text = Text.assemble(("Cost: ", "title"), (cost, "code")) if cost else None
     if note.explained:
         if cost_text:
-            show(Text.assemble("⏱️ ", cost_text))
+            show(Text.assemble(spaced_label("⏱️ "), cost_text))
         return
     headline = Text.assemble((f"💡 {note.operation}: ", "title"), note.summary)
     if settings.current.detail == "brief" or not note.steps:

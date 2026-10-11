@@ -89,13 +89,21 @@ def yes_no(value):
     return "Yes" if value else "No"
 
 
+def spaced_label(label):
+    """Give a leading emoji-style icon room before its UI label, without changing the label's text."""
+    icon, separator, text = label.partition(" ")
+    if separator and icon.endswith("\ufe0f") and not text.startswith(" "):
+        return icon + "  " + text
+    return label
+
+
 # ---------------------------------------------------------------------------
 # Status messages
 # ---------------------------------------------------------------------------
 
 def _message(emoji, text, style):
     console.print()
-    console.print(Text(f"{emoji} {text}", style=style))
+    console.print(Text(spaced_label(f"{emoji} {text}"), style=style))
 
 
 def success(text):
@@ -137,7 +145,7 @@ def show_help(location):
         Text(),
         shortcuts,
         Text(),
-        Text.assemble(("You're at: ", "muted"), location),
+        Text.assemble(("You're at: ", "muted"), spaced_label(location)),
         Text("Choose Read the Guide in a topic's menu to read its guide, and Show the Code to see how an operation "
              "is written. On the main menu, Learning Tools has an overview and a glossary, and Settings changes how "
              "PyDSA behaves.", style="muted"),
@@ -159,7 +167,7 @@ def ask(question):
     """
     while True:
         console.print()
-        console.print(Text(question, style="title"))
+        console.print(Text(spaced_label(question), style="title"))
         text = input(PROMPT)
         command = text.strip().lower()
         if command in (":h", ":?"):
@@ -181,7 +189,7 @@ def _print_menu(title, groups, compact):
         options = [Text.assemble((f"{code})", "code"), " ", label) for group in groups for code, label in group]
         console.print(Columns(options, padding=(0, 4), column_first=True))
     else:
-        console.print(Text(title, style="title"))
+        console.print(Text(spaced_label(title), style="title"))
         for position, group in enumerate(groups):
             if position:
                 console.print()
@@ -189,6 +197,7 @@ def _print_menu(title, groups, compact):
                 console.print(Text.assemble("  ", (f"{code:>{width}})", "code"), " ", label))
     hint = "h help · :b back · q quit" if "b" in codes else MENU_HINT
     console.print(Text(hint, style="muted"))
+    console.print()
 
 
 def ask_code(title, groups, compact=False):
@@ -326,7 +335,7 @@ def page(renderable):
         console.print(renderable)
         return
 
-    size = max(height - 3, 5)  # Leave room for the hint, which can wrap, and the prompt
+    size = max(height - 4, 5)  # Leave room for the hint, which can wrap, the input gap and the prompt
     shown = 0
     while True:
         chunk = lines[shown:shown + size]
@@ -335,6 +344,7 @@ def page(renderable):
         if shown >= len(lines):
             return
         console.print(Text(f"{shown} of {len(lines)} lines · Enter: more · a: all · s: stop", style="muted"))
+        console.print()
         answer = input(PROMPT).strip().lower()
         if answer == ":q":
             raise QuitRequested

@@ -326,7 +326,7 @@ def test_guides_show_every_section_and_their_tables(capsys):
     out = capsys.readouterr().out
     assert "📖 Stack" in out
     assert all(heading in out for heading in registry.SECTIONS)
-    assert "⏱️ Stack operations" in out
+    assert "⏱️  Stack operations" in out
     assert "(glossary:" not in out
     assert "Words in bold are explained in the Glossary" in out
 
@@ -334,7 +334,7 @@ def test_guides_show_every_section_and_their_tables(capsys):
 def test_explanations_follow_the_detail_setting(capsys):
     render.explanation("bubble-sort")
     out = capsys.readouterr().out
-    assert "ℹ️ How Bubble Sort Works" in out
+    assert "ℹ️  How Bubble Sort Works" in out
     assert "bubbled" in out  # The summary
     assert "early" not in out  # Not the How it works section
     assert "set Explanations to Detailed" in out
@@ -364,6 +364,7 @@ def test_long_output_pauses_between_screenfuls(monkeypatch, capsys):
     render.guide("stack")
     out = capsys.readouterr().out
     assert out.count("Enter: more · a: all · s: stop") == 2
+    assert out.count("Enter: more · a: all · s: stop\n\n") == 2
     assert "In PyDSA" not in out  # Stopped before the end
 
     answers = iter(["a"])
@@ -409,7 +410,7 @@ def test_operation_notes_follow_the_detail_setting(capsys):
 
     render.operation_note(notes.find("sorting", "Bubble Sort"))
     out = capsys.readouterr().out
-    assert "⏱️ Cost: Best O(n) · Average O(n²) · Worst O(n²) · Extra space O(1)" in out
+    assert "⏱️  Cost: Best O(n) · Average O(n²) · Worst O(n²) · Extra space O(1)" in out
     assert "💡" not in out  # The algorithm explains itself
 
     render.operation_note(notes.find("stack", "Display"))

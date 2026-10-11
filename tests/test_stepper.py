@@ -66,7 +66,7 @@ def test_pause_walks_through_every_step(watching, typed, capsys):
     typed("", "", "", "", "")
     stepper.play(steps(), draw)
     assert numbers == [1, 2, 3, 4, 5, 6]
-    assert "Step 1 of 6 · Enter: next · a: the rest · s: stop" in capsys.readouterr().out
+    assert "Step 1 of 6 · Enter: next · a: the rest · s: stop\n\n" in capsys.readouterr().out
 
 
 def test_a_shows_the_rest_and_s_stops(watching, typed, capsys):

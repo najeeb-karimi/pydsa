@@ -89,7 +89,7 @@ def test_help_shortcuts(play):
     out = play("h", "1", "2", "1", ":h", "3", "0")
     assert out.count("❓ Help") == 2
     assert "You're at: 📂 What do you want to learn?" in out
-    assert "You're at: ↔️ How many items should the stack be able to hold?" in out
+    assert "You're at: ↔️  How many items should the stack be able to hold?" in out
     assert "Created an empty stack that holds up to 3 items." in out
 
 
@@ -108,7 +108,7 @@ def test_back_shortcuts(play):
 
 def test_operation_menus_show_their_title_once(play):
     out = play("1", "2", "2", "7", "5", "0")
-    assert out.count("⚔️ What do you want to do with the stack?") == 1
+    assert out.count("⚔️  What do you want to do with the stack?") == 1
     assert "The stack holds 2 of 5 items." in out
 
 
@@ -138,7 +138,7 @@ def test_read_the_guide_lets_you_pick_a_guide(play):
 
 def test_algorithm_explanations_follow_the_detail_setting(play):
     out = play("5", "1", "3", "2", "1", "0")  # Algorithms > Sorting > Use the example > Bubble Sort, ascending
-    assert "ℹ️ How Bubble Sort Works" in out and "set Explanations to Detailed" in out
+    assert "ℹ️  How Bubble Sort Works" in out and "set Explanations to Detailed" in out
 
     settings.save(Settings(detail="detailed"))  # Saved, because every session loads the settings file
     out = play("5", "1", "3", "2", "1", "0")
@@ -183,7 +183,7 @@ def test_learning_tools(play):
         "0", "0",
     )
     assert "Learning Tools" in out
-    assert "  1) Overview\n" in out and "🏗️ Data Structures and Algorithms" in out
+    assert "  1) Overview\n" in out and "🏗️  Data Structures and Algorithms" in out
     assert "↳ Bubble Sort" in out and "📖 Dijkstra's Algorithm" in out
     assert "📘 Glossary" in out and "Union by rank" in out
     assert "Found 1 term matching 'amort'." in out and "Amortized time" in out

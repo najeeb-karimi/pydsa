@@ -99,7 +99,7 @@ Here's a short session, trimmed to fit: the user opens the stack, loads the exam
 
 (The stack's title, summary and complexity table appear here.)
 
-🛠️ Do you want to create a stack yourself or use the preloaded example?
+🛠️  Do you want to create a stack yourself or use the preloaded example?
   1) Create a stack
   2) Use the example
   3) Fill with random values
@@ -118,7 +118,7 @@ Here's a short session, trimmed to fit: the user opens the stack, loads the exam
 │     0 │    10     │       │
 └───────┴───────────┴───────┘
 
-⚔️ What do you want to do with the stack?
+⚔️  What do you want to do with the stack?
    1) Read the Guide
    2) Push
    3) Pop
